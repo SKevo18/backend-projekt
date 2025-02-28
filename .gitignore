@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -168,4 +169,5 @@ cython_debug/
 #.idea/
 
 # PyPI configuration file
-.pypirc
+.pypircnode_modules/
+node_modules/
