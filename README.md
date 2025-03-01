@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Projekt – Backendové technológie (FPVaI UKF 2025)
 
 Tímový projekt pre predmet "Backendové technológie" (FPVaI UKF 2025) v 4. semestri bakalárskeho štúdia. Repozitár slúži pre obhajobu riešenia, pre zdieľanie a spoluprácu na zdrojovom kóde a pre definovanie postupov pri vývoji.
