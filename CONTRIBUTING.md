@@ -41,6 +41,8 @@ Ako na to:
 14. Sekcia "Description" sa používa pre detailnejší opis toho, čo ste spravili. Je to dobrovoľné – ak názov pull requestu postačuje, kľudne skipnite "Description".
 15. Konečne, kliknutím na "Create" vytvoríte nový pull request, ktorý sa odošle na GitHub. Následne vám ho niekto skontroluje, prípadne dá feedback pre opravu. Alebo ho mergne do hlavného branchu. Môžete taktiež priradiť commit niekomu ("assignee"), alebo požiadať o review.
 
+Ak je Pull Request vytvorený, ešte stále môžete odosielať commity v rámci toho istého branchu, a tieto sa automaticky pridajú do existujúceho pull requestu (ak nebol mergnutý). Prosím, nevytvárajte dodatočné pull requesty, ak sa týkajú toho istého branchu!
+
 ## Ako reviewnúť pull request
 
 1. Choďte na stránku pull requestu (napr.: #1)
