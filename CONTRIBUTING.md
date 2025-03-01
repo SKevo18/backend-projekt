@@ -45,10 +45,10 @@ Ak je Pull Request vytvorený, ešte stále môžete odosielať commity v rámci
 
 ## Ako reviewnúť pull request
 
-1. Choďte na stránku pull requestu (napr.: #1)
+1. Choďte na stránku pull requestu
 2. Kliknite na sekciu "Files Changed" (v hornej časti, pod názvom commitu)
 3. Skontrolujte, či je všetko v poriadku. Ak sa nastavíte na príslušný riadok, vľavo sa zobrazí modré "Plus" tlačidlo (➕). Môžete ho použiť pre zanechanie komentáru pre aktuálny riadok v súbore a dať nejaký feedback:
 ![PR feedback](readme/pr-feedback.png)
 4. Ak ste hotový, kliknite vpravo hore na zelené tlačidlo "Review changes". Zmeny môžete schváliť (approve), odmietnuť (reject) alebo iba dať feedback. Toto nemá žiadny vplyv na to, či môžeme pull request neskôr mergnúť, je to iba váš osobný názor na pull request a či by sa niečo malo zmeniť atď...
 
-Príklad PR: #1
+Príklad PR: [#2](https://github.com/SKevo18/backend-projekt/pull/2)
