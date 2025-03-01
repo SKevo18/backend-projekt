@@ -1,7 +1,6 @@
 <script setup>
 import { useUsersStore } from '../store/users';
 import { useRouter } from 'vue-router';
-import FooterComponent from '../components/FooterComponent.vue';
 
 const userStore = useUsersStore();
 const router = useRouter();
@@ -29,8 +28,6 @@ const logout = () => {
       <button v-if="firstName && secondName" @click="logout" class="btn btn-alt">Logout</button>
     </div>
   </div>
-
-  <FooterComponent/>
 </template>
 
 <style scoped>
