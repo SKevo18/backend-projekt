@@ -1,30 +1,34 @@
-<script>
+<script lang="ts">
 import { useUsersStore } from '../store/users'; 
 import { useRouter } from 'vue-router';
-import { ref } from 'vue';
 
 export default {
-  setup() {
-    const userStore = useUsersStore(); //don't ask my why i use const and ref :)
-    const router = useRouter();
-    const email = ref("");
-    const password = ref("");
-    const login = () => {
-      if (email.value === userStore.user_email && password.value === userStore.user_password) {
+  data() {
+    return {
+      email: "",
+      password: ""
+    }
+  },
+  methods: {
+    login() {
+      if (this.email === this.userStore.user_email && this.password === this.userStore.user_password) {
         
-        userStore.setUsersData({
-          first_name: userStore.first_name,
-          second_name: userStore.second_name,
-          user_email: email.value,
-          user_password: password.value,
+        this.userStore.setUsersData({
+          first_name: this.userStore.first_name,
+          second_name: this.userStore.second_name,
+          user_email: this.email,
+          user_password: this.password,
         });
-        router.push('/'); 
+        this.router.push('/'); 
       } else {
         alert("wrong Login or Password");
       }
-    };
-
-    return { email, password, login };
+    }
+  },
+  setup() {
+    const userStore = useUsersStore();
+    const router = useRouter();
+    return { userStore, router };
   },
 };
 </script>

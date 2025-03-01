@@ -1,15 +1,15 @@
-<script>
+<script lang="ts">
 import { useUsersStore } from '../store/users';
 import { useRouter } from 'vue-router';
 
 export default {
   data() {
     return {
-      first_name: '', //text size 2-10 symbol
-      second_name: '', //text size 2-10 symbol
-      user_email: '', //text size 2-15 symbol
-      user_password: '', //text size 2-15 symbol
-      confirm_password: '', //text size 2-15 symbol
+      first_name: '',
+      second_name: '',
+      user_email: '',
+      user_password: '',
+      confirm_password: '',
     };
   },
   setup() {
@@ -17,9 +17,14 @@ export default {
     const router = useRouter(); 
     return { userStore, router };
   },
+  computed: {
+    isPasswordValid(): boolean {
+      return this.user_password === this.confirm_password
+    }
+  },
   methods: {
     register() {
-      if (this.user_password !== this.confirm_password) { //small validatio password 
+      if (!this.isPasswordValid) {
         alert("Password not match!");
         return;
       }
@@ -31,7 +36,7 @@ export default {
         user_password: this.user_password,
       });
 
-      this.router.push('/'); //send user main page
+      this.router.push('/'); // redirect user to main page
     },
   },
 };
