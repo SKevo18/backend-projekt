@@ -21,13 +21,10 @@ const logout = () => {
     <div class="hero">
       <h1 v-if="firstName && secondName">Добро пожаловать, {{ firstName }} {{ secondName }}!</h1>
       <h1 v-else>Welcome to MyApp!</h1>
-      <!-- space Elon Mask-->
       <p v-if="!firstName || !secondName">Для полного доступа войдите или зарегистрируйтесь.</p>
       <p v-else>Super-Duper-2025-Backend-Project-Initial-GitHub-Europe-Herous-Commit.</p>
-      <!-- space Elon Mask-->
       <router-link to="/login" v-if="!firstName || !secondName" class="btn">Login</router-link>
       <router-link to="/register" v-if="!firstName || !secondName" class="btn btn-alt">Registration</router-link>
-      <!-- space Elon Mask-->
       <button v-if="firstName && secondName" @click="logout" class="btn btn-alt">Logout</button>
     </div>
   </div>
