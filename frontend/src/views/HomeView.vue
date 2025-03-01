@@ -1,6 +1,7 @@
 <script setup>
 import { useUsersStore } from '../store/users';
 import { useRouter } from 'vue-router';
+
 import HeaderComponent from '../components/HeaderComponent.vue';
 import FooterComponent from '../components/FooterComponent.vue';
 
@@ -32,8 +33,6 @@ const logout = () => {
       <button v-if="firstName && secondName" @click="logout" class="btn btn-alt">Logout</button>
     </div>
   </div>
-
-  <FooterComponent/>
 </template>
 
 <style scoped>
