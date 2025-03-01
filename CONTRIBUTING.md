@@ -32,7 +32,7 @@ Ako na to:
 9. Pod poľom "Message" sa nachádza veľké, modré tlačidlo "Commit". Máte na výber niekoľko možností:
     1. Buď kliknete na commit a vaše zmeny zostanú vo vašom lokálnom repozitári, a budete ich musieť manuálne odoslať na GitHub server (pushnúť)
     2. Alebo kliknete na šípku smerujúcu dole, ktorá sa nachádza v tlačidle napravo a vyberiete možnosť "Commit & Sync" – to zabezpečí, že váš commit sa automaticky odošle na GitHub server a zároveň sa zosynchronizujú všetky commity ktoré medzitým niekto odoslal na GitHub pred vami (v aktuálnom branchi). Ak máte vlastný branch, pravdepodobne sa vám nikto nebude pliesť pod nohy, ale je dobré zmeny synchronizovať aby sme si boli istý že máme za každým commitom najnovšiu verziu branchu (čo minimalizuje šance na vznik merge conflictov).
-    3. Môžte taktiež zvoliť možnosť "Commit & Create Pull Request", a 
+    3. Môžte taktiež zvoliť možnosť "Commit & Create Pull Request", a pushnúť zmeny na server v tom istom kroku – v tomto prípade pokračujte od kroku 12. nižšie.
 10. Commity sú teraz už na GitHube, vo vašom branchi. Môžete ich zobraziť tým, že na webovej stránke GitHubu vyberiete príslušný branch cez dropdown v ľavej hornej časti (hneď pod názvom repozitára).
 11. Avšak, ešte neexistuje žiadny pull request. Ten musíte vytvoriť tak, že kliknete na logo GitHubu (mačkochobotnicová vec v kruhu) v paneli na ľavo (kde je aj "Source Control" pre tvorbu commitov). Mala by to byť časť "Pull Requests":
 ![PR](readme/pr.png)
