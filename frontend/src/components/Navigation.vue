@@ -6,7 +6,6 @@
           <router-link to="/" class="nav-link">Home</router-link>
           <router-link to="/login" class="nav-link">Login</router-link>
           <router-link to="/register" class="nav-link">Registration</router-link>
-          <router-link to="/contact" class="nav-link">Contact</router-link>
         </div>
       </div>
     </nav>
