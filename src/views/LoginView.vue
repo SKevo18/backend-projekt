@@ -1,32 +1,47 @@
-<template>
-  <div class="auth-container">
-    <div class="auth-box">
-      <h2>Вход</h2>
-      <form @submit.prevent="login">
-        <input type="email" placeholder="Email" v-model="email" required />
-        <input type="password" placeholder="Пароль" v-model="password" required />
-        <button type="submit">Войти</button>
-      </form>
-      <p>Нет аккаунта? <router-link to="/register">Зарегистрироваться</router-link></p>
-    </div>
-  </div>
-</template>
-
 <script>
+import { useUsersStore } from '../store/users'; 
+import { useRouter } from 'vue-router';
+import { ref } from 'vue';
+
 export default {
-  data() {
-    return {
-      email: "",
-      password: "",
+  setup() {
+    const userStore = useUsersStore(); //don't ask my why i use const and ref :)
+    const router = useRouter();
+    const email = ref("");
+    const password = ref("");
+    const login = () => {
+      if (email.value === userStore.user_email && password.value === userStore.user_password) {
+        
+        userStore.setUsersData({
+          first_name: userStore.first_name,
+          second_name: userStore.second_name,
+          user_email: email.value,
+          user_password: password.value,
+        });
+        router.push('/'); 
+      } else {
+        alert("wrong Login or Password");
+      }
     };
-  },
-  methods: {
-    login() {
-      console.log("Авторизация:", this.email, this.password);
-    },
+
+    return { email, password, login };
   },
 };
 </script>
+
+<template>
+  <div class="auth-container">
+    <div class="auth-box">
+      <h2>Sign in</h2>
+      <form @submit.prevent="login">
+        <input type="email" placeholder="Email" v-model="email" required autocomplete="email" />
+        <input type="password" placeholder="password" v-model="password" required autocomplete="current-password" />
+        <button type="submit">Sign in</button>
+      </form>
+      <p>Don’t have an account? <router-link to="/register">Sign Up</router-link></p>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .auth-container {
@@ -68,3 +83,11 @@ export default {
   background: #0056b3;
 }
 </style>
+
+
+
+
+
+
+
+

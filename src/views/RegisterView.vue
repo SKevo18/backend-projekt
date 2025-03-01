@@ -1,36 +1,60 @@
+<script>
+import { useUsersStore } from '../store/users';
+import { useRouter } from 'vue-router';
+
+export default {
+  data() {
+    return {
+      first_name: '', //text size 2-10 symbol
+      second_name: '', //text size 2-10 symbol
+      user_email: '', //text size 2-15 symbol
+      user_password: '', //text size 2-15 symbol
+      confirm_password: '', //text size 2-15 symbol
+    };
+  },
+  setup() {
+    const userStore = useUsersStore();
+    const router = useRouter(); 
+    return { userStore, router };
+  },
+  methods: {
+    register() {
+      if (this.user_password !== this.confirm_password) { //small validatio password 
+        alert("Password not match!");
+        return;
+      }
+
+      this.userStore.setUsersData({
+        first_name: this.first_name,
+        second_name: this.second_name,
+        user_email: this.user_email,
+        user_password: this.user_password,
+      });
+
+      this.router.push('/'); //send user main page
+    },
+  },
+};
+</script>
+
 <template>
     <div class="auth-container">
       <div class="auth-box">
-        <h2>Регистрация</h2>
+        <h2>Registration</h2>
         <form @submit.prevent="register">
-          <input type="text" placeholder="Имя" v-model="name" required />
-          <input type="email" placeholder="Email" v-model="email" required />
-          <input type="password" placeholder="Пароль" v-model="password" required />
-          <button type="submit">Зарегистрироваться</button>
+          <input type="text" placeholder="Kevin" v-model="first_name" required />
+          <input type="text" placeholder="Svitač" v-model="second_name" required />
+          <input type="email" placeholder="kichatyisebastian@gmail.com" v-model="user_email"  autocomplete="email" required />
+          <input type="password" placeholder="Password" v-model="user_password" autocomplete="current-password" required />
+          <input type="password" placeholder="Confirm password" v-model="confirm_password" required />
+          <button type="submit">Registration</button>
         </form>
-        <p>Уже есть аккаунт? <router-link to="/login">Войти</router-link></p>
+        <p>Already have an account? <router-link to="/login">Sign In</router-link></p>
       </div>
     </div>
-  </template>
-  
-  <script>
-  export default {
-    data() {
-      return {
-        name: "",
-        email: "",
-        password: "",
-      };
-    },
-    methods: {
-      register() {
-        console.log("Регистрация:", this.name, this.email, this.password);
-      },
-    },
-  };
-  </script>
-  
-  <style scoped>
+</template>
+
+<style scoped>
   .auth-container {
     display: flex;
     justify-content: center;
@@ -59,7 +83,7 @@
   .auth-box button {
     width: 100%;
     padding: 10px;
-    background: #28a745;
+    background: #007bff;
     color: white;
     border: none;
     border-radius: 5px;
@@ -67,6 +91,6 @@
   }
   
   .auth-box button:hover {
-    background: #218838;
+    background: #0056b3;
   }
-  </style>  
+</style>
