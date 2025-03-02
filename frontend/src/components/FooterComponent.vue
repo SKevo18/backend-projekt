@@ -26,7 +26,8 @@
       </div>
     </div>
     <div class="copyright">
-      © 2025 nConnect | <a href="#" class="link">Terms of Service</a> | <a href="#" class="link">Privacy Policy</a>
+      © 2025 nConnect | <a href="#" class="link">Terms of Service</a> |
+      <a href="#" class="link">Privacy Policy</a>
     </div>
   </footer>
 </template>
@@ -43,7 +44,7 @@ export default {
   color: white;
   padding: 40px 0;
   font-size: 16px;
-  font-family: 'Arial', 'Helvetica', sans-serif;
+  font-family: "Arial", "Helvetica", sans-serif;
 }
 
 .container {

@@ -1,25 +1,26 @@
 <script>
-import { useUsersStore } from '../store/users';
-import { useRouter } from 'vue-router';
+import { useUsersStore } from "../store/users";
+import { useRouter } from "vue-router";
 
 export default {
   data() {
     return {
-      first_name: '', //text size 2-10 symbol
-      second_name: '', //text size 2-10 symbol
-      user_email: '', //text size 2-15 symbol
-      user_password: '', //text size 2-15 symbol
-      confirm_password: '', //text size 2-15 symbol
+      first_name: "", //text size 2-10 symbol
+      second_name: "", //text size 2-10 symbol
+      user_email: "", //text size 2-15 symbol
+      user_password: "", //text size 2-15 symbol
+      confirm_password: "", //text size 2-15 symbol
     };
   },
   setup() {
     const userStore = useUsersStore();
-    const router = useRouter(); 
+    const router = useRouter();
     return { userStore, router };
   },
   methods: {
     register() {
-      if (this.user_password !== this.confirm_password) { //small validatio password 
+      if (this.user_password !== this.confirm_password) {
+        //small validatio password
         alert("Password not match!");
         return;
       }
@@ -31,66 +32,90 @@ export default {
         user_password: this.user_password,
       });
 
-      this.router.push('/'); //send user main page
+      this.router.push("/"); //send user main page
     },
   },
 };
 </script>
 
 <template>
-    <div class="auth-container">
-      <div class="auth-box">
-        <h2>Registration</h2>
-        <form @submit.prevent="register">
-          <input type="text" placeholder="Kevin" v-model="first_name" required />
-          <input type="text" placeholder="Svitač" v-model="second_name" required />
-          <input type="email" placeholder="kichatyisebastian@gmail.com" v-model="user_email"  autocomplete="email" required />
-          <input type="password" placeholder="Password" v-model="user_password" autocomplete="current-password" required />
-          <input type="password" placeholder="Confirm password" v-model="confirm_password" required />
-          <button type="submit">Registration</button>
-        </form>
-        <p>Already have an account? <router-link to="/login">Sign In</router-link></p>
-      </div>
+  <div class="auth-container">
+    <div class="auth-box">
+      <h2>Registration</h2>
+      <form @submit.prevent="register">
+        <input type="text" placeholder="Kevin" v-model="first_name" required />
+        <input
+          type="text"
+          placeholder="Svitač"
+          v-model="second_name"
+          required
+        />
+        <input
+          type="email"
+          placeholder="kichatyisebastian@gmail.com"
+          v-model="user_email"
+          autocomplete="email"
+          required
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          v-model="user_password"
+          autocomplete="current-password"
+          required
+        />
+        <input
+          type="password"
+          placeholder="Confirm password"
+          v-model="confirm_password"
+          required
+        />
+        <button type="submit">Registration</button>
+      </form>
+      <p>
+        Already have an account? <router-link to="/login">Sign In</router-link>
+      </p>
     </div>
+  </div>
 </template>
 
 <style scoped>
-  .auth-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    background-color: #f5f5f5;
-  }
-  
-  .auth-box {
-    background: white;
-    padding: 2rem;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    width: 300px;
-    text-align: center;
-  }
-  
-  .auth-box input {
-    width: 100%;
-    padding: 10px;
-    margin: 10px 0;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-  }
-  
-  .auth-box button {
-    width: 100%;
-    padding: 10px;
-    background: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  
-  .auth-box button:hover {
-    background: #0056b3;
-  }
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #f5f5f5;
+}
+
+.auth-box {
+  background: white;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  width: 300px;
+  text-align: center;
+}
+
+.auth-box input {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.auth-box button {
+  width: 100%;
+  padding: 10px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.auth-box button:hover {
+  background: #0056b3;
+}
 </style>
