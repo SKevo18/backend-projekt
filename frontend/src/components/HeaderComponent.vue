@@ -1,18 +1,12 @@
-<script lang="ts">
-export default {
-  name: "HeaderComponent",
-  
-}
-</script>
-
 <template>
   <nav class="nav">
     <div class="nav-container">
-      <div class="logo">nConnect</div>
+      <div class="logo">MyApp</div>
       <div class="nav-links">
-        <router-link to="/" class="nav-link">Domov</router-link>
+        <router-link to="/" class="nav-link">Home</router-link>
         <router-link to="/login" class="nav-link">Login</router-link>
-        <router-link to="/register" class="nav-link">Registrácia</router-link>
+        <router-link to="/register" class="nav-link">Registration</router-link>
+        <router-link to="/contact" class="nav-link">Contact</router-link>
       </div>
     </div>
   </nav>

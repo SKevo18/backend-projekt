@@ -1,6 +1,7 @@
 <script setup>
 import { useUsersStore } from '../store/users';
 import { useRouter } from 'vue-router';
+import HeaderComponent from '../components/HeaderComponent.vue';
 import FooterComponent from '../components/FooterComponent.vue';
 
 const userStore = useUsersStore();
@@ -18,6 +19,8 @@ const logout = () => {
 </script>
 
 <template>
+  <HeaderComponent />
+
   <div class="home">
     <div class="hero">
       <h1 v-if="firstName && secondName">Добро пожаловать, {{ firstName }} {{ secondName }}!</h1>

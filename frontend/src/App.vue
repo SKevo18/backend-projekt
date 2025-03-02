@@ -1,6 +1,5 @@
 <script lang="ts">
 import "./main.css"
-import HeaderComponent from "./components/HeaderComponent.vue"
 
 export default {
   name: "App",
@@ -11,6 +10,5 @@ export default {
 </script>
 
 <template>
-  <HeaderComponent />
   <router-view />
 </template>
