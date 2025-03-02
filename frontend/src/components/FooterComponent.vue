@@ -3,7 +3,7 @@
     <div class="container">
       <div class="footer-section">
         <img
-          src="../assets/logo-nconnect.png"
+          src="@/assets/logo-nconnect.png"
           alt="nConnect Logo - Connecting IT Communities"
           class="logo"
         />
