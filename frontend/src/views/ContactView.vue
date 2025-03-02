@@ -35,7 +35,7 @@
 </template>
 
 <script>
-import FooterComponent from "../components/FooterComponent.vue";
+import FooterComponent from "@/components/FooterComponent.vue";
 import kevinImage from "@/assets/kevin.jpg";
 import romiImage from "@/assets/romi.jpg";
 
