@@ -1,12 +1,5 @@
-<script lang="ts">
-import "./main.css"
-
-export default {
-  name: "App",
-  components: {
-    HeaderComponent
-  }
-}
+<script setup lang="ts">
+import "./main.css";
 </script>
 
 <template>
