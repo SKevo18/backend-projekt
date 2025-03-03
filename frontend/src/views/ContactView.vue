@@ -20,18 +20,24 @@
     </div>
   </div>
 
-
   <!-- Ak chceme používať Google Maps bez cookies (čo znamená, že nevyužívate dynamické zobrazenie mapy cez Google Maps JavaScript API),
     problémom môže byť niekoľko vecí. 
     Dostal som si: "Chrome is moving towards a new experience that allows users to choose to browse without third-party cookies." -->
   <div class="google-map">
-    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d38630.23096179409!2d18.075449189646186!3d48.30802355207554!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x476b3ee583e728a7%3A0xe70919ee435d2989!2sSlovak%20University%20of%20Agriculture%20in%20Nitra!5e0!3m2!1sen!2ssk!4v1740863499661!5m2!1sen!2ssk" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+    <iframe
+      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d38630.23096179409!2d18.075449189646186!3d48.30802355207554!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x476b3ee583e728a7%3A0xe70919ee435d2989!2sSlovak%20University%20of%20Agriculture%20in%20Nitra!5e0!3m2!1sen!2ssk!4v1740863499661!5m2!1sen!2ssk"
+      width="600"
+      height="450"
+      style="border: 0"
+      allowfullscreen=""
+      loading="lazy"
+      referrerpolicy="no-referrer-when-downgrade"
+    ></iframe>
   </div>
 
   <div class="footer">
-  <FooterComponent />
+    <FooterComponent />
   </div>
-  
 </template>
 
 <script>
@@ -67,20 +73,20 @@ export default {
 <style scoped>
 .contact-header {
   background-color: #1a1a1a;
-  width: 100%; 
+  width: 100%;
   display: flex;
-  justify-content: center; 
+  justify-content: center;
   align-items: center;
-  height: 15em; 
-  padding: 20px 0; 
+  height: 15em;
+  padding: 20px 0;
 }
 
 .contact-header-text {
   color: white;
   font-size: 40px;
   font-weight: bold;
-  text-align: left; 
-  width: 100%; 
+  text-align: left;
+  width: 100%;
   padding-left: 20rem;
 }
 
@@ -154,10 +160,9 @@ export default {
   text-decoration: underline;
 }
 
-
 .google-map {
   width: 100%;
-  height: 300px; 
+  height: 300px;
 }
 
 .google-map iframe {
@@ -167,4 +172,3 @@ export default {
   object-fit: cover;
 }
 </style>
-

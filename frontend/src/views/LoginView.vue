@@ -1,7 +1,7 @@
 <script>
-import { useUsersStore } from '../store/users'; 
-import { useRouter } from 'vue-router';
-import { ref } from 'vue';
+import { useUsersStore } from "../store/users";
+import { useRouter } from "vue-router";
+import { ref } from "vue";
 
 export default {
   setup() {
@@ -10,15 +10,17 @@ export default {
     const email = ref("");
     const password = ref("");
     const login = () => {
-      if (email.value === userStore.user_email && password.value === userStore.user_password) {
-        
+      if (
+        email.value === userStore.user_email &&
+        password.value === userStore.user_password
+      ) {
         userStore.setUsersData({
           first_name: userStore.first_name,
           second_name: userStore.second_name,
           user_email: email.value,
           user_password: password.value,
         });
-        router.push('/'); 
+        router.push("/");
       } else {
         alert("wrong Login or Password");
       }
@@ -34,11 +36,25 @@ export default {
     <div class="auth-box">
       <h2>Sign in</h2>
       <form @submit.prevent="login">
-        <input type="email" placeholder="Email" v-model="email" required autocomplete="email" />
-        <input type="password" placeholder="password" v-model="password" required autocomplete="current-password" />
+        <input
+          type="email"
+          placeholder="Email"
+          v-model="email"
+          required
+          autocomplete="email"
+        />
+        <input
+          type="password"
+          placeholder="password"
+          v-model="password"
+          required
+          autocomplete="current-password"
+        />
         <button type="submit">Sign in</button>
       </form>
-      <p>Don’t have an account? <router-link to="/register">Sign Up</router-link></p>
+      <p>
+        Don’t have an account? <router-link to="/register">Sign Up</router-link>
+      </p>
     </div>
   </div>
 </template>
@@ -83,11 +99,3 @@ export default {
   background: #0056b3;
 }
 </style>
-
-
-
-
-
-
-
-

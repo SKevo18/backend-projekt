@@ -1,7 +1,7 @@
 <script setup>
-import { useUsersStore } from '../store/users';
-import { useRouter } from 'vue-router';
-import FooterComponent from '../components/FooterComponent.vue';
+import { useUsersStore } from "../store/users";
+import { useRouter } from "vue-router";
+import FooterComponent from "../components/FooterComponent.vue";
 
 const userStore = useUsersStore();
 const router = useRouter();
@@ -13,24 +13,43 @@ const secondName = userStore.second_name;
 //logout user
 const logout = () => {
   userStore.clearUsersData();
-  router.push('/login'); // user catapult login page
+  router.push("/login"); // user catapult login page
 };
 </script>
 
 <template>
   <div class="home">
     <div class="hero">
-      <h1 v-if="firstName && secondName">Добро пожаловать, {{ firstName }} {{ secondName }}!</h1>
+      <h1 v-if="firstName && secondName">
+        Добро пожаловать, {{ firstName }} {{ secondName }}!
+      </h1>
       <h1 v-else>Welcome to MyApp!</h1>
-      <p v-if="!firstName || !secondName">Для полного доступа войдите или зарегистрируйтесь.</p>
-      <p v-else>Super-Duper-2025-Backend-Project-Initial-GitHub-Europe-Herous-Commit.</p>
-      <router-link to="/login" v-if="!firstName || !secondName" class="btn">Login</router-link>
-      <router-link to="/register" v-if="!firstName || !secondName" class="btn btn-alt">Registration</router-link>
-      <button v-if="firstName && secondName" @click="logout" class="btn btn-alt">Logout</button>
+      <p v-if="!firstName || !secondName">
+        Для полного доступа войдите или зарегистрируйтесь.
+      </p>
+      <p v-else>
+        Super-Duper-2025-Backend-Project-Initial-GitHub-Europe-Herous-Commit.
+      </p>
+      <router-link to="/login" v-if="!firstName || !secondName" class="btn"
+        >Login</router-link
+      >
+      <router-link
+        to="/register"
+        v-if="!firstName || !secondName"
+        class="btn btn-alt"
+        >Registration</router-link
+      >
+      <button
+        v-if="firstName && secondName"
+        @click="logout"
+        class="btn btn-alt"
+      >
+        Logout
+      </button>
     </div>
   </div>
 
-  <FooterComponent/>
+  <FooterComponent />
 </template>
 
 <style scoped>
@@ -96,5 +115,3 @@ button:hover {
   opacity: 0.8;
 }
 </style>
-
-
