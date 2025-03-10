@@ -19,9 +19,14 @@ Zdrojový kód pre FastAPI aplikáciu.
     - Mac/Linux: `source .venv/bin/activate`
     - Windows: `.\.venv\Scripts\activate`
 4. `pip install -r requirements.txt`
-5. Pridať `DATABASE_URL` do env premenných, napr.:
-    - Mac/Linux: `export DATABASE_URL="sqlite:///db.sqlite"`
-    - Windows: `set DATABASE_URL="sqlite:///db.sqlite"`
+5. Pridať `DATABASE_URL` do env premenných, Windows:
+
+```
+  get-content .env | foreach {
+    $name, $value = $_.split('=')
+    set-content env:\$name $value
+  }
+```
 6. `uvicorn main:API --reload`
     - alebo: `python main.py`
 
