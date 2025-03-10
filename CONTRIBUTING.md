@@ -51,4 +51,4 @@ Ak je Pull Request vytvorený, ešte stále môžete odosielať commity v rámci
 ![PR feedback](readme/pr-feedback.png)
 4. Ak ste hotový, kliknite vpravo hore na zelené tlačidlo "Review changes". Zmeny môžete schváliť (approve), odmietnuť (reject) alebo iba dať feedback. Toto nemá žiadny vplyv na to, či môžeme pull request neskôr mergnúť, je to iba váš osobný názor na pull request a či by sa niečo malo zmeniť atď...
 
-Príklad PR: [#2](https://github.com/SKevo18/backend-projekt/pull/2)
+Príklad PR: [#1](https://github.com/SKevo18/backend-projekt/pull/1)
