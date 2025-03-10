@@ -22,7 +22,7 @@ Zdrojový kód pre FastAPI aplikáciu.
 5. Pridať `DATABASE_URL` do env premenných, Windows:
 
 ```
-  get-content test.env | foreach {
+  get-content .env | foreach {
     $name, $value = $_.split('=')
     set-content env:\$name $value
   }
