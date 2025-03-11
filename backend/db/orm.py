@@ -1,3 +1,4 @@
+from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column, declarative_base
 
 Base = declarative_base()
@@ -6,4 +7,7 @@ Base = declarative_base()
 class Test(Base):
     __tablename__ = "test"
     id: Mapped[int] = mapped_column(primary_key=True)
-    data: Mapped[str] = mapped_column(nullable=False)
+    data: Mapped[str] = mapped_column(
+        String(100),  # mysql VARCHAR needs length
+        nullable=False,
+    )

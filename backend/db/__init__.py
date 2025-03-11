@@ -8,8 +8,7 @@ from db.orm import Base
 
 class Database:
     def __init__(self):
-        url = os.getenv("DATABASE_URL")
-        assert url is not None, "nastav env pre `DATABASE_URL`"
+        url = f"mysql+pymysql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
 
         self.engine = create_engine(url)
         self.session = Session(self.engine)

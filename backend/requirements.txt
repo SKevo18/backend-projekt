@@ -1,4 +1,6 @@
 sqlalchemy
-fastapi
+alembic
+pymysql
 
+fastapi
 uvicorn
