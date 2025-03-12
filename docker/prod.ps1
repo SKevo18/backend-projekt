@@ -1,3 +1,8 @@
+# cd in dir of script
+$scriptPath = $MyInvocation.MyCommand.Path
+$scriptDir = Split-Path -Path $scriptPath -Parent
+Set-Location -Path $scriptDir
+
 # set env
 if (-not $env:DB_ROOT_PASSWORD) {
     $secureRootPwd = Read-Host -Prompt "'DB_ROOT_PASSWORD' = " -AsSecureString
@@ -14,4 +19,4 @@ if (-not $env:DB_PASSWORD) {
 }
 
 # run
-docker compose --profile="https" -f docker-compose.yaml up -d --build 
+docker compose --profile="https" -f docker-compose.yaml up -d --build
