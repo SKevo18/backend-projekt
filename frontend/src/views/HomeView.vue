@@ -2,6 +2,7 @@
 import { useUsersStore } from "../store/users";
 import { useRouter } from "vue-router";
 import FooterComponent from "../components/FooterComponent.vue";
+import SideBar from "../components/SideBar.vue";
 
 const userStore = useUsersStore();
 const router = useRouter();
@@ -18,46 +19,42 @@ const logout = () => {
 </script>
 
 <template>
-  <div class="home">
-    <div class="hero">
-      <h1 v-if="firstName && secondName">
-        Добро пожаловать, {{ firstName }} {{ secondName }}!
-      </h1>
-      <h1 v-else>Welcome to MyApp!</h1>
-      <p v-if="!firstName || !secondName">
-        Для полного доступа войдите или зарегистрируйтесь.
-      </p>
-      <p v-else>
-        Super-Duper-2025-Backend-Project-Initial-GitHub-Europe-Herous-Commit.
-      </p>
-      <router-link to="/login" v-if="!firstName || !secondName" class="btn"
-        >Login</router-link
-      >
-      <router-link
-        to="/register"
-        v-if="!firstName || !secondName"
-        class="btn btn-alt"
-        >Registration</router-link
-      >
-      <button
-        v-if="firstName && secondName"
-        @click="logout"
-        class="btn btn-alt"
-      >
-        Logout
-      </button>
+  <div class="home-container">
+    <SideBar />
+    <div class="home">
+      <div class="hero">
+        <h1 v-if="firstName && secondName">
+          Welcome, {{ firstName }} {{ secondName }}!
+        </h1>
+        <h1 v-else>Welcome to MyApp!</h1>
+        <p v-if="!firstName || !secondName">
+          For full access, please log in or register.
+        </p>
+        <p v-else>
+          Super-Duper-2025-Backend-Project-Initial-GitHub-Europe-Herous-Commit.
+        </p>
+        <router-link to="/login" v-if="!firstName || !secondName" class="btn">Login</router-link>
+        <router-link to="/register" v-if="!firstName || !secondName" class="btn btn-alt">Registration</router-link>
+        <button v-if="firstName && secondName" @click="logout" class="btn btn-alt">
+          Logout
+        </button>
+      </div>
     </div>
   </div>
-
   <FooterComponent />
 </template>
 
 <style scoped>
+.home-container {
+  display: flex;
+  min-height: 100vh;
+}
+
 .home {
+  flex-grow: 1;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: calc(100vh);
   text-align: center;
   background: linear-gradient(to right, #007bff, #00c6ff);
   color: white;
@@ -66,16 +63,6 @@ const logout = () => {
 .hero {
   max-width: 600px;
   padding: 20px;
-}
-
-h1 {
-  font-size: 2.5rem;
-  margin-bottom: 10px;
-}
-
-p {
-  font-size: 1.2rem;
-  margin-bottom: 20px;
 }
 
 .btn {
