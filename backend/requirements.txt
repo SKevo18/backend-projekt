@@ -1,4 +1,6 @@
-sqlalchemy
 fastapi
+
+sqlalchemy
+alembic
 
 uvicorn

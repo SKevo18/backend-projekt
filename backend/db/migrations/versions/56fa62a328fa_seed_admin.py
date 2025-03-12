@@ -1,0 +1,36 @@
+"""seed_admin
+
+Revision ID: 56fa62a328fa
+Revises: fa890e4c9a13
+Create Date: 2025-03-10 18:43:15.087475
+
+"""
+
+import sqlalchemy as sa
+from alembic import op
+
+from orm import User
+
+# revision identifiers, used by Alembic.
+revision = "56fa62a328fa"
+down_revision = "fa890e4c9a13"
+branch_labels = None
+depends_on = None
+
+
+def upgrade() -> None:
+    """Použije sa pri `alembic upgrade ...`."""
+
+    op.execute(
+        sa.insert(User).values(
+            username="admin",
+            email="admin@nieco.sk",
+            password="admin",  # FIXME: hashovanie (bcrypt)
+        )
+    )
+
+
+def downgrade() -> None:
+    """Použije sa pri `alembic downgrade ...`."""
+
+    op.execute(sa.delete(User).where(User.username == "admin"))
