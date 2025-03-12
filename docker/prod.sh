@@ -1,4 +1,6 @@
 #!/bin/bash
+# cd in dir of script
+cd "$(dirname "$0")"
 
 # set env
 if [ -z "$DB_ROOT_PASSWORD" ]; then
@@ -15,4 +17,4 @@ export DB_ROOT_PASSWORD
 export DB_PASSWORD
 
 # run
-docker compose --profile="https" -f docker-compose.yaml up -d --build 
+docker compose --profile="https" -f docker-compose.yaml up -d --build

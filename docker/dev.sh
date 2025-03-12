@@ -1,4 +1,6 @@
 #!/bin/bash
+# cd in dir of script
+cd "$(dirname "$0")"
 
 # set env
 if [ -z "$DB_ROOT_PASSWORD" ]; then
