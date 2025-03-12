@@ -1,13 +1,20 @@
 from sqlalchemy import String
-from sqlalchemy.orm import Mapped, mapped_column, declarative_base
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
-Base = declarative_base()
+from datetime import datetime
 
 
-class Test(Base):
-    __tablename__ = "test"
+class Base(DeclarativeBase):
+    pass
+
+
+class User(Base):
+    __tablename__ = "users"
+
     id: Mapped[int] = mapped_column(primary_key=True)
-    data: Mapped[str] = mapped_column(
-        String(100),  # mysql VARCHAR needs length
-        nullable=False,
-    )
+
+    username: Mapped[str] = mapped_column(nullable=False, index=True)
+    email: Mapped[str] = mapped_column(nullable=False, index=True)
+    password: Mapped[str] = mapped_column(nullable=False)
+
+    registered_at: Mapped[datetime] = mapped_column(default=datetime.now)
