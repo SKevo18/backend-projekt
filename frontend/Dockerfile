@@ -1,6 +1,6 @@
 # stage 1 - build
 # "as builder" = name of the stage, so we can reference it in the next stage
-FROM node:18-alpine as builder
+FROM node:18-alpine AS builder
 WORKDIR /app
 
 COPY package*.json ./
