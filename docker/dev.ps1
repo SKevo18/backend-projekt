@@ -19,4 +19,4 @@ if (-not $env:DB_PASSWORD) {
 }
 
 # run (default profile - HTTP only)
-docker compose --profile="default" -f docker-compose.yaml up -d --build
+docker compose --profile="default" -f docker-compose.yaml up --build -d --force-recreate
