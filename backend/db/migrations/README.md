@@ -16,7 +16,7 @@ cd backend/db/migrations # ak predpokladáme, že aktuálne sme v koreňovom adr
 
 ### Pridanie novej migrácie
 
-Stručy postup:
+Stručný postup:
 
 1. Zmeniť ORM schému v [`db/orm.py`](../orm.py) (pridať model, vymazať atribút a podobne...);
 2. Vytvoriť novú migráciu (`alembic revision --autogenerate -m "popis_migracie"`);

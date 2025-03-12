@@ -1,0 +1,17 @@
+# set env
+if (-not $env:DB_ROOT_PASSWORD) {
+    $secureRootPwd = Read-Host -Prompt "'DB_ROOT_PASSWORD' = " -AsSecureString
+    $bstr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureRootPwd)
+    $env:DB_ROOT_PASSWORD = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr)
+    [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr)
+}
+
+if (-not $env:DB_PASSWORD) {
+    $securePwd = Read-Host -Prompt "'DB_PASSWORD' = " -AsSecureString
+    $bstr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($securePwd)
+    $env:DB_PASSWORD = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr)
+    [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr)
+}
+
+# run
+docker compose --profile="https" -f docker-compose.yaml up -d --build 
