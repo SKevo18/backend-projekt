@@ -1,6 +1,9 @@
 <template>
   <Navigation />
-  <router-view />
+
+  <main>
+    <router-view />
+  </main>
 </template>
 
 <script setup>
