@@ -14,7 +14,7 @@ class Database:
         self.session = Session(self.engine)
 
     def init_db(self):
-        Base.metadata.create_all(bind=self.engine)
+        Base.metadata.create_all(bind=self.engine) 
 
     def close(self):
         self.session.close()
@@ -22,3 +22,11 @@ class Database:
 
 DB = Database()
 DB.init_db()
+
+
+def get_db():
+    db_instance = Database()
+    try:
+        yield db_instance.session
+    finally:
+        db_instance.close()

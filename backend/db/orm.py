@@ -22,6 +22,7 @@ class User(Base):
 
     registered_at: Mapped[datetime] = mapped_column(default=datetime.now)
 
+
 class Page(Base):
     __tablename__ = "pages"
 
