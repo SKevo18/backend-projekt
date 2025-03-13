@@ -30,9 +30,6 @@ const logout = () => {
         <p v-if="!firstName || !secondName">
           For full access, please log in or register.
         </p>
-        <p v-else>
-          Super-Duper-2025-Backend-Project-Initial-GitHub-Europe-Herous-Commit.
-        </p>
         <router-link to="/login" v-if="!firstName || !secondName" class="btn">Login</router-link>
         <router-link to="/register" v-if="!firstName || !secondName" class="btn btn-alt">Registration</router-link>
         <button v-if="firstName && secondName" @click="logout" class="btn btn-alt">

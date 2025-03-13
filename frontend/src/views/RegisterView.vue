@@ -5,11 +5,11 @@ import { useRouter } from "vue-router";
 export default {
   data() {
     return {
-      first_name: "", //text size 2-10 symbol
-      second_name: "", //text size 2-10 symbol
-      user_email: "", //text size 2-15 symbol
-      user_password: "", //text size 2-15 symbol
-      confirm_password: "", //text size 2-15 symbol
+      first_name: "", 
+      second_name: "", 
+      user_email: "", 
+      user_password: "", 
+      confirm_password: "", 
     };
   },
   setup() {
@@ -41,7 +41,7 @@ export default {
 <template>
   <div class="auth-container">
     <div class="auth-box">
-      <h2>Registration</h2>
+      <h2 class="change">Registration</h2>
       <form @submit.prevent="register">
         <input type="text" placeholder="Kevin" v-model="first_name" required />
         <input

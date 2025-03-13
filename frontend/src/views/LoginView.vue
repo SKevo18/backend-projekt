@@ -5,7 +5,7 @@ import { ref } from "vue";
 
 export default {
   setup() {
-    const userStore = useUsersStore(); //don't ask my why i use const and ref :)
+    const userStore = useUsersStore(); 
     const router = useRouter();
     const email = ref("");
     const password = ref("");
@@ -34,7 +34,7 @@ export default {
 <template>
   <div class="auth-container">
     <div class="auth-box">
-      <h2>Sign in</h2>
+      <h2 class="change">Sign in</h2>
       <form @submit.prevent="login">
         <input
           type="email"
@@ -98,4 +98,5 @@ export default {
 .auth-box button:hover {
   background: #0056b3;
 }
+
 </style>

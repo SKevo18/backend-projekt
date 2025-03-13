@@ -10,7 +10,7 @@ export const useUsersStore = defineStore("users", {
 
   actions: {
     setUsersData(data) {
-      console.log("Setting user data:", data); // Логирование для отладки
+      console.log("Setting user data:", data); 
       Object.keys(data).forEach((key) => {
         if (key in this) {
           this[key] = data[key];
@@ -25,7 +25,7 @@ export const useUsersStore = defineStore("users", {
     },
 
     clearUsersData() {
-      console.log("Clearing user data"); // Логирование для отладки
+      console.log("Clearing user data"); 
       Object.assign(this, {
         first_name: "",
         second_name: "",
