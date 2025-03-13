@@ -35,4 +35,5 @@ def create_page(page: PageCreate, db: Session = Depends(get_db)):
     db.add(db_page)
     db.commit()
     db.refresh(db_page)
+
     return db_page
