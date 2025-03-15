@@ -26,11 +26,15 @@ export default {
 <style>
 @import "tailwindcss";
 
-main {
+#app {
   @apply h-screen;
 }
 
-main > .content {
+main {
+  @apply h-full;
+}
+
+main > div {
   @apply flex flex-col sm:flex-row h-full;
 }
 </style>

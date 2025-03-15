@@ -9,6 +9,7 @@ export default {
   data() {
     return {
       links: [
+        // TODO: fetch links from backend
         { id: 1, title: "Home" },
         { id: 2, title: "Chicken Genetics" },
         { id: 3, title: "Poultry Science" },
@@ -23,7 +24,8 @@ export default {
   <aside class="sidebar">
     <ul>
       <li v-for="link in links" :key="link.id">
-        <RouterLink :to="link.href" class="sidebar-link">
+        <!-- TODO: link to dynamic route -->
+        <RouterLink to="#" class="sidebar-link">
           {{ link.title }}
         </RouterLink>
       </li>

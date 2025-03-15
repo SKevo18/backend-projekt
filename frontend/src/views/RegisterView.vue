@@ -1,21 +1,21 @@
 <script>
-import { useUsersStore } from "../store/users";
+import { useAuthStore } from "@/store/authStore";
 import { useRouter } from "vue-router";
 
 export default {
   data() {
     return {
-      first_name: "", 
-      second_name: "", 
-      user_email: "", 
-      user_password: "", 
-      confirm_password: "", 
+      first_name: "",
+      second_name: "",
+      user_email: "",
+      user_password: "",
+      confirm_password: "",
     };
   },
   setup() {
-    const userStore = useUsersStore();
+    const authStore = useAuthStore();
     const router = useRouter();
-    return { userStore, router };
+    return { authStore, router };
   },
   methods: {
     register() {

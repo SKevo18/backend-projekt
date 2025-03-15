@@ -10,7 +10,7 @@ export default {
 </script>
 
 <template>
-  <div class="content">
+  <div>
     <SidebarComponent />
     <h1>Home</h1>
   </div>

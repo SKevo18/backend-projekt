@@ -18,10 +18,13 @@ export default {
 
 <template>
   <header>
-    <div class="header-topnav">
+    <div class="header-topnav" v-if="!$authStore.isAuthenticated">
       <RouterLink to="/login">Login</RouterLink>
       <span>|</span>
       <RouterLink to="/register">Register</RouterLink>
+    </div>
+    <div class="header-topnav" v-else>
+      <a class="cursor-pointer" @click="$authStore.logout()">Logout</a>
     </div>
 
     <div class="header-content">

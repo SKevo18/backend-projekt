@@ -1,102 +1,67 @@
-<script>
-import { useUsersStore } from "../store/users";
-import { useRouter } from "vue-router";
-import { ref } from "vue";
-
+<script lang="ts">
 export default {
-  setup() {
-    const userStore = useUsersStore(); 
-    const router = useRouter();
-    const email = ref("");
-    const password = ref("");
-    const login = () => {
-      if (
-        email.value === userStore.user_email &&
-        password.value === userStore.user_password
-      ) {
-        userStore.setUsersData({
-          first_name: userStore.first_name,
-          second_name: userStore.second_name,
-          user_email: email.value,
-          user_password: password.value,
-        });
-        router.push("/");
-      } else {
-        alert("wrong Login or Password");
-      }
+  name: "LoginView",
+  data() {
+    return {
+      email: "",
+      password: "",
     };
-
-    return { email, password, login };
+  },
+  methods: {
+    async handleSubmit() {
+      console.log(this.email, this.password);
+      this.$authStore.login(this.email, this.password);
+    },
   },
 };
 </script>
 
 <template>
-  <div class="auth-container">
-    <div class="auth-box">
-      <h2 class="change">Sign in</h2>
-      <form @submit.prevent="login">
-        <input
-          type="email"
-          placeholder="Email"
-          v-model="email"
-          required
-          autocomplete="email"
-        />
-        <input
-          type="password"
-          placeholder="password"
-          v-model="password"
-          required
-          autocomplete="current-password"
-        />
-        <button type="submit">Sign in</button>
-      </form>
-      <p>
-        Don’t have an account? <router-link to="/register">Sign Up</router-link>
-      </p>
-    </div>
+  <div class="form-container">
+    <form action="POST" @submit.prevent="handleSubmit">
+      <fieldset>
+        <legend>Login</legend>
+
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" v-model="email" />
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" v-model="password" />
+        </div>
+      </fieldset>
+
+      <button type="submit">Login</button>
+    </form>
   </div>
 </template>
 
-<style scoped>
-.auth-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  background-color: #f5f5f5;
+<style>
+@import "tailwindcss";
+
+.form-container {
+  @apply flex flex-col items-center justify-center h-full mx-6;
 }
 
-.auth-box {
-  background: white;
-  padding: 2rem;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  width: 300px;
-  text-align: center;
+.form-container .form-group {
+  @apply grid grid-cols-2;
 }
 
-.auth-box input {
-  width: 100%;
-  padding: 10px;
-  margin: 10px 0;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+.form-container .form-group input {
+  @apply border-2 border-gray-500 rounded-md p-2;
 }
 
-.auth-box button {
-  width: 100%;
-  padding: 10px;
-  background: #007bff;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
+fieldset {
+  @apply space-y-4 items-center justify-center border-2 border-gray-500 rounded-md p-4;
 }
 
-.auth-box button:hover {
-  background: #0056b3;
+legend {
+  @apply uppercase text-sm font-bold rounded-lg px-2 border-2 border-gray-500;
 }
 
+label {
+  @apply text-sm font-bold;
+}
 </style>
