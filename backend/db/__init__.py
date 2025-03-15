@@ -8,7 +8,10 @@ from db.orm import Base
 
 class Database:
     def __init__(self):
-        url = f"mysql+pymysql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
+        try:
+            url = os.environ["DATABASE_URL"]
+        except KeyError:
+            url = "sqlite:///db.sqlite" # use default URL if not set
 
         self.engine = create_engine(url)
         self.session = Session(self.engine)
