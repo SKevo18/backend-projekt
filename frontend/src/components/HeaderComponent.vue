@@ -8,26 +8,45 @@ export default {
     RouterLink,
     LogoComponent,
   },
+  data() {
+    return {
+      links: [{ id: 1, title: "Home", href: "/" }],
+    };
+  },
 };
 </script>
 
 <template>
   <header>
-    <LogoComponent />
-    <nav class="nav">
-      <RouterLink to="/" class="nav-link">Home</RouterLink>
-      <RouterLink to="/login" class="nav-link">Login</RouterLink>
-      <RouterLink to="/register" class="nav-link">Registration</RouterLink>
-      <RouterLink to="/contact" class="nav-link">Contact</RouterLink>
-      <RouterLink to="/text-editor" class="nav-link">Text-Editor</RouterLink>
-    </nav>
+    <div class="header-topnav">
+      <RouterLink to="/login">Login</RouterLink>
+      <span>|</span>
+      <RouterLink to="/register">Register</RouterLink>
+    </div>
+
+    <div class="header-content">
+      <LogoComponent />
+      <nav class="nav" v-for="link in links" :key="link.id">
+        <RouterLink :to="link.href" class="nav-link">
+          {{ link.title }}
+        </RouterLink>
+      </nav>
+    </div>
   </header>
 </template>
 
 <style>
 @import "tailwindcss";
 
-header {
+.header-topnav {
+  @apply text-right text-sm text-white bg-green-900 py-1 pr-4 space-x-4;
+}
+
+.header-topnav > a {
+  @apply text-gray-200;
+}
+
+.header-content {
   @apply bg-green-800 flex flex-col sm:flex-row justify-between items-center px-10;
 }
 

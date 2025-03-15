@@ -1,12 +1,14 @@
 <script lang="ts">
 import { RouterView } from "vue-router";
 import HeaderComponent from "@/components/HeaderComponent.vue";
+import FooterComponent from "@/components/FooterComponent.vue";
 
 export default {
   name: "AppRoot",
   components: {
     HeaderComponent,
     RouterView,
+    FooterComponent,
   },
 };
 </script>
@@ -17,12 +19,18 @@ export default {
   <main>
     <RouterView />
   </main>
+
+  <FooterComponent />
 </template>
 
 <style>
 @import "tailwindcss";
 
-main > div {
-  @apply flex flex-col sm:flex-row;
+main {
+  @apply h-screen;
+}
+
+main > .content {
+  @apply flex flex-col sm:flex-row h-full;
 }
 </style>

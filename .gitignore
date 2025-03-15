@@ -1,4 +1,3 @@
-.vscode/
 .envrc
 *.sqlite*
 .DS_Store

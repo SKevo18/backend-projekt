@@ -40,7 +40,7 @@ export default {
 @import "tailwindcss";
 
 footer {
-  @apply bg-gray-800 pt-6;
+  @apply text-white bg-gray-800 pt-6;
 }
 
 footer > .info {
