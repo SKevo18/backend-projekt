@@ -26,25 +26,8 @@ Zdrojový kód pre FastAPI aplikáciu.
     - Mac/Linux: `source .venv/bin/activate`
     - Windows: `.\.venv\Scripts\activate`
 4. Inštalovať potrebné Python moduly cez PyPI: `pip install -r requirements.txt`
-5. Pridať `DATABASE_URL` do env premenných (v súbore `.env`). Následne exportovať premenné. V prípade [Windowsu](https://stackoverflow.com/a/72236585/23509205):
-
-    ```powershell
-    get-content .env | foreach {
-      $name, $value = $_.split('=')
-      set-content env:\$name $value
-    }
-    ```
-
-    V prípade Macu/Linuxu:
-
-    ```bash
-    export $(cat .env | xargs)
-    ```
-
-    (alebo prostredníctvom `direnv allow` a `.envrc` súboru namiesto `.env` (viď [direnv dokumentácia](https://direnv.net/)))
-
-6. Spustiť uvicorn server: `uvicorn main:API --reload`
-    - alebo: `python main.py`
+5. Pridať `DATABASE_URL` do env premenných (v súbore `.env`).
+6. Spustiť uvicorn server: `uvicorn main:API --reload --env-file .env`
 
 ## Užitočné odkazy
 

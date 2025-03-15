@@ -11,8 +11,7 @@ class Database:
         try:
             url = os.environ["DATABASE_URL"]
         except KeyError:
-            url = "sqlite:///db.sqlite" # use default URL if not set
-
+            raise RuntimeError("DATABASE_URL nie je v .env subore!!!")
         self.engine = create_engine(url)
         self.session = Session(self.engine)
 

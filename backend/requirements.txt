@@ -4,3 +4,4 @@ pymysql
 
 fastapi
 uvicorn
+python-dotenv # for loading env vars
