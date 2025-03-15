@@ -9,13 +9,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@tailwindcss/vite": "^4.0.14",
     "@tinymce/tinymce-vue": "^5.1.1",
-    "pinia": "^3",
-    "vue": "^3",
-    "vue-router": "^4"
+    "pinia": "^3.0.1",
+    "tailwindcss": "^4.0.14",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^5",
-    "vite": "^6"
+    "@vitejs/plugin-vue": "^5.2.1",
+    "vite": "^6.2.2"
   }
 }

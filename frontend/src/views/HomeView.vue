@@ -2,7 +2,7 @@
 import { useUsersStore } from "../store/users";
 import { useRouter } from "vue-router";
 import FooterComponent from "../components/FooterComponent.vue";
-import SideBar from "../components/SideBar.vue";
+import SideBar from "../components/SidebarComponent.vue";
 
 const userStore = useUsersStore();
 const router = useRouter();

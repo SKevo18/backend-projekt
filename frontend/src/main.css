@@ -1,0 +1,37 @@
+@import "tailwindcss";
+
+:root {
+  @apply font-sans;
+  line-height: 1.5;
+
+  color-scheme: light dark;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.title {
+  @apply text-2xl font-bold text-center;
+}
+
+.big {
+  @apply text-xl font-bold;
+}
+
+a {
+  @apply text-green-600;
+}
+
+a:hover {
+  @apply underline text-yellow-500;
+}

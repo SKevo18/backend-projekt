@@ -2,6 +2,7 @@
 .envrc
 *.sqlite*
 .DS_Store
+bun.lockb
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
