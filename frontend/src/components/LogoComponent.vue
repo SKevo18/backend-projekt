@@ -15,7 +15,7 @@ export default {
   </RouterLink>
 </template>
 
-<style>
+<style scoped>
 @import "tailwindcss";
 
 .logo {

@@ -39,7 +39,7 @@ export default {
   </aside>
 </template>
 
-<style>
+<style scoped>
 @import "tailwindcss";
 
 .sidebar {

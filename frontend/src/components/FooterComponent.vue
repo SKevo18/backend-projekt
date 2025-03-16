@@ -36,7 +36,7 @@ export default {
   </footer>
 </template>
 
-<style>
+<style scoped>
 @import "tailwindcss";
 
 footer {

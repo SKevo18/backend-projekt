@@ -39,7 +39,7 @@ export default {
   </header>
 </template>
 
-<style>
+<style scoped>
 @import "tailwindcss";
 
 .header-topnav {

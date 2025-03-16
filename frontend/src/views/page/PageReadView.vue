@@ -19,6 +19,11 @@ export default {
         '<i>Táto stránka nemá žiadny obsah. Kliknite na tlačidlo "Upraviť" na stránke, aby ste mohli pridávať obsah.</i>',
     };
   },
+  computed: {
+    readableSlug() {
+      return this.slug.replace(/[-_]/g, " ");
+    },
+  },
 };
 </script>
 
@@ -27,7 +32,15 @@ export default {
     <PageSidebarComponent :slug="slug" />
 
     <article>
-      <header>
+      <div class="top-container">
+        <header>
+          <h1>{{ readableSlug }}</h1>
+          <hr />
+        </header>
+        <div id="page-html" v-html="pageHtml"></div>
+      </div>
+
+      <footer>
         <nav>
           <RouterLink
             class="button button-green"
@@ -35,32 +48,31 @@ export default {
             >Upraviť</RouterLink
           >
         </nav>
-
-        <h1>{{ slug }}</h1>
-        <hr />
-      </header>
-
-      <div id="page-html" v-html="pageHtml"></div>
+      </footer>
     </article>
   </div>
 </template>
 
-<style>
+<style scoped>
 @import "tailwindcss";
+
+#page-html {
+  @apply h-full;
+}
+
+article nav {
+  @apply flex justify-end mb-4 items-center;
+}
 
 article header {
   @apply mb-4;
 }
 
-article header nav {
-  @apply flex justify-end mb-4 items-center;
-}
-
-article h1 {
+article header h1 {
   @apply text-2xl font-bold uppercase;
 }
 
 article {
-  @apply w-full p-8;
+  @apply w-full p-8 flex flex-col justify-between;
 }
 </style>

@@ -270,7 +270,6 @@ export default defineComponent({
       const toolbarContainer = this.$refs.editorToolbar as HTMLElement;
       const menuBarContainer = this.$refs.editorMenuBar as HTMLElement;
 
-      // Clean up any existing child nodes
       [toolbarContainer, menuBarContainer].forEach((container) => {
         while (container.firstChild) {
           container.removeChild(container.firstChild);
@@ -280,11 +279,11 @@ export default defineComponent({
       toolbarContainer.appendChild(editorInstance.ui.view.toolbar.element);
       menuBarContainer.appendChild(editorInstance.ui.view.menuBarView.element);
 
-      // Listen for editor changes and emit update event
+      //  so v-model works:
       editorInstance.model.document.on("change:data", () => {
         this.$emit("update:modelValue", editorInstance.getData());
       });
-    },
+    }
   },
 });
 </script>

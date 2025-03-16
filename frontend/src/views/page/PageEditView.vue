@@ -15,21 +15,34 @@ export default defineComponent({
   },
   data() {
     return {
-      htmlContent: "",
+      htmlContent: ``,
     };
+  },
+  computed: {
+    readableSlug() {
+      return this.slug.replace(/[-_]/g, " ");
+    },
   },
   methods: {
     savePage() {
+      // TODO: send to backend
       alert(this.htmlContent);
+      console.log(this.htmlContent);
     },
   },
 });
 </script>
 
 <template>
-  <nav class="flex flex-row justify-end gap-4 m-6">
-    <button class="button button-red">Odstrániť</button>
-    <button class="button button-green" @click="savePage">Uložiť</button>
+  <nav class="top-nav">
+    <h1 class="nav-inner">
+      <span class="title">Upravuje sa:</span>
+      <span class="nav-label">{{ readableSlug }}</span>
+    </h1>
+    <div class="nav-inner">
+      <button class="button button-red">Odstrániť</button>
+      <button class="button button-green" @click="savePage">Uložiť</button>
+    </div>
   </nav>
 
   <div class="editor-container">
@@ -39,6 +52,18 @@ export default defineComponent({
 
 <style scoped>
 @import "tailwindcss";
+
+.top-nav {
+  @apply flex flex-row justify-between gap-4 my-6 mx-12;
+}
+
+.nav-inner {
+  @apply flex flex-row gap-2 items-center;
+}
+
+.nav-inner .nav-label {
+  @apply text-2xl text-gray-500;
+}
 
 .editor-container {
   @apply my-6;
