@@ -38,7 +38,7 @@ export default {
 @import "tailwindcss";
 
 footer {
-  @apply text-white bg-gray-800 pt-6;
+  @apply text-white bg-gray-900 pt-6;
 }
 
 footer > .info {

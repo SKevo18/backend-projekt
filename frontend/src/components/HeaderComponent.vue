@@ -10,11 +10,21 @@ export default {
   },
   data() {
     return {
-      // TODO: fetch year links from backend
-      links: [{ id: 1, title: "Home", href: "/" }],
+      links: [],
     };
   },
   methods: {
+    getLinks() {
+      // TODO: fetch year links from backend
+      for (let year = 2021; year <= 2025; year++) {
+        this.links.push({
+          id: year,
+          title: `Ročník ${year}`,
+          href: `/${year}`,
+        });
+      }
+      return this.links;
+    },
     logout() {
       this.$authStore.logout();
       this.$router.push("/login");
@@ -36,8 +46,13 @@ export default {
 
     <div class="header-content">
       <LogoComponent />
-      <nav class="nav" v-for="link in links" :key="link.id">
-        <RouterLink :to="link.href" class="nav-link">
+      <nav class="nav">
+        <RouterLink
+          v-for="link in getLinks()"
+          :key="link.id"
+          :to="link.href"
+          class="nav-link"
+        >
           {{ link.title }}
         </RouterLink>
       </nav>
@@ -56,16 +71,24 @@ export default {
   @apply text-gray-200;
 }
 
+.header-topnav > a.router-link-active {
+  @apply text-yellow-500;
+}
+
 .header-content {
-  @apply bg-green-800 flex flex-col sm:flex-row justify-between items-center px-10;
+  @apply bg-green-800 flex flex-col sm:flex-row justify-between items-center px-10 space-x-4;
 }
 
 .nav {
-  @apply text-white p-4 flex flex-row gap-6;
+  @apply text-white p-4 flex flex-row gap-6 overflow-x-auto;
 }
 
 .nav-link {
-  @apply text-white;
+  @apply text-white text-center;
+}
+
+.nav-link.router-link-active {
+  @apply text-yellow-500;
 }
 
 .nav-link:hover {

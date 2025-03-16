@@ -7,6 +7,11 @@ export default {
   props: {
     slug: {
       type: String,
+      required: false,
+      default: "_",
+    },
+    year: {
+      type: String,
       required: true,
     },
   },
@@ -21,6 +26,9 @@ export default {
   },
   computed: {
     readableSlug() {
+      if (this.slug === "_") {
+        return `Ročník ${this.year}`;
+      }
       return this.slug.replace(/[-_]/g, " ");
     },
   },
@@ -29,12 +37,12 @@ export default {
 
 <template>
   <div class="flex flex-col sm:flex-row">
-    <PageSidebarComponent :slug="slug" />
+    <PageSidebarComponent :year :slug />
 
     <article>
       <div class="top-container">
         <header>
-          <h1>{{ readableSlug }}</h1>
+          <h1 class="uppercase">{{ readableSlug }}</h1>
           <hr />
         </header>
         <div id="page-html" v-html="pageHtml"></div>

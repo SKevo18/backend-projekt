@@ -11,6 +11,10 @@ export default {
       type: String,
       required: true,
     },
+    year: {
+      type: String,
+      required: true,
+    },
   },
   data() {
     return {
@@ -30,8 +34,10 @@ export default {
   <aside class="sidebar">
     <ul>
       <li v-for="link in links" :key="link.id">
-        <!-- TODO: link to dynamic route -->
-        <RouterLink to="#" class="sidebar-link">
+        <RouterLink
+          :to="{ name: 'page', params: { year: year, slug: link.title } }"
+          class="sidebar-link"
+        >
           {{ link.title }}
         </RouterLink>
       </li>
@@ -43,7 +49,7 @@ export default {
 @import "tailwindcss";
 
 .sidebar {
-  @apply bg-gray-800 text-white sm:w-[240px] text-center sm:text-left h-[80vh];
+  @apply bg-gray-800 text-white sm:w-[240px] text-center sm:text-left sm:h-[80vh];
 }
 
 .sidebar-link {

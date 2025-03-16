@@ -8,6 +8,11 @@ export default defineComponent({
     slug: {
       type: String,
       required: true,
+      default: "_",
+    },
+    year: {
+      type: String,
+      required: true,
     },
   },
   components: {
@@ -20,6 +25,9 @@ export default defineComponent({
   },
   computed: {
     readableSlug() {
+      if (this.slug === "_") {
+        return `Ročník ${this.year}`;
+      }
       return this.slug.replace(/[-_]/g, " ");
     },
   },
@@ -37,7 +45,7 @@ export default defineComponent({
   <nav class="top-nav">
     <h1 class="nav-inner">
       <span class="title">Upravuje sa:</span>
-      <span class="nav-label">{{ readableSlug }}</span>
+      <span class="nav-label uppercase">{{ year }} / {{ readableSlug }}</span>
     </h1>
     <div class="nav-inner">
       <button class="button button-red">Odstrániť</button>
