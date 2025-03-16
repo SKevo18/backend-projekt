@@ -1,10 +1,16 @@
 import { defineStore } from "pinia";
 
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
 // TODO: connect to backend
 export const useAuthStore = defineStore("auth", {
   state: () => ({
-    user: null,
-    token: null,
+    user: null as User | null,
+    token: null as string | null,
   }),
 
   getters: {
@@ -18,14 +24,16 @@ export const useAuthStore = defineStore("auth", {
         return;
       }
 
+      // this.user = await this.fetchJsonAuth("/me");
       const response = await fetch(
         "https://jsonplaceholder.typicode.com/users"
       );
       const data = await response.json();
       this.user = data[0];
+      //
     },
 
-    async login(email: string, password: string) {
+    async login(email: string, password: string): Promise<boolean> {
       const response = await fetch(
         "https://jsonplaceholder.typicode.com/users"
       );
@@ -33,6 +41,8 @@ export const useAuthStore = defineStore("auth", {
 
       this.user = data[0];
       this.setToken(data[0].email);
+
+      return true;
     },
 
     async register(
@@ -66,6 +76,25 @@ export const useAuthStore = defineStore("auth", {
     },
     loadSavedToken() {
       this.token = localStorage.getItem("token");
+    },
+
+    async fetchJson(url: string): Promise<any> {
+      const response = await fetch(url);
+      return response.json();
+    },
+
+    async fetchJsonAuth(url: string): Promise<any> {
+      if (this.token === null) {
+        return null;
+      }
+
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${this.token}`,
+        },
+      });
+
+      return response.json();
     },
   },
 });

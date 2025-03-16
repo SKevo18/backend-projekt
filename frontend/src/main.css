@@ -76,7 +76,7 @@ fieldset label {
 
 .success,
 .error {
-  @apply rounded-lg p-4 text-center inline-block;
+  @apply rounded-lg p-4 text-center;
 }
 
 .success {

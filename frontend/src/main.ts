@@ -5,7 +5,6 @@ import { createPinia } from "pinia";
 
 import { useAuthStore } from "@/store/authStore";
 
-// type `authStore`
 declare module "vue" {
   interface ComponentCustomProperties {
     $authStore: ReturnType<typeof useAuthStore>;

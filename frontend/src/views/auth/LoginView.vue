@@ -9,7 +9,10 @@ export default {
   },
   methods: {
     async handleLogin() {
-      this.$authStore.login(this.email, this.password);
+      let success = await this.$authStore.login(this.email, this.password);
+      if (success) {
+        this.$router.push("/");
+      }
     },
   },
 };

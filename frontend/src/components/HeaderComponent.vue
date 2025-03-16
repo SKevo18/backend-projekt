@@ -14,6 +14,12 @@ export default {
       links: [{ id: 1, title: "Home", href: "/" }],
     };
   },
+  methods: {
+    logout() {
+      this.$authStore.logout();
+      this.$router.push("/login");
+    },
+  },
 };
 </script>
 
@@ -25,7 +31,7 @@ export default {
       <RouterLink to="/register">Registrácia</RouterLink>
     </div>
     <div class="header-topnav" v-else>
-      <a class="cursor-pointer" @click="$authStore.logout()">Logout</a>
+      <a class="cursor-pointer" @click="logout">Odhlásiť sa</a>
     </div>
 
     <div class="header-content">

@@ -52,16 +52,21 @@ export default {
     </form>
   </div>
 
-  <div v-else-if="registeredSuccessfully">
+  <div class="info-container" v-else-if="registeredSuccessfully">
     <div class="success">
-      <h1>Úspešne ste sa registrovali! Skontrolujte si email na overenie.</h1>
-      <RouterLink to="/login">Prihlásiť sa</RouterLink>
+      <h1>
+        Úspešne ste sa registrovali!<br />
+        Skontrolujte si e-mail pre overenie.
+      </h1>
     </div>
   </div>
 
-  <div v-else>
+  <div class="info-container" v-else>
     <div class="error">
-      <h1>Registrácia zlyhala. Prosím, skúste to znova neskôr.</h1>
+      <h1>
+        Registrácia zlyhala.<br />
+        Prosím, skúste to znova neskôr.
+      </h1>
     </div>
   </div>
 </template>
@@ -70,6 +75,10 @@ export default {
 @import "tailwindcss";
 
 .form-container {
+  @apply max-w-md my-20 mx-auto;
+}
+
+.info-container {
   @apply max-w-md my-20 mx-auto;
 }
 </style>
