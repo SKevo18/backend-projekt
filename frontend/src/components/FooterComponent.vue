@@ -16,14 +16,12 @@ export default {
         <LogoComponent />
         <div class="flex-row">
           <p class="big">Animal Science Days</p>
-          <a tabindex="-1" href="mailto:info@animalsciencedays.sk">
-            info@animalsciencedays.sk
-          </a>
+          <a tabindex="-1" href="mailto:info@uniag.sk">info@uniag.sk</a>
         </div>
       </div>
       <div>
         <p>
-          Slovak University of Agriculture in Nitra<br />
+          Slovenská Poľnohospodárska Univerzita<br />
           Tr. A. Hlinku 38<br />
           949 76 Nitra
         </p>

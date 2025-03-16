@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import PageReadView from "@/views/page/PageReadView.vue";
+import NotFoundView from "@/views/NotFoundView.vue";
 
 const router = createRouter({
   history: createWebHistory(),
@@ -31,6 +32,11 @@ const router = createRouter({
       path: "/register",
       name: "register",
       component: () => import("@/views/auth/RegisterView.vue"),
+    },
+    {
+      path: "/:pathMatch(.*)*",
+      name: "not-found",
+      component: NotFoundView,
     },
   ],
 });
