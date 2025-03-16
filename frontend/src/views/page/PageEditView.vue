@@ -26,7 +26,7 @@ export default defineComponent({
   computed: {
     readableSlug() {
       if (this.slug === "_") {
-        return `Ročník ${this.year}`;
+        return `Hlavná stránka`;
       }
       return this.slug.replace(/[-_]/g, " ");
     },
