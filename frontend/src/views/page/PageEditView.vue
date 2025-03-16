@@ -1,8 +1,9 @@
 <script lang="ts">
-import { defineComponent } from "vue";
 import PageEditorComponent from "@/components/page/PageEditorComponent.vue";
 
-export default defineComponent({
+// TODO: preč, ak nie je editor alebo admin (cez guard)
+
+export default {
   name: "PageEditView",
   props: {
     slug: {
@@ -38,7 +39,7 @@ export default defineComponent({
       console.log(this.htmlContent);
     },
   },
-});
+};
 </script>
 
 <template>

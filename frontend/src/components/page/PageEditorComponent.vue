@@ -1,7 +1,6 @@
 <script lang="ts">
 const LICENSE_KEY = "GPL";
 
-import { defineComponent } from "vue";
 import { Ckeditor } from "@ckeditor/ckeditor5-vue";
 import {
   DecoupledEditor,
@@ -56,7 +55,7 @@ import {
 import translations from "ckeditor5/translations/sk.js";
 import "ckeditor5/ckeditor5.css";
 
-export default defineComponent({
+export default {
   name: "PageEditorComponent",
   components: {
     ckeditor: Ckeditor,
@@ -285,7 +284,7 @@ export default defineComponent({
       });
     }
   },
-});
+};
 </script>
 
 <template>

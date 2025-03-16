@@ -42,6 +42,11 @@ export default {
         </RouterLink>
       </li>
     </ul>
+
+    <!-- TODO: iba ak je editor pre daný ročník alebo admin -->
+    <RouterLink class="text-center my-4" :to="{ name: 'admin-sidebar' }">
+      Upraviť
+    </RouterLink>
   </aside>
 </template>
 
@@ -49,7 +54,7 @@ export default {
 @import "tailwindcss";
 
 .sidebar {
-  @apply bg-gray-800 text-white sm:w-[240px] text-center sm:text-left sm:h-[80vh];
+  @apply bg-gray-800 text-white sm:w-[240px] text-center sm:text-left sm:h-[80vh] flex flex-col justify-between;
 }
 
 .sidebar-link {

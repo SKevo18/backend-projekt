@@ -50,11 +50,13 @@ export default {
 
       <footer>
         <nav>
+          <!-- TODO: iba ak je editor pre daný ročník alebo admin -->
           <RouterLink
             class="button button-green"
             :to="{ name: 'page-edit', params: { slug: slug } }"
-            >Upraviť</RouterLink
           >
+            Upraviť
+          </RouterLink>
         </nav>
       </footer>
     </article>

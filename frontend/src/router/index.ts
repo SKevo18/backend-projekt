@@ -40,6 +40,29 @@ const router = createRouter({
       component: () => import("@/views/auth/RegisterView.vue"),
     },
     {
+      path: "/admin",
+      name: "admin",
+      component: () => import("@/views/admin/AdminView.vue"),
+      redirect: "/admin/settings",
+      children: [
+        {
+          path: "settings",
+          name: "admin-settings",
+          component: () => import("@/views/admin/SettingsView.vue"),
+        },
+        {
+          path: "users",
+          name: "admin-users",
+          component: () => import("@/views/admin/UsersView.vue"),
+        },
+        {
+          path: "sidebar",
+          name: "admin-sidebar",
+          component: () => import("@/views/admin/SidebarView.vue"),
+        },
+      ],
+    },
+    {
       path: "/:pathMatch(.*)*",
       name: "not-found",
       component: NotFoundView,
