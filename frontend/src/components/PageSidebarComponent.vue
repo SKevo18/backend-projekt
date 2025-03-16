@@ -2,9 +2,15 @@
 import { RouterLink } from "vue-router";
 
 export default {
-  name: "SidebarComponent",
+  name: "PageSidebarComponent",
   components: {
     RouterLink,
+  },
+  props: {
+    slug: {
+      type: String,
+      required: true,
+    },
   },
   data() {
     return {
@@ -37,7 +43,7 @@ export default {
 @import "tailwindcss";
 
 .sidebar {
-  @apply bg-gray-800 text-white sm:w-[240px] text-center sm:text-left;
+  @apply bg-gray-800 text-white sm:w-[240px] text-center sm:text-left h-[80vh];
 }
 
 .sidebar-link {

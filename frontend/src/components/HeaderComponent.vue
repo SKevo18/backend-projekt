@@ -10,6 +10,7 @@ export default {
   },
   data() {
     return {
+      // TODO: fetch year links from backend
       links: [{ id: 1, title: "Home", href: "/" }],
     };
   },
@@ -20,7 +21,7 @@ export default {
   <header>
     <div class="header-topnav" v-if="!$authStore.isAuthenticated">
       <RouterLink to="/login">Login</RouterLink>
-      <span>|</span>
+      <span> | </span>
       <RouterLink to="/register">Register</RouterLink>
     </div>
     <div class="header-topnav" v-else>
@@ -42,7 +43,7 @@ export default {
 @import "tailwindcss";
 
 .header-topnav {
-  @apply text-right text-sm text-white bg-green-900 py-1 pr-4 space-x-4;
+  @apply text-right text-sm text-white bg-green-900 py-1 pr-4 space-x-2;
 }
 
 .header-topnav > a {

@@ -10,7 +10,7 @@ export default {
 </script>
 
 <template>
-  <RouterLink to="/">
+  <RouterLink to="/" tabindex="-1">
     <img src="/logo.png" class="logo" alt="Animal Science Days Logo" />
   </RouterLink>
 </template>

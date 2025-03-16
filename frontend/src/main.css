@@ -26,10 +26,59 @@ body {
   @apply text-xl font-bold;
 }
 
+.button {
+  @apply cursor-pointer bg-green-700 text-white rounded-md px-4 py-2;
+}
+
+.button:hover {
+  @apply bg-green-800;
+}
+
+.form-container form {
+  @apply mx-auto px-6;
+}
+
+.form-container .form-group {
+  @apply flex flex-col;
+}
+
+.form-container .form-group input {
+  @apply border-2 border-gray-400 rounded-md p-2;
+}
+
+.form-container button {
+  @apply mt-4 self-end;
+}
+
+form fieldset {
+  @apply space-y-4 items-center justify-center border-2 border-gray-400 rounded-md px-12 py-8 flex flex-col w-full;
+}
+
+form fieldset > legend {
+  @apply uppercase text-lg font-bold rounded-lg px-2 border-2 border-gray-400;
+}
+
+fieldset label {
+  @apply font-bold;
+}
+
+.success,
+.error {
+  @apply rounded-lg p-4 text-center inline-block;
+}
+
+.success {
+  @apply bg-green-200;
+}
+
+.error {
+  @apply bg-red-200;
+}
+
 a {
   @apply text-green-500;
 }
 
-a:hover {
+a:hover:not(.button) {
   @apply underline text-yellow-500;
 }

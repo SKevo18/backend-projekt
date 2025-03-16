@@ -16,9 +16,9 @@ export default {
         <LogoComponent />
         <div class="flex-row">
           <p class="big">Animal Science Days</p>
-          <a href="mailto:info@animalsciencedays.sk"
-            >info@animalsciencedays.sk</a
-          >
+          <a tabindex="-1" href="mailto:info@animalsciencedays.sk">
+            info@animalsciencedays.sk
+          </a>
         </div>
       </div>
       <div>

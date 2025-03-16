@@ -35,6 +35,23 @@ export const useAuthStore = defineStore("auth", {
       this.setToken(data[0].email);
     },
 
+    async register(
+      email: string,
+      password: string,
+      confirmPassword: string
+    ): Promise<boolean> {
+      if (password !== confirmPassword) {
+        throw new Error("Passwords do not match");
+      }
+
+      /*const response = await fetch(
+        "https://jsonplaceholder.typicode.com/users"
+      );
+      return response.ok;*/
+
+      return true;
+    },
+
     async logout() {
       this.user = null;
       this.token = null;

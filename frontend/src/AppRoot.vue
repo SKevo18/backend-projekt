@@ -31,10 +31,6 @@ export default {
 }
 
 main {
-  @apply h-full;
-}
-
-main > div {
-  @apply flex flex-col sm:flex-row h-full;
+  @apply flex flex-col sm:flex-row;
 }
 </style>
