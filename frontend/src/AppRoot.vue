@@ -22,15 +22,3 @@ export default {
 
   <FooterComponent />
 </template>
-
-<style>
-@import "tailwindcss";
-
-#app {
-  @apply h-screen;
-}
-
-main {
-  @apply flex flex-col sm:flex-row;
-}
-</style>

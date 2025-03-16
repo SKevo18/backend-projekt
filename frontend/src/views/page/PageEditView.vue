@@ -1,5 +1,8 @@
 <script lang="ts">
-export default {
+import { defineComponent } from "vue";
+import PageEditorComponent from "@/components/page/PageEditorComponent.vue";
+
+export default defineComponent({
   name: "PageEditView",
   props: {
     slug: {
@@ -7,32 +10,27 @@ export default {
       required: true,
     },
   },
+  components: {
+    PageEditorComponent,
+  },
   data() {
     return {
-      pageHtml: "<p>aaaaaaa</p>",
+      initialHtmlContent: "<p>Začni písať tu...</p>",
     };
   },
-};
+});
 </script>
 
 <template>
   <div class="editor-container">
-    <umo-editor />
+    <PageEditorComponent :initialHtml="initialHtmlContent" />
   </div>
 </template>
 
-<style>
+<style scoped>
 @import "tailwindcss";
 
 .editor-container {
-  @apply max-w-full max-h-full;
-}
-
-.editor-container .umo-page-container {
-  @apply mx-auto;
-}
-
-.editor-container .umo-footer {
-  @apply hidden;
+  @apply my-6;
 }
 </style>

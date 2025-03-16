@@ -1,5 +1,5 @@
 <script lang="ts">
-import PageSidebarComponent from "@/components/PageSidebarComponent.vue";
+import PageSidebarComponent from "@/components/page/PageSidebarComponent.vue";
 import { RouterLink } from "vue-router";
 
 export default {
@@ -23,24 +23,26 @@ export default {
 </script>
 
 <template>
-  <PageSidebarComponent :slug="slug" />
+  <div class="flex flex-col sm:flex-row">
+    <PageSidebarComponent :slug="slug" />
 
-  <article>
-    <header>
-      <nav>
-        <RouterLink
-          class="button"
-          :to="{ name: 'page-edit', params: { slug: slug } }"
-          >Edit</RouterLink
-        >
-      </nav>
+    <article>
+      <header>
+        <nav>
+          <RouterLink
+            class="button"
+            :to="{ name: 'page-edit', params: { slug: slug } }"
+            >Edit</RouterLink
+          >
+        </nav>
 
-      <h1>{{ slug }}</h1>
-      <hr />
-    </header>
+        <h1>{{ slug }}</h1>
+        <hr />
+      </header>
 
-    <div id="page-html" v-html="pageHtml"></div>
-  </article>
+      <div id="page-html" v-html="pageHtml"></div>
+    </article>
+  </div>
 </template>
 
 <style>
