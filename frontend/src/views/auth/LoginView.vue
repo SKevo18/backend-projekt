@@ -19,7 +19,7 @@ export default {
   <div class="form-container">
     <form @submit.prevent="handleLogin">
       <fieldset>
-        <legend>Login</legend>
+        <legend>Prihlásenie</legend>
 
         <div class="form-group">
           <label for="email">Email</label>
@@ -27,11 +27,11 @@ export default {
         </div>
 
         <div class="form-group">
-          <label for="password">Password</label>
+          <label for="password">Heslo</label>
           <input type="password" id="password" v-model="password" required />
         </div>
 
-        <button class="button" type="submit">Login</button>
+        <button class="button button-green" type="submit">Prihlásiť sa</button>
       </fieldset>
     </form>
   </div>
@@ -41,6 +41,6 @@ export default {
 @import "tailwindcss";
 
 .form-container {
-  @apply my-20 mx-auto;
+  @apply max-w-md my-20 mx-auto;
 }
 </style>

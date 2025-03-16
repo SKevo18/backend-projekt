@@ -16,7 +16,7 @@ export default {
   data() {
     return {
       pageHtml:
-        '<i>This page has no content. Click on the "Edit" button to add content.</i>',
+        '<i>Táto stránka nemá žiadny obsah. Kliknite na tlačidlo "Upraviť" na stránke, aby ste mohli pridávať obsah.</i>',
     };
   },
 };
@@ -30,9 +30,9 @@ export default {
       <header>
         <nav>
           <RouterLink
-            class="button"
+            class="button button-green"
             :to="{ name: 'page-edit', params: { slug: slug } }"
-            >Edit</RouterLink
+            >Upraviť</RouterLink
           >
         </nav>
 

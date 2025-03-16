@@ -27,10 +27,22 @@ body {
 }
 
 .button {
-  @apply cursor-pointer bg-green-700 text-white rounded-md px-4 py-2;
+  @apply cursor-pointer text-white rounded-md px-4 py-2;
 }
 
-.button:hover {
+.button-red {
+  @apply bg-red-500;
+}
+
+.button-green {
+  @apply bg-green-500;
+}
+
+.button-red:hover {
+  @apply bg-red-800;
+}
+
+.button-green:hover {
   @apply bg-green-800;
 }
 

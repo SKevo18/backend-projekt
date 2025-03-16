@@ -25,7 +25,7 @@ export default {
   <div class="form-container" v-if="registeredSuccessfully === null">
     <form @submit.prevent="handleRegister">
       <fieldset>
-        <legend>Register</legend>
+        <legend>Registrácia</legend>
 
         <div class="form-group">
           <label for="email">Email</label>
@@ -33,12 +33,12 @@ export default {
         </div>
 
         <div class="form-group">
-          <label for="password">Password</label>
+          <label for="password">Heslo</label>
           <input type="password" id="password" v-model="password" required />
         </div>
 
         <div class="form-group">
-          <label for="confirmPassword">Confirm Password</label>
+          <label for="confirmPassword">Potvrdenie hesla</label>
           <input
             type="password"
             id="confirmPassword"
@@ -47,21 +47,21 @@ export default {
           />
         </div>
 
-        <button class="button" type="submit">Register</button>
+        <button class="button button-green" type="submit">Registrovať</button>
       </fieldset>
     </form>
   </div>
 
   <div v-else-if="registeredSuccessfully">
     <div class="success">
-      <h1>Registered successfully! Check your email for verification.</h1>
-      <RouterLink to="/login">Login</RouterLink>
+      <h1>Úspešne ste sa registrovali! Skontrolujte si email na overenie.</h1>
+      <RouterLink to="/login">Prihlásiť sa</RouterLink>
     </div>
   </div>
 
   <div v-else>
     <div class="error">
-      <h1>Registration failed. Please, try again later.</h1>
+      <h1>Registrácia zlyhala. Prosím, skúste to znova neskôr.</h1>
     </div>
   </div>
 </template>
@@ -70,6 +70,6 @@ export default {
 @import "tailwindcss";
 
 .form-container {
-  @apply my-20 mx-auto;
+  @apply max-w-md my-20 mx-auto;
 }
 </style>

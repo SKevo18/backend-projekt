@@ -15,15 +15,25 @@ export default defineComponent({
   },
   data() {
     return {
-      initialHtmlContent: "<p>Začni písať tu...</p>",
+      htmlContent: "",
     };
+  },
+  methods: {
+    savePage() {
+      alert(this.htmlContent);
+    },
   },
 });
 </script>
 
 <template>
+  <nav class="flex flex-row justify-end gap-4 m-6">
+    <button class="button button-red">Odstrániť</button>
+    <button class="button button-green" @click="savePage">Uložiť</button>
+  </nav>
+
   <div class="editor-container">
-    <PageEditorComponent :initialHtml="initialHtmlContent" />
+    <PageEditorComponent v-model="htmlContent" />
   </div>
 </template>
 

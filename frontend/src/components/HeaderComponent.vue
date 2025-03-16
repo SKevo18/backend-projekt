@@ -20,9 +20,9 @@ export default {
 <template>
   <header>
     <div class="header-topnav" v-if="!$authStore.isAuthenticated">
-      <RouterLink to="/login">Login</RouterLink>
+      <RouterLink to="/login">Prihlásiť sa</RouterLink>
       <span> | </span>
-      <RouterLink to="/register">Register</RouterLink>
+      <RouterLink to="/register">Registrácia</RouterLink>
     </div>
     <div class="header-topnav" v-else>
       <a class="cursor-pointer" @click="$authStore.logout()">Logout</a>

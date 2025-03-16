@@ -51,7 +51,6 @@ import {
   TableProperties,
   TableToolbar,
   Underline,
-  WordCount,
 } from "ckeditor5";
 
 import translations from "ckeditor5/translations/sk.js";
@@ -63,16 +62,14 @@ export default defineComponent({
     ckeditor: Ckeditor,
   },
   props: {
-    // Allow the parent to set the initial HTML content.
-    initialHtml: {
+    modelValue: {
       type: String,
-      default: "henlo",
+      default: "",
     },
-    // (Optional) You can add more props here to customize other config parts.
   },
   data() {
     return {
-      initialData: this.initialHtml,
+      initialData: this.modelValue,
       editor: DecoupledEditor as any,
       isLayoutReady: false,
     };
@@ -157,7 +154,6 @@ export default defineComponent({
           TableProperties,
           TableToolbar,
           Underline,
-          WordCount,
         ],
         balloonToolbar: ["bold", "italic", "|", "link", "insertImage"],
         fontFamily: {
@@ -252,7 +248,7 @@ export default defineComponent({
         menuBar: {
           isVisible: true,
         },
-        placeholder: "Type or paste your content here!",
+        placeholder: "Začni písať tu...",
         table: {
           contentToolbar: [
             "tableColumn",
@@ -271,23 +267,23 @@ export default defineComponent({
   },
   methods: {
     onReady(editorInstance: any) {
-      const wordCountContainer = this.$refs.editorWordCount as HTMLElement;
       const toolbarContainer = this.$refs.editorToolbar as HTMLElement;
       const menuBarContainer = this.$refs.editorMenuBar as HTMLElement;
 
       // Clean up any existing child nodes
-      [wordCountContainer, toolbarContainer, menuBarContainer].forEach(
-        (container) => {
-          while (container.firstChild) {
-            container.removeChild(container.firstChild);
-          }
+      [toolbarContainer, menuBarContainer].forEach((container) => {
+        while (container.firstChild) {
+          container.removeChild(container.firstChild);
         }
-      );
+      });
 
-      const wordCount = editorInstance.plugins.get("WordCount");
-      wordCountContainer.appendChild(wordCount.wordCountContainer);
       toolbarContainer.appendChild(editorInstance.ui.view.toolbar.element);
       menuBarContainer.appendChild(editorInstance.ui.view.menuBarView.element);
+
+      // Listen for editor changes and emit update event
+      editorInstance.model.document.on("change:data", () => {
+        this.$emit("update:modelValue", editorInstance.getData());
+      });
     },
   },
 });
@@ -296,7 +292,7 @@ export default defineComponent({
 <template>
   <div class="main-container">
     <div
-      class="editor-container editor-container_document-editor editor-container_include-word-count"
+      class="editor-container editor-container_document-editor"
       ref="editorContainer"
     >
       <div class="editor-container__menu-bar" ref="editorMenuBar"></div>
@@ -314,13 +310,13 @@ export default defineComponent({
           </div>
         </div>
       </div>
-      <div class="editor_container__word-count" ref="editorWordCount"></div>
     </div>
   </div>
 </template>
 
-<style scoped>
+<style>
 @import url("https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400;1,700&display=swap");
+@import "tailwindcss";
 
 @media print {
   body {
@@ -328,99 +324,17 @@ export default defineComponent({
   }
 }
 
-.main-container {
-  --ckeditor5-preview-height: 700px;
-  font-family: "Lato";
-  width: fit-content;
-  margin-left: auto;
-  margin-right: auto;
+.editor-container {
+  @apply m-6;
 }
 
-.ck-content {
-  font-family: "Lato";
-  line-height: 1.6;
-  word-break: break-word;
+.editor-container .ck-toolbar {
+  @apply border-b-0;
+  border-radius: 0 !important;
 }
 
-.editor-container__editor-wrapper {
-  display: flex;
-  width: fit-content;
-}
-
-.editor-container_document-editor {
-  border: 1px solid var(--ck-color-base-border);
-}
-
-.editor-container_document-editor .editor-container__toolbar {
-  display: flex;
-  position: relative;
-  box-shadow: 0 2px 3px hsla(0, 0%, 0%, 0.078);
-}
-
-.editor-container_document-editor .editor-container__toolbar > .ck.ck-toolbar {
-  flex-grow: 1;
-  width: 0;
-  border-bottom-right-radius: 0;
-  border-bottom-left-radius: 0;
-  border-top: 0;
-  border-left: 0;
-  border-right: 0;
-}
-
-.editor-container_document-editor
-  .editor-container__menu-bar
-  > .ck.ck-menu-bar {
-  border-bottom-right-radius: 0;
-  border-bottom-left-radius: 0;
-  border-top: 0;
-  border-left: 0;
-  border-right: 0;
-}
-
-.editor-container_document-editor .editor-container__editor-wrapper {
-  max-height: var(--ckeditor5-preview-height);
-  min-height: var(--ckeditor5-preview-height);
-  overflow-y: scroll;
-  background: var(--ck-color-base-foreground);
-}
-
-.editor-container_document-editor .editor-container__editor {
-  margin-top: 28px;
-  margin-bottom: 28px;
-  height: 100%;
-}
-
-.editor-container_document-editor
-  .editor-container__editor
-  .ck.ck-editor__editable {
-  box-sizing: border-box;
-  min-width: calc(210mm + 2px);
-  max-width: calc(210mm + 2px);
-  min-height: 297mm;
-  height: fit-content;
-  padding: 20mm 12mm;
-  border: 1px hsl(0, 0%, 82.7%) solid;
-  background: hsl(0, 0%, 100%);
-  box-shadow: 0 2px 3px hsla(0, 0%, 0%, 0.078);
-  flex: 1 1 auto;
-  margin-left: 72px;
-  margin-right: 72px;
-}
-
-.editor_container__word-count .ck-word-count {
-  color: var(--ck-color-text);
-  display: flex;
-  height: 20px;
-  gap: var(--ck-spacing-small);
-  justify-content: flex-end;
-  font-size: var(--ck-font-size-base);
-  line-height: var(--ck-line-height-base);
-  font-family: var(--ck-font-face);
-  padding: var(--ck-spacing-small) var(--ck-spacing-standard);
-}
-
-.editor-container_include-word-count.editor-container_document-editor
-  .editor_container__word-count {
-  border-top: 1px solid var(--ck-color-base-border);
+.editor-container .editor-container__editor .ck-content {
+  @apply min-h-[400px] border-1 border-gray-300 border-t-0;
+  border-radius: 0 !important;
 }
 </style>
