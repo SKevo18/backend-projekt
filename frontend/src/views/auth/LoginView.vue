@@ -19,8 +19,8 @@ export default {
 </script>
 
 <template>
-  <div class="form-container">
-    <form @submit.prevent="handleLogin">
+  <div class="auth-form-container">
+    <form @submit.prevent="handleLogin" class="auth-form">
       <fieldset>
         <legend>Prihlásenie</legend>
 
@@ -40,10 +40,6 @@ export default {
   </div>
 </template>
 
-<style scoped>
-@import "tailwindcss";
-
-.form-container {
-  @apply max-w-md my-20 mx-auto;
-}
+<style>
+@import "./auth_form.css";
 </style>

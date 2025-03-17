@@ -23,7 +23,7 @@ export default {
 
 <template>
   <div class="form-container" v-if="registeredSuccessfully === null">
-    <form @submit.prevent="handleRegister">
+    <form @submit.prevent="handleRegister" class="auth-form">
       <fieldset>
         <legend>Registrácia</legend>
 
@@ -71,14 +71,6 @@ export default {
   </div>
 </template>
 
-<style scoped>
-@import "tailwindcss";
-
-.form-container {
-  @apply max-w-md my-20 mx-auto;
-}
-
-.info-container {
-  @apply max-w-md my-20 mx-auto;
-}
+<style>
+@import "./auth_form.css";
 </style>

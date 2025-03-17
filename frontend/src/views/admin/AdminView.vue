@@ -40,6 +40,7 @@ export default {
 
 <style>
 @import "tailwindcss";
+@import "./admin_form.css";
 
 .tab-nav {
   @apply flex border-b border-gray-400;

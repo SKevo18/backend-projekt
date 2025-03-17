@@ -20,10 +20,9 @@ export default {
     return {
       links: [
         // TODO: fetch links from backend
-        { id: 1, title: "Home" },
-        { id: 2, title: "Chicken Genetics" },
-        { id: 3, title: "Poultry Science" },
-        { id: 4, title: "Contact" },
+        { id: 1, title: "Osoby" },
+        { id: 2, title: "Koláče" },
+        { id: 3, title: "Kontakt" },
       ],
     };
   },
@@ -33,6 +32,15 @@ export default {
 <template>
   <aside class="sidebar">
     <ul>
+      <li>
+        <RouterLink
+          :to="{ name: 'year', params: { year } }"
+          class="sidebar-link sidebar-year-link"
+          active-class="sidebar-link-active"
+        >
+          Ročník {{ year }}
+        </RouterLink>
+      </li>
       <li v-for="link in links" :key="link.id">
         <RouterLink
           :to="{ name: 'page', params: { year: year, slug: link.title } }"
@@ -58,15 +66,19 @@ export default {
   @apply bg-gray-800 text-white sm:w-[240px] text-center sm:text-left sm:h-[80vh] flex flex-col justify-between;
 }
 
-.sidebar-link {
+.sidebar a.sidebar-year-link {
+  @apply text-yellow-100 font-bold;
+}
+
+.sidebar .sidebar-link {
   @apply text-white block py-4 px-6;
 }
 
-.sidebar-link-active {
+.sidebar .sidebar-link-active {
   @apply bg-gray-900 text-yellow-500;
 }
 
-.sidebar-link:hover {
+.sidebar .sidebar-link:hover {
   @apply bg-gray-900;
 }
 </style>

@@ -78,23 +78,22 @@ export const useAuthStore = defineStore("auth", {
       this.token = localStorage.getItem("token");
     },
 
-    async fetchJson(url: string): Promise<any> {
-      const response = await fetch(url);
+    async fetchJson(url: string, options: RequestInit = {}): Promise<any> {
+      const response = await fetch(url, options);
       return response.json();
     },
 
-    async fetchJsonAuth(url: string): Promise<any> {
+    async fetchJsonAuth(url: string, options: RequestInit = {}): Promise<any> {
       if (this.token === null) {
         return null;
       }
 
-      const response = await fetch(url, {
+      return this.fetchJson(url, {
         headers: {
           Authorization: `Bearer ${this.token}`,
         },
+        ...options,
       });
-
-      return response.json();
     },
   },
 });

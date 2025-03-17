@@ -97,7 +97,7 @@ export default {
 }
 
 /* higher specificity, so it takes precedence */
-a.nav-link-active {
+.year-nav a.nav-link-active {
   @apply text-yellow-500;
 }
 

@@ -18,6 +18,7 @@ body {
   padding: 0;
 }
 
+/* Text */
 .title {
   @apply text-2xl font-bold text-center;
 }
@@ -26,6 +27,7 @@ body {
   @apply text-xl font-bold;
 }
 
+/* Buttons */
 .button {
   @apply cursor-pointer text-white rounded-md px-4 py-2;
 }
@@ -46,34 +48,7 @@ body {
   @apply bg-green-800;
 }
 
-.form-container form {
-  @apply mx-auto px-6;
-}
-
-.form-container .form-group {
-  @apply flex flex-col;
-}
-
-.form-container .form-group input {
-  @apply border-2 border-gray-400 rounded-md p-2;
-}
-
-.form-container button {
-  @apply mt-4 self-end;
-}
-
-form fieldset {
-  @apply space-y-4 items-center justify-center border-2 border-gray-400 rounded-md px-12 py-8 flex flex-col w-full;
-}
-
-form fieldset > legend {
-  @apply uppercase text-lg font-bold rounded-lg px-2 border-2 border-gray-400;
-}
-
-fieldset label {
-  @apply font-bold;
-}
-
+/* Info containers */
 .success,
 .error {
   @apply rounded-lg p-4 text-center;
@@ -87,10 +62,20 @@ fieldset label {
   @apply bg-red-200;
 }
 
+/* Links */
 a {
   @apply text-green-500;
 }
 
 a:hover:not(.button) {
   @apply underline text-yellow-500;
+}
+
+/* Forms */
+.form-group {
+  @apply flex flex-col;
+}
+
+.form-checkbox {
+  @apply flex flex-row items-center gap-2;
 }

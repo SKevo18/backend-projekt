@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+.auth-form fieldset {
+  @apply space-y-4 items-center justify-center border-2 border-gray-400 rounded-md px-12 py-8 flex flex-col w-full;
+}
+
+.auth-form fieldset > legend {
+  @apply uppercase text-lg font-bold rounded-lg px-2 border-2 border-gray-400;
+}
+
+.auth-form fieldset label {
+  @apply font-bold;
+}
+
+.auth-form-container {
+  @apply max-w-md my-20 mx-auto;
+}
+
+.auth-form {
+  @apply mx-auto px-6;
+}
+
+.auth-form button {
+  @apply mt-4 self-end;
+}
+
+.auth-form input {
+  @apply border-2 border-gray-400 rounded-md p-2;
+}

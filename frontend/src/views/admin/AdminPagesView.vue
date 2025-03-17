@@ -5,7 +5,9 @@ export default {
 </script>
 
 <template>
-  <div>
-    <h1 class="title">Stránky</h1>
+  <div class="admin-forms">
+    <fieldset>
+      <legend>2025</legend>
+    </fieldset>
   </div>
 </template>
