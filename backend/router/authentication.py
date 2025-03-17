@@ -5,7 +5,7 @@ from db.orm import User
 from sqlalchemy.orm import Session
 from datetime import datetime
 
-AUTH_ROUTER = APIRouter(prefix="/Authentication")
+AUTH_ROUTER = APIRouter(prefix="/authentication")
 
 
 class UserModel(BaseModel):
