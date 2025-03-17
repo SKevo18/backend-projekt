@@ -23,9 +23,9 @@ def upgrade() -> None:
 
     op.execute(
         sa.insert(User).values(
-            username="admin",
-            email="admin@nieco.sk",
-            password="admin",  # FIXME: hashovanie (bcrypt)
+            first_name="admin",
+            user_email="admin@nieco.sk",
+            user_password="admin",  # FIXME: hashovanie (bcrypt)
         )
     )
 

@@ -1,15 +1,15 @@
 import os
-
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
-
 from db.orm import Base
 
 
 class Database:
     def __init__(self):
-        url = f"mysql+pymysql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
-
+        try:
+            url = os.environ["DATABASE_URL"]
+        except KeyError:
+            raise RuntimeError("DATABASE_URL not found in .env file!")
         self.engine = create_engine(url)
         self.session = Session(self.engine)
 

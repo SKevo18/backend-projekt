@@ -24,7 +24,7 @@ Zdrojový kód pre FastAPI aplikáciu.
 2. `python -m venv .venv`
 3. Aktivovať virtual environment:
     - Mac/Linux: `source .venv/bin/activate`
-    - Windows: `.\.venv\Scripts\activate`
+    - Windows: `.\.venv\Scripts\activate.ps1`
 4. Inštalovať potrebné Python moduly cez PyPI: `pip install -r requirements.txt`
 5. Pridať `DATABASE_URL` do env premenných (v súbore `.env`). Následne exportovať premenné. V prípade [Windowsu](https://stackoverflow.com/a/72236585/23509205):
 

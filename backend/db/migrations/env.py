@@ -10,6 +10,9 @@ from sqlalchemy import pool
 
 from alembic import context
 
+from dotenv import load_dotenv
+load_dotenv(override=True)
+
 config = context.config
 try:
     config.set_main_option("sqlalchemy.url", environ["DATABASE_URL"])
