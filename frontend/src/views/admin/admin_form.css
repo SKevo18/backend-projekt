@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+.admin-forms {
+  @apply flex flex-col gap-4;
+}
+
+.admin-forms.admin-forms-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 gap-4;
+}
+
+.admin-forms fieldset {
+  @apply mx-auto w-full border-1 border-gray-400 rounded-md p-4;
+}
+
+.admin-forms fieldset > legend {
+  @apply text-lg font-bold bg-white px-1;
+}
+
+.admin-forms .form-group {
+  @apply mb-4;
+}
+
+.admin-forms label {
+  @apply text-xs;
+}
+
+.admin-forms input {
+  @apply inset-shadow-sm shadow-sm px-2 py-1;
+}

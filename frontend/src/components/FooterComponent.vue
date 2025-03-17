@@ -1,148 +1,55 @@
-<template>
-  <footer class="footer">
-    <div class="container">
-      <div class="footer-section">
-        <img
-          src="@/assets/logo-nconnect.png"
-          alt="nConnect Logo - Connecting IT Communities"
-          class="logo"
-        />
-        <p class="tagline">Spájame IT komunity</p>
-        <div class="social-links">
-          <a href="#" class="icon"><i class="fab fa-facebook"></i></a>
-          <a href="#" class="icon"><i class="fab fa-instagram"></i></a>
-          <a href="#" class="icon"><i class="fab fa-linkedin"></i></a>
-        </div>
-      </div>
-      <div class="footer-section">
-        <p class="title">Študentské centrum UKF</p>
-        <p>Dražovská 2 | Nitra</p>
-        <p><a href="https://nconnect.sk/" class="link">info@nconnect.sk</a></p>
-      </div>
-      <div class="footer-section">
-        <p class="title">Fakulta prírodných vied a informatiky</p>
-        <p>Univerzita Konštantína Filozofa v Nitre</p>
-        <p><a href="#" class="link">Ochrana osobných údajov</a></p>
-      </div>
-    </div>
-    <div class="copyright">
-      © 2025 nConnect | <a href="#" class="link">Terms of Service</a> |
-      <a href="#" class="link">Privacy Policy</a>
-    </div>
-  </footer>
-</template>
+<script lang="ts">
+import LogoComponent from "@/components/LogoComponent.vue";
 
-<script>
 export default {
   name: "FooterComponent",
+  components: {
+    LogoComponent,
+  },
 };
 </script>
 
+<template>
+  <footer>
+    <div class="info">
+      <div>
+        <LogoComponent />
+        <div class="flex-row">
+          <p class="big">Animal Science Days</p>
+          <a tabindex="-1" href="mailto:info@uniag.sk">info@uniag.sk</a>
+        </div>
+      </div>
+      <div>
+        <p>
+          Slovenská Poľnohospodárska Univerzita<br />
+          Tr. A. Hlinku 38<br />
+          949 76 Nitra
+        </p>
+      </div>
+    </div>
+
+    <p class="copyright">
+      &copy; {{ new Date().getFullYear() }} Animal Science Days
+    </p>
+  </footer>
+</template>
+
 <style scoped>
-.footer {
-  background-color: #1e1e1e;
-  color: white;
-  padding: 40px 0;
-  font-size: 16px;
-  font-family: "Arial", "Helvetica", sans-serif;
+@import "tailwindcss";
+
+footer {
+  @apply text-white bg-gray-900 pt-6;
 }
 
-.container {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 0 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  flex-wrap: wrap;
+footer > .info {
+  @apply flex flex-col sm:flex-row gap-4 justify-evenly;
 }
 
-.footer-section {
-  flex: 1;
-  min-width: 250px;
-  text-align: left;
-  margin-bottom: 20px;
+footer > .info > div {
+  @apply flex flex-col sm:flex-row gap-4 justify-center sm:justify-between items-center sm:items-start;
 }
 
-.logo {
-  height: 50px;
-  margin-bottom: 15px;
-  object-fit: contain;
-}
-
-.tagline {
-  font-size: 20px;
-  font-weight: 500;
-  margin-bottom: 15px;
-  font-style: italic;
-  color: #bbb;
-}
-
-.social-links {
-  display: flex;
-  justify-content: flex-start;
-  gap: 20px;
-  margin-top: 15px;
-}
-
-.icon {
-  color: white;
-  font-size: 22px;
-  text-decoration: none;
-  transition: color 0.3s ease, transform 0.3s ease;
-}
-
-.icon:hover {
-  color: #4a90e2;
-  transform: scale(1.1);
-}
-
-.title {
-  font-weight: 600;
-  font-size: 20px;
-  margin-bottom: 10px;
-  color: #aaa;
-}
-
-.link {
-  color: #4a90e2;
-  text-decoration: none;
-  font-size: 16px;
-  font-weight: 500;
-}
-
-.link:hover {
-  text-decoration: underline;
-  color: #5c8fd0;
-}
-
-.copyright {
-  text-align: center;
-  font-size: 14px;
-  margin-top: 30px;
-  padding: 20px 0;
-  border-top: 1px solid #444;
-  color: #777;
-}
-
-.copyright a {
-  color: #4a90e2;
-  text-decoration: none;
-}
-
-.copyright a:hover {
-  text-decoration: underline;
-}
-
-/* Mobile responsiveness */
-@media (max-width: 768px) {
-  .container {
-    flex-direction: column;
-    align-items: center;
-  }
-  .footer-section {
-    text-align: center;
-    margin-bottom: 15px;
-  }
+footer .copyright {
+  @apply text-center py-4;
 }
 </style>

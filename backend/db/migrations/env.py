@@ -2,7 +2,7 @@
 # boli vykonané minimálne zmeny (napríklad, aby sa bralo `DATABASE_URL` priamo z env premennej)
 # ...pre ďalšie info, kuk dokumentáciu: https://alembic.sqlalchemy.org/en/latest/tutorial.html
 
-from os import environ
+import os
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
@@ -14,12 +14,7 @@ from dotenv import load_dotenv
 load_dotenv(override=True)
 
 config = context.config
-try:
-    config.set_main_option("sqlalchemy.url", environ["DATABASE_URL"])
-except KeyError:
-    raise RuntimeError(
-        "`DATABASE_URL` env nie je nastavená (pozri `backend/README.md#development-inštrukcie`!)",
-    )
+config.set_main_option("sqlalchemy.url", os.getenv("DATABASE_URL", "sqlite:///db.sqlite"))
 
 # setup logging
 if config.config_file_name is not None:

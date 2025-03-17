@@ -22,3 +22,11 @@ class Database:
 
 DB = Database()
 DB.init_db()
+
+
+def get_db():
+    db_instance = Database()
+    try:
+        yield db_instance.session
+    finally:
+        db_instance.close()
