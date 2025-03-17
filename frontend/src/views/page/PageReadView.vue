@@ -21,7 +21,7 @@ export default {
   data() {
     return {
       pageHtml:
-        '<i>Táto stránka nemá žiadny obsah. Kliknite na tlačidlo "Upraviť" na stránke, aby ste mohli pridávať obsah.</i>',
+        '<i>Táto stránka nemá žiadny obsah. Kliknite na tlačidlo "Upraviť", aby ste mohli pridávať obsah.</i>',
     };
   },
   computed: {

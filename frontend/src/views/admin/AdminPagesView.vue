@@ -1,11 +1,11 @@
 <script lang="ts">
 export default {
-  name: "AdminSettingsView",
+  name: "AdminPagesView",
 };
 </script>
 
 <template>
   <div>
-    <h1 class="title">Settings</h1>
+    <h1 class="title">Stránky</h1>
   </div>
 </template>

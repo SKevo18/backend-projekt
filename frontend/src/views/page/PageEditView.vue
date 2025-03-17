@@ -45,7 +45,7 @@ export default {
 <template>
   <nav class="top-nav">
     <h1 class="nav-inner">
-      <span class="title">Upravuje sa:</span>
+      <span class="title whitespace-nowrap">Upravuje sa:</span>
       <span class="nav-label uppercase">{{ year }} / {{ readableSlug }}</span>
     </h1>
     <div class="nav-inner">
@@ -63,11 +63,11 @@ export default {
 @import "tailwindcss";
 
 .top-nav {
-  @apply flex flex-row justify-between gap-4 my-6 mx-12;
+  @apply flex flex-col md:flex-row justify-between gap-4 my-6 mx-12;
 }
 
 .nav-inner {
-  @apply flex flex-row gap-2 items-center;
+  @apply flex flex-row gap-2 items-start;
 }
 
 .nav-inner .nav-label {

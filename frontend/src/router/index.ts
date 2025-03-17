@@ -48,17 +48,17 @@ const router = createRouter({
         {
           path: "settings",
           name: "admin-settings",
-          component: () => import("@/views/admin/SettingsView.vue"),
+          component: () => import("@/views/admin/AdminSettingsView.vue"),
         },
         {
           path: "users",
           name: "admin-users",
-          component: () => import("@/views/admin/UsersView.vue"),
+          component: () => import("@/views/admin/AdminUsersView.vue"),
         },
         {
-          path: "sidebar",
-          name: "admin-sidebar",
-          component: () => import("@/views/admin/SidebarView.vue"),
+          path: "pages",
+          name: "admin-pages",
+          component: () => import("@/views/admin/AdminPagesView.vue"),
         },
       ],
     },

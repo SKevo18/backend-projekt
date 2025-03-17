@@ -1,11 +1,11 @@
 <script lang="ts">
 export default {
-  name: "UsersView",
+  name: "AdminUsersView",
 };
 </script>
 
 <template>
   <div>
-    <h1 class="title">Users</h1>
+    <h1 class="title">Používatelia</h1>
   </div>
 </template>

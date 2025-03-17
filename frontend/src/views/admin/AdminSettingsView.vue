@@ -1,11 +1,11 @@
 <script lang="ts">
 export default {
-  name: "SidebarView",
+  name: "AdminSettingsView",
 };
 </script>
 
 <template>
   <div>
-    <h1 class="title">Sidebar</h1>
+    <h1 class="title">Nastavenia</h1>
   </div>
 </template>

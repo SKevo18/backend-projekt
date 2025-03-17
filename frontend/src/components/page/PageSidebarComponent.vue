@@ -37,6 +37,7 @@ export default {
         <RouterLink
           :to="{ name: 'page', params: { year: year, slug: link.title } }"
           class="sidebar-link"
+          active-class="sidebar-link-active"
         >
           {{ link.title }}
         </RouterLink>
@@ -44,7 +45,7 @@ export default {
     </ul>
 
     <!-- TODO: iba ak je editor pre daný ročník alebo admin -->
-    <RouterLink class="text-center my-4" :to="{ name: 'admin-sidebar' }">
+    <RouterLink class="text-center my-4" :to="{ name: 'admin-pages' }">
       Upraviť
     </RouterLink>
   </aside>
@@ -59,6 +60,10 @@ export default {
 
 .sidebar-link {
   @apply text-white block py-4 px-6;
+}
+
+.sidebar-link-active {
+  @apply bg-gray-900 text-yellow-500;
 }
 
 .sidebar-link:hover {
