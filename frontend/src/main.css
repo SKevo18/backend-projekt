@@ -1,0 +1,81 @@
+@import "tailwindcss";
+
+:root {
+  @apply font-sans;
+  line-height: 1.5;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+/* Text */
+.title {
+  @apply text-2xl font-bold text-center;
+}
+
+.big {
+  @apply text-xl font-bold;
+}
+
+/* Buttons */
+.button {
+  @apply cursor-pointer text-white rounded-md px-4 py-2;
+}
+
+.button-red {
+  @apply bg-red-500;
+}
+
+.button-green {
+  @apply bg-green-500;
+}
+
+.button-red:hover {
+  @apply bg-red-800;
+}
+
+.button-green:hover {
+  @apply bg-green-800;
+}
+
+/* Info containers */
+.success,
+.error {
+  @apply rounded-lg p-4 text-center;
+}
+
+.success {
+  @apply bg-green-200;
+}
+
+.error {
+  @apply bg-red-200;
+}
+
+/* Links */
+a {
+  @apply text-green-500;
+}
+
+a:hover:not(.button) {
+  @apply underline text-yellow-500;
+}
+
+/* Forms */
+.form-group {
+  @apply flex flex-col;
+}
+
+.form-checkbox {
+  @apply flex flex-row items-center gap-2;
+}

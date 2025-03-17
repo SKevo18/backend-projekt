@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "target": "ES2024",
+    "lib": ["dom", "ES2024"],
+    "module": "ES2022",
+    "moduleResolution": "bundler",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  },
+  "exclude": ["node_modules", "dist"]
+}
