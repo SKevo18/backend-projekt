@@ -1,6 +1,6 @@
 import fastapi as fa
 from router.page_crud import PAGE_CRUD_ROUTER
-from router.authenticator import AUTH_ROUTER
+from router.authentication import AUTH_ROUTER
 
 ROOT_ROUTER = fa.APIRouter()
 
