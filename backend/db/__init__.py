@@ -13,15 +13,11 @@ class Database:
         self.engine = create_engine(url)
         self.session = Session(self.engine)
 
-    def init_db(self):
-        Base.metadata.create_all(bind=self.engine)
-
     def close(self):
         self.session.close()
 
 
 DB = Database()
-DB.init_db()
 
 
 def get_db():
