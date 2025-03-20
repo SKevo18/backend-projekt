@@ -17,7 +17,6 @@ class UserModel(BaseModel):
 
 @AUTH_ROUTER.post("/register")
 async def register(user: UserModel, db: Session = Depends(get_db)):
-    try:
         existing_user = db.query(User).filter_by(user_email=user.user_email).first()
         if existing_user:
             raise HTTPException(status_code=400, detail="User already exists")
@@ -32,5 +31,16 @@ async def register(user: UserModel, db: Session = Depends(get_db)):
         db.add(new_user)
         db.commit()
         return {"message": "User registered successfully"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+
+
+class LoginModel(BaseModel):
+    user_email: str
+    user_password: str
+
+@AUTH_ROUTER.post("/login")
+async def login(user: LoginModel, db: Session = Depends(get_db)):
+    db_user = db.query(User).filter_by(user_email=user.user_email).first()
+    if not db_user or db_user.user_password != user.user_password:
+        raise HTTPException(status_code=400, detail="Invalid email or password")
+    
+    return {"message": "Login successful"}    
