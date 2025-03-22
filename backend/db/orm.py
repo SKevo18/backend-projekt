@@ -1,6 +1,6 @@
 import typing as t
-from sqlalchemy import String
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy import String, Text
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column 
 from datetime import datetime
 
 
@@ -29,5 +29,5 @@ class Page(Base):
     __tablename__ = "pages"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    html_content: Mapped[t.Text] = mapped_column(nullable=False)
+    html_content: Mapped[t.Text] = mapped_column(Text(), nullable=False)
     created_at: Mapped[datetime] = mapped_column(default=datetime.now)
