@@ -7,209 +7,151 @@ export default defineComponent({
   data() {
     return {
       pagesStore: usePagesStore(),
-      year: '',
+      title: '',
       description: '',
-      showAddPageForm: false,
+      newCategory: '',
+      showAddCategoryForm: false,
+      activeCategoryForm: null
     };
   },
   computed: {
     sortedPages() {
-      return [...this.pagesStore.pages].sort((a, b) => a.year - b.year);
+      return [...this.pagesStore.pages].sort((a, b) => a.category.localeCompare(b.category));
+    },
+    sortedCategories() {
+      return [...this.pagesStore.categories].sort((a, b) => a.localeCompare(b));
     }
   },
   methods: {
-    addPage() {
-      const yearValue = Number(this.year);
-
-      if (!this.year || isNaN(yearValue) || yearValue < 2000 || yearValue > 2100) {
-        alert('Please enter the correct year in the format 2000-2100.');
+    addPage(category: string) {
+      if (this.title.trim() === '') {
+        alert('Prosím, zadajte názov stránky.');
         return;
       }
 
       if (this.description.trim() === '') {
-        alert('Please enter a description of the page.');
+        alert('Prosím, zadajte popis stránky.');
         return;
       }
 
-      this.pagesStore.addPage(yearValue, this.description);
+      this.pagesStore.addPage(category, this.title, this.description);
 
-      this.year = '';
+      this.title = '';
       this.description = '';
-      this.showAddPageForm = false;
+      this.activeCategoryForm = null;
     },
-    deletePage(year: number) {
-      if (confirm(`Are you sure you want to delete the page for the year ${year}?`)) {
-        this.pagesStore.deletePage(year);
+
+    addCategory() {
+      const categoryValue = this.newCategory.trim();
+
+      if (!categoryValue) {
+        alert('Prosím, zadajte správnu kategóriu.');
+        return;
       }
+
+      if (!this.pagesStore.categories.includes(categoryValue)) {
+        this.pagesStore.addCategory(categoryValue);
+      } else {
+        alert(`Kategória "${categoryValue}" už existuje.`);
+      }
+
+      this.newCategory = '';
+      this.showAddCategoryForm = false;
+    },
+
+    deletePage(title: string) {
+      if (confirm(`Ste si istý, že chcete odstrániť stránku "${title}"?`)) {
+        this.pagesStore.deletePage(title);
+      }
+    },
+
+    toggleAddPageForm(category: string) {
+      this.activeCategoryForm = this.activeCategoryForm === category ? null : category;
     }
   },
   mounted() {
     this.pagesStore.getPages();
+    this.pagesStore.getCategories();
   }
 });
 </script>
 
 <template>
-  <div class="container">
-    <div v-if="sortedPages.length === 0" class="empty-message">
-      No pages added.
-    </div>
+  <div class="p-6 bg-gray-50 min-h-screen space-y-6">  
+    <div class="space-y-6">
+      <div v-for="category in sortedCategories" :key="category" class="bg-white border border-gray-300 rounded-xl p-4 shadow-md">
+        <fieldset>
+          <legend class="font-bold text-lg text-gray-700">{{ category }}</legend>
 
-    <div v-for="page in sortedPages" :key="page.year" class="page-item">
-      <div class="page-content">
-        <h3>{{ page.year }}</h3>
-        <p>{{ page.description }}</p>
-        <button @click="deletePage(page.year)" class="delete-button">
-          Delete
-        </button>
+          <div v-if="!pagesStore.pages.some(page => page.category === category)" class="text-center text-gray-400">
+            Žiadne stránky pre túto kategóriu.
+          </div>
+
+          <div v-for="page in sortedPages.filter(page => page.category === category)" 
+               :key="page.title"
+               class="bg-gray-100 border border-gray-200 rounded-lg p-3 my-2 flex items-center justify-between">
+            <p class="text-gray-600">{{ page.title }} - {{ page.description }}</p>
+            <button @click="deletePage(page.title)"
+                    class="text-red-400 hover:text-red-500 font-medium">
+              ✕
+            </button>
+          </div>
+
+          <div class="text-center mt-4">
+            <button @click="toggleAddPageForm(category)"
+                    class="bg-green-500 text-white w-full py-2 rounded-md hover:bg-green-600 transition">
+              {{ activeCategoryForm === category ? 'Skryť formulár' : 'Vytvoriť stránku' }}
+            </button>
+          </div>
+
+          <div v-if="activeCategoryForm === category" class="bg-white border border-gray-200 rounded-lg p-4 shadow-md mt-4">
+            <div class="flex gap-4">
+              <input
+                v-model="title"
+                placeholder="Názov stránky"
+                type="text"
+                class="flex-1 border border-gray-300 rounded-md p-2 bg-gray-50 focus:ring-2 focus:ring-green-300 focus:outline-none"
+              />
+
+              <input
+                v-model="description"
+                placeholder="Popis"
+                type="text"
+                class="flex-1 border border-gray-300 rounded-md p-2 bg-gray-50 focus:ring-2 focus:ring-green-300 focus:outline-none"
+              />
+
+              <button @click="addPage(category)" 
+                      class="bg-green-500 text-white py-2 px-6 rounded-md hover:bg-green-600 transition">
+                Pridať stránku
+              </button>
+            </div>
+          </div>
+        </fieldset>
       </div>
     </div>
 
-    <div class="add-page-button">
-      <button @click="showAddPageForm = !showAddPageForm">
-        {{ showAddPageForm ? 'Hide Form' : 'Add New Page' }}
-      </button>
-    </div>
+    <div class="space-y-4 mt-4">
+      <div class="text-center">
+        <button @click="showAddCategoryForm = !showAddCategoryForm"
+                class="bg-blue-500 text-white w-full py-2 rounded-md hover:bg-blue-600 transition">
+          {{ showAddCategoryForm ? 'Skryť formulár pre kategóriu' : 'Pridať novú kategóriu' }}
+        </button>
+      </div>
 
-    <div v-if="showAddPageForm" class="form-section">
-      <div class="form-group">
-        <input
-          v-model="year"
-          placeholder="Year (e.g. 2025)"
-          type="number"
-        />
-        <input
-          v-model="description"
-          placeholder="Description"
-          type="text"
-        />
-        <button @click="addPage">Add Page</button>
+      <div v-if="showAddCategoryForm" class="bg-white border border-gray-300 rounded-xl p-6 shadow-md space-y-4">
+        <div class="flex gap-4">
+          <input
+            v-model="newCategory"
+            placeholder="Kategória (napr. 2025, Informácie)"
+            type="text"
+            class="flex-1 border border-gray-300 rounded-md p-2 bg-gray-50 focus:ring-2 focus:ring-blue-300 focus:outline-none"
+          />
+          <button @click="addCategory"
+                  class="bg-blue-500 text-white py-2 px-6 rounded-md hover:bg-blue-600 transition">
+            Pridať kategóriu
+          </button>
+        </div>
       </div>
     </div>
   </div>
 </template>
-
-<style>
-.container {
-  padding: 24px;
-  background-color: #fafafa;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  font-family: 'Arial', sans-serif;
-}
-
-.empty-message {
-  text-align: center;
-  color: #aaa;
-  font-weight: 500;
-  font-size: 18px;
-}
-
-.page-item {
-  background-color: #ffffff;
-  border: 1px solid #eaeaea;
-  border-radius: 12px;
-  padding: 12px 20px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  transition: transform 0.2s ease;
-}
-
-.page-item:hover {
-  transform: translateY(-2px);
-}
-
-.page-content {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  width: 100%;
-}
-
-.page-content h3 {
-  font-weight: 600;
-  color: #222;
-  margin: 0;
-}
-
-.page-content p {
-  flex-grow: 1;
-  color: #555;
-  margin: 0;
-  font-size: 15px;
-}
-
-.delete-button {
-  background: none;
-  border: none;
-  color: #f44336;
-  font-size: 14px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: color 0.3s ease, text-decoration 0.2s ease;
-}
-
-.delete-button:hover {
-  color: #d32f2f; 
-  text-decoration: underline; 
-}
-
-.form-section {
-  background-color: #fff;
-  border: 1px solid #eaeaea;
-  border-radius: 12px;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
-}
-
-.form-group {
-  display: flex;
-  gap: 12px;
-}
-
-.form-group input {
-  flex: 1;
-  padding: 12px;
-  border: 1px solid #dcdcdc;
-  border-radius: 8px;
-  outline: none;
-  transition: border 0.3s ease;
-  background-color: #f0f0f0;
-}
-
-.form-group input:focus {
-  border-color: #4CAF50;
-}
-
-.form-group button,
-.add-page-button button {
-  background-color: #4CAF50;
-  color: #ffffff;
-  border: none;
-  border-radius: 8px;
-  padding: 12px 24px;
-  cursor: pointer;
-  transition: background 0.3s ease;
-}
-
-.add-page-button {
-  text-align: center;
-}
-
-.add-page-button button {
-  width: 100%;
-  background: black;
-  color: #ffffff;
-  padding: 12px 24px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.3s ease, transform 0.2s ease;
-}
-</style>

@@ -16,8 +16,8 @@ export default defineComponent({
     };
   },
   computed: {
-    sortedPages() {
-      return [...this.pagesStore.pages].sort((a, b) => a.year - b.year);
+    sortedCategories() {
+      return [...this.pagesStore.categories].sort((a, b) => a.localeCompare(b));
     }
   },
   methods: {
@@ -28,6 +28,7 @@ export default defineComponent({
   },
   mounted() {
     this.pagesStore.getPages();
+    this.pagesStore.getCategories(); 
   }
 });
 </script>
@@ -59,13 +60,13 @@ export default defineComponent({
       <LogoComponent />
       <nav class="year-nav">
         <RouterLink
-          v-for="page in sortedPages"
-          :key="page.year"
-          :to="`/${page.year}`"
+          v-for="category in sortedCategories"
+          :key="category"
+          :to="`/${category}`"
           class="nav-link"
           active-class="nav-link-active"
         >
-          Ročník {{ page.year }}
+          {{ category }}
         </RouterLink>
       </nav>
     </div>

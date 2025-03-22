@@ -1,30 +1,61 @@
 import { defineStore } from 'pinia';
 
 interface Page {
-  year: number;
+  category: string;  // Changed from year to category
+  title: string;
   description: string;
 }
 
 export const usePagesStore = defineStore('pages', {
   state: () => ({
-    pages: JSON.parse(localStorage.getItem('pages') || '[]') as Page[]
+    pages: [] as Page[],
+    categories: [] as string[]
   }),
   actions: {
-    addPage(year: number, description: string) {
-      if (!this.pages.some(page => page.year === year)) {
-        const newPage = { year, description };
+    addPage(category: string, title: string, description: string) {
+      if (!this.pages.some(page => page.title === title)) {
+        const newPage = { category, title, description };
         this.pages.push(newPage);
-        localStorage.setItem('pages', JSON.stringify(this.pages));
+
+        if (!this.categories.includes(category)) {
+          this.categories.push(category); 
+        }
       } else {
-        alert(`Page for year ${year} already exist.`);
+        alert(`Stránka s názvom "${title}" už existuje.`);
       }
     },
-    deletePage(year: number) {
-      this.pages = this.pages.filter(page => page.year !== year);
-      localStorage.setItem('pages', JSON.stringify(this.pages));
+
+    addCategory(category: string) {
+      if (!this.categories.includes(category)) {
+        this.categories.push(category);
+      } else {
+        alert(`Kategória "${category}" už existuje.`);
+      }
     },
+
+    deletePage(title: string) {
+      const pageToDelete = this.pages.find(page => page.title === title);
+
+      if (!pageToDelete) return;
+
+      const { category } = pageToDelete;
+
+      this.pages = this.pages.filter(page => page.title !== title);
+
+      const remainingPagesInCategory = this.pages.some(page => page.category === category);
+      if (!remainingPagesInCategory) {
+        this.categories = this.categories.filter(cat => cat !== category);
+      }
+    },
+
+     // This method can be enhanced later to load data dynamically from an API.
     getPages() {
-      this.pages = JSON.parse(localStorage.getItem('pages') || '[]');
+      this.pages = [];
+      this.categories = [];
+    },
+
+    getCategories() {
+      this.categories = [...new Set(this.pages.map(page => page.category))];
     }
   }
 });
