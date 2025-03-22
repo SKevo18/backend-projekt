@@ -1,8 +1,10 @@
 <script lang="ts">
+import { defineComponent } from "vue";
 import { RouterLink } from "vue-router";
 import LogoComponent from "@/components/LogoComponent.vue";
+import { usePagesStore } from "@/store/pageStore";
 
-export default {
+export default defineComponent({
   name: "HeaderComponent",
   components: {
     RouterLink,
@@ -10,48 +12,45 @@ export default {
   },
   data() {
     return {
-      links: [],
+      pagesStore: usePagesStore()
     };
   },
+  computed: {
+    sortedPages() {
+      return [...this.pagesStore.pages].sort((a, b) => a.year - b.year);
+    }
+  },
   methods: {
-    getLinks() {
-      // TODO: fetch year links from backend
-      for (let year = 2021; year <= 2025; year++) {
-        this.links.push({
-          id: year,
-          title: `Ročník ${year}`,
-          href: `/${year}`,
-        });
-      }
-    },
     logout() {
       this.$authStore.logout();
       this.$router.push("/login");
-    },
+    }
   },
   mounted() {
-    this.getLinks();
-  },
-};
+    this.pagesStore.getPages();
+  }
+});
 </script>
 
 <template>
   <header>
     <div class="header-topnav" v-if="!$authStore.isAuthenticated">
-      <RouterLink :to="{ name: 'login' }" active-class="nav-link-active"
-        >Prihlásiť sa</RouterLink
-      >
+      <RouterLink :to="{ name: 'login' }" active-class="nav-link-active">
+        Prihlásiť sa
+      </RouterLink>
       <span> | </span>
-      <RouterLink :to="{ name: 'register' }" active-class="nav-link-active"
-        >Registrácia</RouterLink
-      >
+      <RouterLink :to="{ name: 'register' }" active-class="nav-link-active">
+        Registrácia
+      </RouterLink>
     </div>
+
     <div class="header-topnav" v-else>
       <RouterLink
         :to="{ name: 'admin-settings' }"
         active-class="nav-link-active"
-        >Administrácia</RouterLink
       >
+        Administrácia
+      </RouterLink>
       <span> | </span>
       <a class="logout-link" @click="logout">Odhlásiť sa</a>
     </div>
@@ -60,13 +59,13 @@ export default {
       <LogoComponent />
       <nav class="year-nav">
         <RouterLink
-          v-for="link in links"
-          :key="link.id"
-          :to="link.href"
+          v-for="page in sortedPages"
+          :key="page.year"
+          :to="`/${page.year}`"
           class="nav-link"
           active-class="nav-link-active"
         >
-          {{ link.title }}
+          Ročník {{ page.year }}
         </RouterLink>
       </nav>
     </div>
@@ -96,7 +95,6 @@ export default {
   @apply text-white p-4 flex flex-row gap-6 overflow-x-auto;
 }
 
-/* higher specificity, so it takes precedence */
 .year-nav a.nav-link-active {
   @apply text-yellow-500;
 }

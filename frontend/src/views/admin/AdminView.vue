@@ -1,7 +1,9 @@
 <script lang="ts">
-export default {
+import { defineComponent } from 'vue';
+
+export default defineComponent({
   name: "AdminView",
-};
+});
 </script>
 
 <template>
@@ -32,9 +34,9 @@ export default {
       </nav>
     </div>
 
-    <div class="tab-content">
-      <RouterView />
-    </div>
+      <div class="tab-content">
+          <RouterView />
+      </div>
   </div>
 </template>
 
