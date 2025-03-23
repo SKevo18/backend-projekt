@@ -66,14 +66,14 @@ export default defineComponent({
       }
     },
 
-    async deletePage(title: string) {
-      if (confirm(`Ste si istý, že chcete odstrániť stránku "${title}"?`)) {
-        try {
-          await this.pagesStore.deletePage(title);
-        } catch (error) {
-          alert('Chyba pri odstraňovaní stránky.');
+    async deletePage(id: number) {
+        if (confirm(`Are you sure you want to delete the page with ID "${id}"?`)) {
+            try {
+                await this.pagesStore.deletePage(id);
+            } catch (error) {
+                alert('❌ Error deleting page.');
+            }
         }
-      }
     },
 
     toggleAddPageForm(category: string) {
@@ -98,13 +98,13 @@ export default defineComponent({
           </div>
 
           <div v-for="page in sortedPages.filter(page => page.category === category)" 
-               :key="page.title"
-               class="bg-gray-100 border border-gray-200 rounded-lg p-3 my-2 flex items-center justify-between">
-            <p class="text-gray-600">{{ page.title }} - {{ page.description }}</p>
-            <button @click="deletePage(page.title)"
-                    class="text-red-400 hover:text-red-500 font-medium">
-              delete
-            </button>
+              :key="page.id"
+              class="bg-gray-100 border border-gray-200 rounded-lg p-3 my-2 flex items-center justify-between">
+              <p class="text-gray-600">{{ page.title }} - {{ page.description }}</p>
+              <button @click="deletePage(page.id)"
+                      class="bg-red-500 text-white py-1 px-3 rounded-md hover:bg-red-600 transition">
+                  delete
+              </button>
           </div>
 
           <div class="text-center mt-4">

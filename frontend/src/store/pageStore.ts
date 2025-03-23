@@ -40,11 +40,15 @@ export const usePagesStore = defineStore('pages', {
         async addCategory(category: string) {
             if (!this.categories.includes(category)) {
                 try {
-                    const newCategory = { html_content: category };  
+                    const newCategory = { html_content: category };
                     await api.post('/page/', newCategory); 
-                    await this.fetchPages();
+
+                    // 🚨 Додаємо категорію локально для миттєвого відображення
+                    this.categories.push(category);
+
+                    await this.fetchPages();  // Після додавання оновлюємо сторінки
                 } catch (error) {
-                    console.error(' Error adding category:', error);
+                    console.error('❌ Error adding category:', error);
                     throw error;
                 }
             } else {
@@ -52,19 +56,23 @@ export const usePagesStore = defineStore('pages', {
             }
         },
 
-        async addPage(category: string, title: string, description: string) {
-            if (!this.pages.some(page => page.title === title)) {
-                try {
-                    const newPage = { category, title, description };
-                    await api.post('/page/', newPage);
-                    await this.fetchPages();
-                } catch (error) {
-                    this.error = `Failed to create page "${title}".`;
-                }
-            } else {
-                alert(`Page with the title "${title}" already exists.`);
-            }
-        },
+          async addPage(category: string, title: string, description: string) {
+              if (!this.pages.some(page => page.title === title)) {
+                  try {
+                      const newPage = { category, title, description };
+                      const response = await api.post('/page/', newPage);
+
+                      // 🚨 Додаємо нову сторінку локально
+                      this.pages.push(response.data);
+
+                      await this.fetchPages();  // Оновлюємо список сторінок
+                  } catch (error) {
+                      this.error = `❌ Failed to create page "${title}".`;
+                  }
+              } else {
+                  alert(`Page with the title "${title}" already exists.`);
+              }
+          },
 
         async updatePage(id: number, updatedData: Partial<Page>) {
             try {
