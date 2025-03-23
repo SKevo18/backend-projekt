@@ -23,25 +23,28 @@ export default defineComponent({
     }
   },
   methods: {
-    addPage(category: string) {
-      if (this.title.trim() === '') {
+    async addPage(category: string) {
+      if (!this.title.trim()) {
         alert('Prosím, zadajte názov stránky.');
         return;
       }
 
-      if (this.description.trim() === '') {
+      if (!this.description.trim()) {
         alert('Prosím, zadajte popis stránky.');
         return;
       }
 
-      this.pagesStore.addPage(category, this.title, this.description);
-
-      this.title = '';
-      this.description = '';
-      this.activeCategoryForm = null;
+      try {
+        await this.pagesStore.addPage(category, this.title, this.description);
+        this.title = '';
+        this.description = '';
+        this.activeCategoryForm = null;
+      } catch (error) {
+        alert('Chyba pri pridávaní stránky.');
+      }
     },
 
-    addCategory() {
+    async addCategory() {
       const categoryValue = this.newCategory.trim();
 
       if (!categoryValue) {
@@ -49,19 +52,27 @@ export default defineComponent({
         return;
       }
 
-      if (!this.pagesStore.categories.includes(categoryValue)) {
-        this.pagesStore.addCategory(categoryValue);
-      } else {
-        alert(`Kategória "${categoryValue}" už existuje.`);
-      }
+      try {
+        if (!this.pagesStore.categories.includes(categoryValue)) {
+          await this.pagesStore.addCategory(categoryValue);
+        } else {
+          alert(`Kategória "${categoryValue}" už existuje.`);
+        }
 
-      this.newCategory = '';
-      this.showAddCategoryForm = false;
+        this.newCategory = '';
+        this.showAddCategoryForm = false;
+      } catch (error) {
+        alert('Chyba pri pridávaní kategórie.');
+      }
     },
 
-    deletePage(title: string) {
+    async deletePage(title: string) {
       if (confirm(`Ste si istý, že chcete odstrániť stránku "${title}"?`)) {
-        this.pagesStore.deletePage(title);
+        try {
+          await this.pagesStore.deletePage(title);
+        } catch (error) {
+          alert('Chyba pri odstraňovaní stránky.');
+        }
       }
     },
 
@@ -69,15 +80,14 @@ export default defineComponent({
       this.activeCategoryForm = this.activeCategoryForm === category ? null : category;
     }
   },
-  mounted() {
-    this.pagesStore.getPages();
-    this.pagesStore.getCategories();
+  async mounted() {
+    await this.pagesStore.fetchPages(); // load data from FastAPI
   }
 });
 </script>
 
 <template>
-  <div class="p-6 bg-gray-50 min-h-screen space-y-6">  
+  <div class="p-6 bg-gray-50 min-h-screen space-y-6">
     <div class="space-y-6">
       <div v-for="category in sortedCategories" :key="category" class="bg-white border border-gray-300 rounded-xl p-4 shadow-md">
         <fieldset>
@@ -93,7 +103,7 @@ export default defineComponent({
             <p class="text-gray-600">{{ page.title }} - {{ page.description }}</p>
             <button @click="deletePage(page.title)"
                     class="text-red-400 hover:text-red-500 font-medium">
-              ✕
+              delete
             </button>
           </div>
 

@@ -27,7 +27,7 @@ export default defineComponent({
     }
   },
   mounted() {
-    this.pagesStore.getPages();
+    this.pagesStore.fetchPages();
     this.pagesStore.getCategories(); 
   }
 });

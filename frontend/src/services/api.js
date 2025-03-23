@@ -1,11 +1,11 @@
-import axios from 'axios'
+import axios from "axios"; 
 
-const instance = axios.create({
-  baseURL: 'https://some-domain.com/api/',
+const api = axios.create({
+    baseURL: 'http://127.0.0.1:8000/',
     headers: {
-        'Content-Type': 'aplication/json'
+        'Content-Type': 'application/json'
     },
     timeout: 10000
-
 });
 
+export default api;
