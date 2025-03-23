@@ -71,7 +71,7 @@ export default defineComponent({
             try {
                 await this.pagesStore.deletePage(id);
             } catch (error) {
-                alert('❌ Error deleting page.');
+                alert(' Error deleting page.');
             }
         }
     },

@@ -19,3 +19,5 @@ API.add_middleware(
 
 for router in ALL_ROUTERS:
     API.include_router(router)
+
+# uvicorn main:API --reload --env-file .env

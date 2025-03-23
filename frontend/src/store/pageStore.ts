@@ -43,12 +43,11 @@ export const usePagesStore = defineStore('pages', {
                     const newCategory = { html_content: category };
                     await api.post('/page/', newCategory); 
 
-                    // 🚨 Додаємо категорію локально для миттєвого відображення
                     this.categories.push(category);
 
-                    await this.fetchPages();  // Після додавання оновлюємо сторінки
+                    await this.fetchPages(); 
                 } catch (error) {
-                    console.error('❌ Error adding category:', error);
+                    console.error('Error adding category:', error);
                     throw error;
                 }
             } else {
@@ -62,12 +61,11 @@ export const usePagesStore = defineStore('pages', {
                       const newPage = { category, title, description };
                       const response = await api.post('/page/', newPage);
 
-                      // 🚨 Додаємо нову сторінку локально
                       this.pages.push(response.data);
 
-                      await this.fetchPages();  // Оновлюємо список сторінок
+                      await this.fetchPages();
                   } catch (error) {
-                      this.error = `❌ Failed to create page "${title}".`;
+                      this.error = `Failed to create page "${title}".`;
                   }
               } else {
                   alert(`Page with the title "${title}" already exists.`);
