@@ -1,5 +1,5 @@
+from typing import List
 from datetime import datetime
-
 from db import get_db
 from db.orm import Page
 from fastapi import APIRouter, Depends, HTTPException
@@ -67,3 +67,7 @@ def delete_page(page_id: int, db: Session = Depends(get_db)):
     db.delete(db_page)
     db.commit()
     return None
+
+@PAGE_CRUD_ROUTER.get("/", response_model=List[PageOut])
+def read_all_pages(db: Session = Depends(get_db)):
+    return db.query(Page).all()

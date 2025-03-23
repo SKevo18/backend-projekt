@@ -102,7 +102,7 @@ export default defineComponent({
               class="bg-gray-100 border border-gray-200 rounded-lg p-3 my-2 flex items-center justify-between">
               <p class="text-gray-600">{{ page.title }} - {{ page.description }}</p>
               <button @click="deletePage(page.id)"
-                      class="bg-red-500 text-white py-1 px-3 rounded-md hover:bg-red-600 transition">
+                      class="bg-green-500 text-white py-1 px-3 rounded-md hover:bg-green-600 transition">
                   delete
               </button>
           </div>
@@ -143,7 +143,7 @@ export default defineComponent({
     <div class="space-y-4 mt-4">
       <div class="text-center">
         <button @click="showAddCategoryForm = !showAddCategoryForm"
-                class="bg-blue-500 text-white w-full py-2 rounded-md hover:bg-blue-600 transition">
+                class="bg-green-500 text-white w-full py-2 rounded-md hover:bg-green-600 transition">
           {{ showAddCategoryForm ? 'Skryť formulár pre kategóriu' : 'Pridať novú kategóriu' }}
         </button>
       </div>
@@ -154,10 +154,10 @@ export default defineComponent({
             v-model="newCategory"
             placeholder="Kategória (napr. 2025, Informácie)"
             type="text"
-            class="flex-1 border border-gray-300 rounded-md p-2 bg-gray-50 focus:ring-2 focus:ring-blue-300 focus:outline-none"
+            class="flex-1 border border-gray-300 rounded-md p-2 bg-gray-50 focus:ring-2 focus:ring-green-300 focus:outline-none"
           />
           <button @click="addCategory"
-                  class="bg-blue-500 text-white py-2 px-6 rounded-md hover:bg-blue-600 transition">
+                  class="bg-green-500 text-white py-2 px-6 rounded-md hover:bg-green-600 transition">
             Pridať kategóriu
           </button>
         </div>

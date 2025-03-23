@@ -2,10 +2,6 @@ import fastapi as fa
 from fastapi.middleware.cors import CORSMiddleware
 from router.page_crud import PAGE_CRUD_ROUTER
 from router import ALL_ROUTERS
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
 
 API = fa.FastAPI(title="API", version="0.1.0")
 

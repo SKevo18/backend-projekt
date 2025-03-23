@@ -23,7 +23,7 @@ export const usePagesStore = defineStore('pages', {
                 this.pages = response.data;
                 this.getCategories();
             } catch (error) {
-                this.error = 'Failed to fetch pages.';
+                this.error = 'Nepodarilo sa načítať stránky.';
             }
         },
 
@@ -32,7 +32,7 @@ export const usePagesStore = defineStore('pages', {
                 const response = await api.get(`/page/${id}`);
                 return response.data;
             } catch (error) {
-                console.error(`Error loading page with ID ${id}:`, error);
+                console.error(`Chyba pri načítaní stránky s ID ${id}:`, error);
                 throw error;
             }
         },
@@ -47,37 +47,36 @@ export const usePagesStore = defineStore('pages', {
 
                     await this.fetchPages(); 
                 } catch (error) {
-                    console.error('Error adding category:', error);
                     throw error;
                 }
             } else {
-                alert(`Category "${category}" already exists.`);
+                alert(`Kategória "${category}" už existuje.`);
             }
         },
 
-          async addPage(category: string, title: string, description: string) {
-              if (!this.pages.some(page => page.title === title)) {
-                  try {
-                      const newPage = { category, title, description };
-                      const response = await api.post('/page/', newPage);
+        async addPage(category: string, title: string, description: string) {
+            if (!this.pages.some(page => page.title === title)) {
+                try {
+                    const newPage = { category, title, description };
+                    const response = await api.post('/page/', newPage);
 
-                      this.pages.push(response.data);
+                    this.pages.push(response.data);
 
-                      await this.fetchPages();
-                  } catch (error) {
-                      this.error = `Failed to create page "${title}".`;
-                  }
-              } else {
-                  alert(`Page with the title "${title}" already exists.`);
-              }
-          },
+                    await this.fetchPages();
+                } catch (error) {
+                    this.error = `Nepodarilo sa vytvoriť stránku "${title}".`;
+                }
+            } else {
+                alert(`Stránka s názvom "${title}" už existuje.`);
+            }
+        },
 
         async updatePage(id: number, updatedData: Partial<Page>) {
             try {
                 await api.put(`/page/${id}`, updatedData);
                 await this.fetchPages();
             } catch (error) {
-                this.error = `Failed to update page with ID ${id}.`;
+                this.error = `Nepodarilo sa aktualizovať stránku s ID ${id}.`;
             }
         },
 
@@ -86,7 +85,7 @@ export const usePagesStore = defineStore('pages', {
                 await api.delete(`/page/${id}`);
                 await this.fetchPages();
             } catch (error) {
-                this.error = `Failed to delete page with ID ${id}.`;
+                this.error = `Nepodarilo sa odstrániť stránku s ID ${id}.`;
             }
         },
 
