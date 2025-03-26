@@ -2,17 +2,22 @@ import { defineStore } from 'pinia';
 import api from '@/services/api';
 
 interface Page {
-    id?: number; 
-    category: string;
+    id?: number;
     title: string;
-    description: string;
-    created_at?: string; 
+    html_content: string;
+    category_id: number;
+    created_at?: string;
+}
+
+interface Category {
+    id: number;
+    title: string;
 }
 
 export const usePagesStore = defineStore('pages', {
     state: () => ({
         pages: [] as Page[],
-        categories: [] as string[],
+        categories: [] as Category[],
         error: null as string | null
     }),
 
@@ -36,32 +41,39 @@ export const usePagesStore = defineStore('pages', {
                 throw error;
             }
         },
-
-        async addCategory(category: string) {
-            if (!this.categories.includes(category)) {
+            async fetchCategories() {
+            try {
+                const response = await api.get('/category/');
+                this.categories = response.data;
+            } catch (error) {
+                this.error = 'Nepodarilo sa načítať kategórie.';
+            }
+        },
+        async addCategory(title: string) {
+            if (!this.categories.some(cat => cat.title === title)) {
                 try {
-                    const newCategory = { html_content: category };
-                    await api.post('/page/', newCategory); 
-
-                    this.categories.push(category);
-
-                    await this.fetchPages(); 
+                    const newCategory = { title };
+                    const response = await api.post('/category/', newCategory);
+                    this.categories.push(response.data);
+                    await this.fetchPages();
                 } catch (error) {
                     throw error;
                 }
             } else {
-                alert(`Kategória "${category}" už existuje.`);
+                alert(`Kategória "${title}" už existuje.`);
             }
         },
 
-        async addPage(category: string, title: string, description: string) {
+        async addPage(category_id: number, title: string, description: string) {
             if (!this.pages.some(page => page.title === title)) {
                 try {
-                    const newPage = { category, title, description };
+                    const newPage = {
+                        category_id,
+                        title,
+                        html_content: description
+                    };
                     const response = await api.post('/page/', newPage);
-
                     this.pages.push(response.data);
-
                     await this.fetchPages();
                 } catch (error) {
                     this.error = `Nepodarilo sa vytvoriť stránku "${title}".`;
@@ -90,7 +102,16 @@ export const usePagesStore = defineStore('pages', {
         },
 
         getCategories() {
-            this.categories = [...new Set(this.pages.map(page => page.category))];
+            const uniqueCategories: { [key: number]: string } = {};
+            this.pages.forEach(page => {
+                if (!(page.category_id in uniqueCategories)) {
+                    uniqueCategories[page.category_id] = `Kategória ${page.category_id}`;
+                }
+            });
+            this.categories = Object.entries(uniqueCategories).map(([id, title]) => ({
+                id: Number(id),
+                title
+            }));
         }
     }
 });

@@ -1,9 +1,8 @@
 import fastapi as fa
 from fastapi.middleware.cors import CORSMiddleware
-from router.page_crud import PAGE_CRUD_ROUTER
 from router import ALL_ROUTERS
 
-API = fa.FastAPI(title="API", version="0.1.0")
+API = fa.FastAPI(title="API", version="0.1.0", root_path="/api")
 
 API.add_middleware(
     CORSMiddleware,

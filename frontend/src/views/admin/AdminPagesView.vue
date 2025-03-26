@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, watch } from 'vue';
 import { usePagesStore } from '@/store/pageStore';
 
 export default defineComponent({
@@ -8,7 +8,7 @@ export default defineComponent({
     return {
       pagesStore: usePagesStore(),
       title: '',
-      description: '',
+      html_content: '',
       newCategory: '',
       showAddCategoryForm: false,
       activeCategoryForm: null
@@ -16,72 +16,62 @@ export default defineComponent({
   },
   computed: {
     sortedPages() {
-      return [...this.pagesStore.pages].sort((a, b) => a.category.localeCompare(b.category));
+      return [...this.pagesStore.pages].sort((a, b) => a.category_id - b.category_id);
     },
     sortedCategories() {
-      return [...this.pagesStore.categories].sort((a, b) => a.localeCompare(b));
+      return [...this.pagesStore.categories].sort((a, b) => a.title.localeCompare(b.title));
     }
   },
   methods: {
-    async addPage(category: string) {
+    async addPage(categoryId: number) {
       if (!this.title.trim()) {
         alert('Prosím, zadajte názov stránky.');
         return;
       }
-
-      if (!this.description.trim()) {
-        alert('Prosím, zadajte popis stránky.');
+      if (!this.html_content.trim()) {
+        alert('Prosím, zadajte obsah stránky.');
         return;
       }
-
       try {
-        await this.pagesStore.addPage(category, this.title, this.description);
+        await this.pagesStore.addPage(categoryId, this.title, this.html_content);
         this.title = '';
-        this.description = '';
+        this.html_content = '';
         this.activeCategoryForm = null;
       } catch (error) {
         alert('Chyba pri pridávaní stránky.');
       }
     },
-
     async addCategory() {
-      const categoryValue = this.newCategory.trim();
-
-      if (!categoryValue) {
+      const title = this.newCategory.trim();
+      if (!title) {
         alert('Prosím, zadajte správnu kategóriu.');
         return;
       }
-
       try {
-        if (!this.pagesStore.categories.includes(categoryValue)) {
-          await this.pagesStore.addCategory(categoryValue);
-        } else {
-          alert(`Kategória "${categoryValue}" už existuje.`);
-        }
-
+        await this.pagesStore.addCategory(title);
+        await this.pagesStore.fetchCategories();
         this.newCategory = '';
         this.showAddCategoryForm = false;
       } catch (error) {
         alert('Chyba pri pridávaní kategórie.');
       }
     },
-
     async deletePage(id: number) {
-        if (confirm(`Are you sure you want to delete the page with ID "${id}"?`)) {
-            try {
-                await this.pagesStore.deletePage(id);
-            } catch (error) {
-                alert(' Error deleting page.');
-            }
+      if (confirm(`Chcete naozaj vymazať stránku s ID "${id}"?`)) {
+        try {
+          await this.pagesStore.deletePage(id);
+        } catch (error) {
+          alert('Chyba pri mazaní stránky.');
         }
+      }
     },
-
-    toggleAddPageForm(category: string) {
-      this.activeCategoryForm = this.activeCategoryForm === category ? null : category;
+    toggleAddPageForm(categoryId: number) {
+      this.activeCategoryForm = this.activeCategoryForm === categoryId ? null : categoryId;
     }
   },
   async mounted() {
-    await this.pagesStore.fetchPages(); // load data from FastAPI
+    await this.pagesStore.fetchPages();
+    await this.pagesStore.fetchCategories();
   }
 });
 </script>
@@ -89,32 +79,32 @@ export default defineComponent({
 <template>
   <div class="p-6 bg-gray-50 min-h-screen space-y-6">
     <div class="space-y-6">
-      <div v-for="category in sortedCategories" :key="category" class="bg-white border border-gray-300 rounded-xl p-4 shadow-md">
+      <div v-for="category in sortedCategories" :key="category.id" class="bg-white border border-gray-300 rounded-xl p-4 shadow-md">
         <fieldset>
-          <legend class="font-bold text-lg text-gray-700">{{ category }}</legend>
+          <legend class="font-bold text-lg text-gray-700">{{ category.title }}</legend>
 
-          <div v-if="!pagesStore.pages.some(page => page.category === category)" class="text-center text-gray-400">
+          <div v-if="!pagesStore.pages.some(page => page.category_id === category.id)" class="text-center text-gray-400">
             Žiadne stránky pre túto kategóriu.
           </div>
 
-          <div v-for="page in sortedPages.filter(page => page.category === category)" 
-              :key="page.id"
-              class="bg-gray-100 border border-gray-200 rounded-lg p-3 my-2 flex items-center justify-between">
-              <p class="text-gray-600">{{ page.title }} - {{ page.description }}</p>
-              <button @click="deletePage(page.id)"
-                      class="bg-green-500 text-white py-1 px-3 rounded-md hover:bg-green-600 transition">
-                  delete
-              </button>
-          </div>
-
-          <div class="text-center mt-4">
-            <button @click="toggleAddPageForm(category)"
-                    class="bg-green-500 text-white w-full py-2 rounded-md hover:bg-green-600 transition">
-              {{ activeCategoryForm === category ? 'Skryť formulár' : 'Vytvoriť stránku' }}
+          <div v-for="page in sortedPages.filter(page => page.category_id === category.id)"
+               :key="page.id"
+               class="bg-gray-100 border border-gray-200 rounded-lg p-3 my-2 flex items-center justify-between">
+            <p class="text-gray-600">{{ page.title }} - {{ page.html_content }}</p>
+            <button @click="deletePage(page.id)"
+                    class="bg-green-500 text-white py-1 px-3 rounded-md hover:bg-green-600 transition">
+              delete
             </button>
           </div>
 
-          <div v-if="activeCategoryForm === category" class="bg-white border border-gray-200 rounded-lg p-4 shadow-md mt-4">
+          <div class="text-center mt-4">
+            <button @click="toggleAddPageForm(category.id)"
+                    class="bg-green-500 text-white w-full py-2 rounded-md hover:bg-green-600 transition">
+              {{ activeCategoryForm === category.id ? 'Skryť formulár' : 'Vytvoriť stránku' }}
+            </button>
+          </div>
+
+          <div v-if="activeCategoryForm === category.id" class="bg-white border border-gray-200 rounded-lg p-4 shadow-md mt-4">
             <div class="flex gap-4">
               <input
                 v-model="title"
@@ -122,15 +112,13 @@ export default defineComponent({
                 type="text"
                 class="flex-1 border border-gray-300 rounded-md p-2 bg-gray-50 focus:ring-2 focus:ring-green-300 focus:outline-none"
               />
-
               <input
-                v-model="description"
-                placeholder="Popis"
+                v-model="html_content"
+                placeholder="Obsah stránky"
                 type="text"
                 class="flex-1 border border-gray-300 rounded-md p-2 bg-gray-50 focus:ring-2 focus:ring-green-300 focus:outline-none"
               />
-
-              <button @click="addPage(category)" 
+              <button @click="addPage(category.id)"
                       class="bg-green-500 text-white py-2 px-6 rounded-md hover:bg-green-600 transition">
                 Pridať stránku
               </button>

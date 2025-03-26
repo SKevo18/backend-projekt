@@ -1,17 +1,29 @@
 from typing import List
 from datetime import datetime
 from db import get_db
-from db.orm import Page
+from db.orm import Page, Category
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 PAGE_CRUD_ROUTER = APIRouter(prefix="/page")
+CATEGORY_ROUTER = APIRouter(prefix="/category")
 
+class CategoryCreate(BaseModel):
+    title: str
+
+
+class CategoryOut(CategoryCreate):
+    id: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
 
 class PageBase(BaseModel):
+    category_id: int
+    title: str
     html_content: str
-
 
 class PageCreate(PageBase):
     pass
@@ -29,13 +41,24 @@ class PageOut(PageBase):
         from_attributes = True
 
 
+@CATEGORY_ROUTER.post("/", response_model=CategoryOut)
+def create_category(data: CategoryCreate, db: Session = Depends(get_db)):
+    category = Category(title=data.title)
+    db.add(category)
+    db.commit()
+    db.refresh(category)
+    return category
+
+@CATEGORY_ROUTER.get("/", response_model=List[CategoryOut])
+def list_categories(db: Session = Depends(get_db)):
+    return db.query(Category).all()
+
 @PAGE_CRUD_ROUTER.post("/", response_model=PageOut)
 def create_page(page: PageCreate, db: Session = Depends(get_db)):
-    db_page = Page(html_content=page.html_content)
+    db_page = Page(**page.model_dump())
     db.add(db_page)
     db.commit()
     db.refresh(db_page)
-
     return db_page
 
 @PAGE_CRUD_ROUTER.get("/{page_id}", response_model=PageOut)
