@@ -12,6 +12,7 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    role: Mapped[int] = mapped_column(nullable=True)  # primary key moved to id only
     first_name: Mapped[str] = mapped_column(String(length=15), nullable=False, index=True)
     last_name: Mapped[str] = mapped_column(String(length=15), nullable=False, index=True)
     user_email: Mapped[str] = mapped_column(String(length=40), nullable=False, index=True)
