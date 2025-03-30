@@ -27,6 +27,7 @@ export const usePagesStore = defineStore('pages', {
                 const response = await api.get('/page/');
                 this.pages = response.data;
                 this.getCategories();
+                await this.fetchCategories();
             } catch (error) {
                 this.error = 'Nepodarilo sa načítať stránky.';
             }
@@ -85,12 +86,19 @@ export const usePagesStore = defineStore('pages', {
 
         async updatePage(id: number, updatedData: Partial<Page>) {
             try {
+                if (!updatedData.title && !updatedData.html_content && !updatedData.category_id) {
+                    console.warn('Žiadne dáta na aktualizáciu stránky.');
+                    return;
+                }
+
                 await api.put(`/page/${id}`, updatedData);
                 await this.fetchPages();
             } catch (error) {
                 this.error = `Nepodarilo sa aktualizovať stránku s ID ${id}.`;
+                console.error(error);
             }
         },
+
 
         async deletePage(id: number) {
             try {
@@ -100,18 +108,5 @@ export const usePagesStore = defineStore('pages', {
                 this.error = `Nepodarilo sa odstrániť stránku s ID ${id}.`;
             }
         },
-
-        getCategories() {
-            const uniqueCategories: { [key: number]: string } = {};
-            this.pages.forEach(page => {
-                if (!(page.category_id in uniqueCategories)) {
-                    uniqueCategories[page.category_id] = `Kategória ${page.category_id}`;
-                }
-            });
-            this.categories = Object.entries(uniqueCategories).map(([id, title]) => ({
-                id: Number(id),
-                title
-            }));
-        }
     }
 });
