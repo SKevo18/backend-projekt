@@ -46,6 +46,7 @@ class Page(Base):
 
 - Reprezentuje obsahovú stránku, ktorá patrí do určitej kategórie.
 - `edited_at` sa aktualizuje pri zmene obsahu.
+- `category` definuje vzťah medzi modelom `Page` a `Category` pomocou `relationship()`. Je to obojstranný (bidirectional) vzťah, ktorý umožňuje prístup ku kategórii danej stránky (`page.category`) aj ku všetkým stránkam kategórie (`category.pages`).
 
 ---
 
@@ -108,12 +109,12 @@ POST /page/
 export const usePagesStore = defineStore("pages", { ... });
 ```
 
-Stav:
+**Stav:**
 - `pages: Page[]` — všetky stránky
 - `categories: Category[]` — všetky kategórie
 - `error: string | null` — stav chyby
 
-Akcie:
+**Akcie:**
 - `fetchPages()` — GET /page/
 - `fetchCategories()` — GET /category/
 - `addPage(...)` — POST /page/
@@ -165,16 +166,16 @@ await this.pagesStore.addPage(category.id, this.title, this.html_content);
 
 ### Štruktúra komunikácie:
 
-| Frontend akcia                | HTTP request       | Backend endpoint       | Výsledok                     |
-|------------------------------|--------------------|-------------------------|------------------------------|
-| Pridať stránku               | `POST /page/`       | `create_page()`         | Nová stránka v DB            |
-| Získať všetky stránky        | `GET /page/`        | `read_all_pages()`      | Zoznam stránok               |
-| Upraviť stránku              | `PUT /page/{id}`    | `update_page()`         | Úprava záznamu               |
-| Zmazať stránku               | `DELETE /page/{id}` | `delete_page()`         | Odstránenie stránky          |
-| Získať kategórie             | `GET /category/`    | `list_categories()`     | Zoznam kategórií             |
-| Pridať kategóriu             | `POST /category/`   | `create_category()`     | Nová kategória v databáze    |
+| Frontend akcia           | HTTP request        | Backend endpoint     | Výsledok                    |
+|--------------------------|---------------------|-----------------------|-----------------------------|
+| Pridať stránku           | `POST /page/`       | `create_page()`       | Nová stránka v DB           |
+| Získať všetky stránky    | `GET /page/`        | `read_all_pages()`    | Zoznam stránok              |
+| Upraviť stránku          | `PUT /page/{id}`    | `update_page()`       | Úprava záznamu              |
+| Zmazať stránku           | `DELETE /page/{id}` | `delete_page()`       | Odstránenie stránky         |
+| Získať kategórie         | `GET /category/`    | `list_categories()`   | Zoznam kategórií            |
+| Pridať kategóriu         | `POST /category/`   | `create_category()`   | Nová kategória v databáze   |
 
-Príklad z `pageStore.ts`:
+**Príklad z `pageStore.ts`:**
 
 ```ts
 const response = await api.post('/page/', {
@@ -185,12 +186,43 @@ const response = await api.post('/page/', {
 this.pages.push(response.data);
 ```
 
+---
 
 ## 6. Validácia a UX
 
-- Základné alerty pri chybe (`try-catch`)
-- Overenie duplikátov (napr. názov stránky už existuje)
-- Vizuál pomocou Tailwind CSS
+- Základná validácia pomocou `try-catch` blokov pri sieťových požiadavkách.
+- Alerty pre používateľa pri duplikátoch názvu kategórie alebo stránky.
+- Chybové hlášky sa ukladajú do `this.error` pre zobrazenie vo UI.
+
+### Príklady:
+
+#### Duplikát názvu kategórie:
+```ts
+if (!this.categories.some(cat => cat.title === title)) {
+    // POST request
+} else {
+    alert(`Kategória "${title}" už existuje.`);
+}
+```
+
+#### Duplikát názvu stránky:
+```ts
+if (!this.pages.some(page => page.title === title)) {
+    // POST request
+} else {
+    alert(`Stránka s názvom "${title}" už existuje.`);
+}
+```
+
+#### Chytanie chýb (napr. pri načítaní stránok):
+```ts
+try {
+    const response = await api.get('/page/');
+    this.pages = response.data;
+} catch (error) {
+    this.error = 'Nepodarilo sa načítať stránky.';
+}
+```
 
 ---
 
@@ -198,7 +230,7 @@ this.pages.push(response.data);
 
 Celý systém predstavuje prepojený CRUD ekosystém, kde:
 
-- SQLAlchemy definuje dátové modely
-- FastAPI poskytuje REST API
-- Pinia spravuje frontendový stav
+- SQLAlchemy definuje dátové modely  
+- FastAPI poskytuje REST API  
+- Pinia spravuje frontendový stav  
 - Vue komponenty tvoria vizuálne rozhranie

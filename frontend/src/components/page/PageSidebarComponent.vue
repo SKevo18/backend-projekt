@@ -21,8 +21,6 @@ export default defineComponent({
     };
 
     onMounted(fetchLinks);
-
-    // 🧠 Re-fetch when slug changes
     watch(
       () => route.params.slug,
       () => {
