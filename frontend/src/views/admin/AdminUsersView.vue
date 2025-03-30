@@ -6,7 +6,7 @@ export default {
       users: [],
     };
   },
-  methods: {
+  methods: {  
     async getUsers() {
       // this.users = await this.$authStore.fetchJsonAuth("/api/admin/users");
       this.users = [

@@ -52,5 +52,4 @@ async def login(user: LoginModel, db: Session = Depends(get_db)):
     db_user = db.query(User).filter_by(user_email=user.user_email).first()
     if not db_user or not verify_password(user.user_password, db_user.user_password):
         raise HTTPException(status_code=400, detail="Invalid email or password")
-    
     return {"message": "Login successful"}

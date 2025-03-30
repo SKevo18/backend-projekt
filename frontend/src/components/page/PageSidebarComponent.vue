@@ -1,32 +1,42 @@
 <script lang="ts">
-import { RouterLink } from "vue-router";
+import { defineComponent, onMounted, ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
+import api from '@/services/api';
 
-export default {
-  name: "PageSidebarComponent",
-  components: {
-    RouterLink,
-  },
-  props: {
-    slug: {
-      type: String,
-      required: true,
-    },
-    year: {
-      type: String,
-      required: true,
-    },
-  },
-  data() {
-    return {
-      links: [
-        // TODO: fetch links from backend
-        { id: 1, title: "Osoby" },
-        { id: 2, title: "Koláče" },
-        { id: 3, title: "Kontakt" },
-      ],
+export default defineComponent({
+  name: 'PageSidebarComponent',
+  setup() {
+    const links = ref<{ id: number; title: string; category: any }[]>([]);
+    const route = useRoute();
+
+    const fetchLinks = async () => {
+      try {
+        const response = await api.get('/page/');
+        links.value = response.data.filter((page: any) => {
+          return page.category?.slug === route.params.slug;
+        });
+      } catch (error) {
+        console.error('Nepodarilo sa načítať stránky pre sidebar.', error);
+      }
     };
-  },
-};
+
+    onMounted(fetchLinks);
+
+    watch(
+      () => route.params.slug,
+      () => {
+        fetchLinks();
+      }
+    );
+
+    return {
+      links,
+      year: route.params.year,
+      slug: route.params.slug
+    };
+  }
+});
+
 </script>
 
 <template>
@@ -43,7 +53,7 @@ export default {
       </li>
       <li v-for="link in links" :key="link.id">
         <RouterLink
-          :to="{ name: 'page', params: { year: year, slug: link.title } }"
+          :to="{ name: 'page', params: { year, slug: link.title } }"
           class="sidebar-link"
           active-class="sidebar-link-active"
         >

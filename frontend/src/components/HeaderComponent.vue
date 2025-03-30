@@ -12,12 +12,12 @@ export default defineComponent({
   },
   data() {
     return {
-      pagesStore: usePagesStore()
+      pagesStore: usePagesStore(),
     };
   },
   computed: {
-    sortedPages() {
-      return [...this.pagesStore.pages].sort((a, b) => a.year - b.year);
+    sortedCategories() {
+      return [...this.pagesStore.categories].sort((a, b) => a.title.localeCompare(b.title));
     }
   },
   methods: {
@@ -26,11 +26,14 @@ export default defineComponent({
       this.$router.push("/login");
     }
   },
-  mounted() {
-    this.pagesStore.getPages();
+  async mounted() {
+    if (this.pagesStore.categories.length === 0) {
+      await this.pagesStore.fetchCategories();
+    }
   }
 });
 </script>
+
 
 <template>
   <header>
@@ -59,13 +62,13 @@ export default defineComponent({
       <LogoComponent />
       <nav class="year-nav">
         <RouterLink
-          v-for="page in sortedPages"
-          :key="page.year"
-          :to="`/${page.year}`"
+          v-for="category in sortedCategories"
+          :key="category.id"
+          :to="`/${category.title}`"
           class="nav-link"
           active-class="nav-link-active"
         >
-          Ročník {{ page.year }}
+          {{ category.title }}
         </RouterLink>
       </nav>
     </div>
