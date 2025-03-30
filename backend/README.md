@@ -28,6 +28,9 @@ Zdrojový kód pre FastAPI aplikáciu.
 4. Inštalovať potrebné Python moduly cez PyPI: `pip install -r requirements.txt`
 5. Pridať `DATABASE_URL` do env premenných (v súbore `.env`).
 6. Spustiť uvicorn server: `uvicorn main:API --reload --env-file .env`
+7. Nezabudajte na XAMPP
+8. Neviem ci je to tak iba u mna ale ak sa nedari zapnut SQL v XAMPP tak treba otvorit "Task manager" -> mysql -> end task -> spustit XAMPP
+9. tak isto moze sa vam stat z uvicorn preto cez "task manager" -> python -> end task -> sputit zas 
 
 ## Užitočné odkazy
 
