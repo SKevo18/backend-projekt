@@ -6,6 +6,8 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from datetime import datetime
 
+import uuid
+from sqlalchemy import ForeignKey
 
 class Base(DeclarativeBase):
     pass
@@ -29,3 +31,19 @@ class Page(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     html_content: Mapped[t.Text] = mapped_column(Text, nullable=False)
     created_at: Mapped[datetime] = mapped_column(default=datetime.now)
+
+class Setting(Base):
+    __tablename__ = "settings"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    key: Mapped[str] = mapped_column(String(length=50), unique=True, nullable=False)
+    value: Mapped[str] = mapped_column(String(length=255), nullable=False)
+
+class PasswordReset(Base):
+    __tablename__ = "password_resets"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    token: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, default=lambda: str(uuid.uuid4()))
+    created_at: Mapped[datetime] = mapped_column(default=datetime.now)
+    used: Mapped[bool] = mapped_column(default=False)
