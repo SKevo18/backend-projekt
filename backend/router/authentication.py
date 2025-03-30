@@ -43,4 +43,4 @@ async def login(user: LoginModel, db: Session = Depends(get_db)):
     if not db_user or db_user.user_password != user.user_password:
         raise HTTPException(status_code=400, detail="Invalid email or password")
     
-    return {"message": "Login successful"}    
+    return {"message": "Login successful"} 
