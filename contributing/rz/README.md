@@ -190,39 +190,9 @@ this.pages.push(response.data);
 
 ## 6. Validácia a UX
 
-- Základná validácia pomocou `try-catch` blokov pri sieťových požiadavkách.
-- Alerty pre používateľa pri duplikátoch názvu kategórie alebo stránky.
-- Chybové hlášky sa ukladajú do `this.error` pre zobrazenie vo UI.
-
-### Príklady:
-
-#### Duplikát názvu kategórie:
-```ts
-if (!this.categories.some(cat => cat.title === title)) {
-    // POST request
-} else {
-    alert(`Kategória "${title}" už existuje.`);
-}
-```
-
-#### Duplikát názvu stránky:
-```ts
-if (!this.pages.some(page => page.title === title)) {
-    // POST request
-} else {
-    alert(`Stránka s názvom "${title}" už existuje.`);
-}
-```
-
-#### Chytanie chýb (napr. pri načítaní stránok):
-```ts
-try {
-    const response = await api.get('/page/');
-    this.pages = response.data;
-} catch (error) {
-    this.error = 'Nepodarilo sa načítať stránky.';
-}
-```
+- Základné alerty pri chybe (`try-catch`)
+- Overenie duplikátov (napr. názov stránky už existuje)
+- Vizuál pomocou Tailwind CSS
 
 ---
 
