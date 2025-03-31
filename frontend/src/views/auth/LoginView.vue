@@ -1,21 +1,25 @@
 <script lang="ts">
-export default {
+import { defineComponent } from "vue";
+import { useAuthStore } from "@/store/authStore";
+
+export default defineComponent({
   name: "LoginView",
   data() {
     return {
-      email: "@",
+      email: "",
       password: "",
+      authStore: useAuthStore(),
     };
   },
   methods: {
     async handleLogin() {
-      let success = await this.$authStore.login(this.email, this.password);
+      let success = await this.authStore.login(this.email, this.password);
       if (success) {
         this.$router.push("/");
       }
     },
   },
-};
+});
 </script>
 
 <template>

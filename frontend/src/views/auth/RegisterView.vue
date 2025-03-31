@@ -1,24 +1,32 @@
 <script lang="ts">
-export default {
+import { defineComponent } from "vue";
+import { useAuthStore } from "@/store/authStore";
+
+export default defineComponent({
   name: "RegisterView",
   data() {
     return {
+      first_name: "",
+      last_name: "",
       email: "@",
       password: "",
       confirmPassword: "",
       registeredSuccessfully: null as boolean | null,
+      authStore: useAuthStore(),
     };
   },
   methods: {
     async handleRegister() {
-      this.registeredSuccessfully = this.$authStore.register(
+        this.registeredSuccessfully = await this.authStore.register(
+        this.first_name,
+        this.last_name,
         this.email,
         this.password,
         this.confirmPassword
       );
     },
   },
-};
+});
 </script>
 
 <template>
@@ -28,23 +36,52 @@ export default {
         <legend>Registrácia</legend>
 
         <div class="form-group">
+          <label for="first_name">Meno</label>
+          <input 
+          type="text" 
+          id="first_name" 
+          v-model="first_name" 
+          required 
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="last_name">Priezvisko </label>
+          <input 
+          type="text" 
+          id="last_name" 
+          v-model="last_name" 
+          required 
+          />
+        </div>
+
+        <div class="form-group">
           <label for="email">Email</label>
-          <input type="email" id="email" v-model="email" required />
+          <input 
+          type="email" 
+          id="email" 
+          v-model="email" 
+          required />
         </div>
 
         <div class="form-group">
           <label for="password">Heslo</label>
-          <input type="password" id="password" v-model="password" required />
+          <input 
+          type="password" 
+          id="password" 
+          v-model="password" 
+          required 
+          />
         </div>
 
         <div class="form-group">
           <label for="confirmPassword">Potvrdenie hesla</label>
-          <input
-            type="password"
-            id="confirmPassword"
-            v-model="confirmPassword"
-            required
-          />
+          <input 
+            type="password" 
+            id="confirmPassword" 
+            v-model="confirmPassword" 
+            required 
+            />
         </div>
 
         <button class="button button-green" type="submit">Registrovať</button>

@@ -1,16 +1,17 @@
 import { defineStore } from "pinia";
+import axios from "axios";
 
 interface User {
   id: number;
-  name: string;
+  first_name: string;  
+  last_name: string; 
   email: string;
 }
 
-// TODO: connect to backend
 export const useAuthStore = defineStore("auth", {
   state: () => ({
     user: null as User | null,
-    token: null as string | null,
+    token: localStorage.getItem("token") ?? null,
   }),
 
   getters: {
@@ -19,81 +20,74 @@ export const useAuthStore = defineStore("auth", {
   },
 
   actions: {
-    async fetchUserData() {
-      if (this.token === null) {
-        return;
+    loadSavedToken() {
+      this.token = localStorage.getItem("token") ?? null;
+      if (this.token) {
+        axios.defaults.headers.common["Authorization"] = `Bearer ${this.token}`;
       }
-
-      // this.user = await this.fetchJsonAuth("/me");
-      const response = await fetch(
-        "https://jsonplaceholder.typicode.com/users"
-      );
-      const data = await response.json();
-      this.user = data[0];
-      //
     },
 
     async login(email: string, password: string): Promise<boolean> {
-      const response = await fetch(
-        "https://jsonplaceholder.typicode.com/users"
-      );
-      const data = await response.json();
-
-      this.user = data[0];
-      this.setToken(data[0].email);
-
-      return true;
-    },
-
-    async register(
-      email: string,
-      password: string,
-      confirmPassword: string
-    ): Promise<boolean> {
-      if (password !== confirmPassword) {
-        throw new Error("Passwords do not match");
+      try {
+        const response = await axios.post("http://localhost:8000/authentication/login", {
+          user_email: email,
+          user_password: password,
+        });
+        this.token = response.data.access_token;
+        localStorage.setItem("token", this.token);
+        axios.defaults.headers.common["Authorization"] = `Bearer ${this.token}`;
+        await this.fetchUserData();
+        return true;
+      } catch (error) {
+        console.error("Login Error:", error);
+        return false;
       }
-
-      /*const response = await fetch(
-        "https://jsonplaceholder.typicode.com/users"
-      );
-      return response.ok;*/
-
-      return true;
     },
 
-    async logout() {
+    async register(firstName: string, lastName: string, email: string, password: string, confirmPassword: string): Promise<boolean> {
+      if (password !== confirmPassword) {
+        console.error("Passwords don't match");
+        return false;
+      }
+      try {
+        const response = await axios.post("http://localhost:8000/api/authentication/register", {
+          first_name: firstName,    
+          last_name: lastName,
+          user_email: email,
+          user_password: password,
+          role: 0,
+        });
+        this.token = response.data.access_token;
+        localStorage.setItem("token", this.token);
+        axios.defaults.headers.common["Authorization"] = `Bearer ${this.token}`;
+        await this.fetchUserData();
+        return true;
+      } catch (error) {
+        console.error("Registration Error:", error);
+        return false;
+      }
+    },
+
+    async fetchUserData() {
+      if (!this.token) return;
+      try {
+        const response = await axios.get("http://localhost:8000/authentication/me", {
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+          },
+        });
+        this.user = response.data;
+      } catch (error) {
+        console.error("Error while retrieving user data:", error);
+        this.logout();
+      }
+    },
+
+    logout() {
       this.user = null;
       this.token = null;
       localStorage.removeItem("token");
-
-      // TODO: also invalidate token on backend
-    },
-
-    setToken(token: string) {
-      this.token = token;
-      localStorage.setItem("token", token);
-    },
-    loadSavedToken() {
-      this.token = localStorage.getItem("token");
-    },
-
-    async fetchJson(url: string, options: RequestInit = {}): Promise<any> {
-      const response = await fetch(url, options);
-      return response.json();
-    },
-
-    async fetchJsonAuth(url: string, options: RequestInit = {}): Promise<any> {
-      if (this.token === null) {
-        return null;
-      }
-
-      return this.fetchJson(url, {
-        headers: {
-          Authorization: `Bearer ${this.token}`,
-        },
-        ...options,
-      });
+      axios.defaults.headers.common["Authorization"] = "";
     },
   },
 });

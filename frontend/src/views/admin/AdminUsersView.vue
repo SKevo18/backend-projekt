@@ -11,7 +11,7 @@ export default {
       // this.users = await this.$authStore.fetchJsonAuth("/api/admin/users");
       this.users = [
         {
-          id: 1,
+          id: 2,
           name: "John Doe",
           email: "john.doe@example.com",
           role: "admin",
@@ -19,7 +19,7 @@ export default {
           updatedAt: "2025-03-17",
         },
         {
-          id: 2,
+          id: 1,
           name: "Jane Doe",
           email: "jane.doe@example.com",
           role: "editor",
