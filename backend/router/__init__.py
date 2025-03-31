@@ -1,5 +1,6 @@
 import fastapi as fa
 from router.page_crud import PAGE_CRUD_ROUTER
+from router.category_crud import CATEGORY_ROUTER
 from router.authentication import AUTH_ROUTER
 
 ROOT_ROUTER = fa.APIRouter()
@@ -10,4 +11,4 @@ def test():
     return {"hello": "world"}
 
 
-ALL_ROUTERS = [ROOT_ROUTER, PAGE_CRUD_ROUTER, AUTH_ROUTER]
+ALL_ROUTERS = [ROOT_ROUTER, PAGE_CRUD_ROUTER, AUTH_ROUTER, CATEGORY_ROUTER]
