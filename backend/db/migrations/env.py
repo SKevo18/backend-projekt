@@ -11,7 +11,7 @@ from sqlalchemy import pool
 from alembic import context
 
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv(override=True)
 
 config = context.config
 config.set_main_option("sqlalchemy.url", os.getenv("DATABASE_URL", "sqlite:///db.sqlite"))
