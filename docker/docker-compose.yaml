@@ -1,5 +1,5 @@
 services:
-  backend: # FastAPI + uvicorn
+  backend:
     build: ../backend
     restart: unless-stopped
     environment:
@@ -9,8 +9,8 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=app
     expose:
-      - "8000"
-    command: > # wait 2s for db to be ready
+      - "8000:8000"
+    command: >
       /bin/sh -c "
       sleep 2;
       uvicorn main:API --host 0.0.0.0 --port 8000"
@@ -42,7 +42,7 @@ services:
     volumes:
       - certs:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
-    entrypoint: > # check every 12 hours
+    entrypoint: >
       /bin/sh -c "trap exit TERM;
       while :; do
         certbot renew --quiet;

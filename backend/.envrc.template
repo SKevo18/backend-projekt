@@ -1,1 +1,1 @@
-DATABASE_URL=sqlite:///db.sqlite
+DATABASE_URL=mysql+pymysql://root@localhost:3306/bp
