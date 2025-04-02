@@ -4,7 +4,7 @@ from sqlalchemy import String, Text, ForeignKey
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 import uuid
-from sqlalchemy import ForeignKey
+
 
 class Base(DeclarativeBase):
     pass
@@ -34,6 +34,7 @@ class Category(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(String(45), nullable=False)
     created_at: Mapped[datetime] = mapped_column(default=datetime.now)
+
     pages: Mapped[list["Page"]] = relationship(
         back_populates="category", cascade="all, delete-orphan"
     )
@@ -46,7 +47,12 @@ class Page(Base):
     title: Mapped[str] = mapped_column(String(100), nullable=False)
     html_content: Mapped[t.Text] = mapped_column(Text(), nullable=False)
     created_at: Mapped[datetime] = mapped_column(default=datetime.now)
+    edited_at: Mapped[datetime] = mapped_column(onupdate=datetime.now, nullable=True)
 
+    category_id: Mapped[int] = mapped_column(
+        ForeignKey("categories.id"), nullable=False
+    )
+    category: Mapped["Category"] = relationship(back_populates="pages")
 
 
 class Setting(Base):
@@ -56,19 +62,15 @@ class Setting(Base):
     key: Mapped[str] = mapped_column(String(length=50), unique=True, nullable=False)
     value: Mapped[str] = mapped_column(String(length=255), nullable=False)
 
+
 class PasswordReset(Base):
     __tablename__ = "password_resets"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
-    token: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, default=lambda: str(uuid.uuid4()))
+    token: Mapped[str] = mapped_column(
+        String(64), unique=True, nullable=False, default=lambda: str(uuid.uuid4())
+    )
     created_at: Mapped[datetime] = mapped_column(default=datetime.now)
     used: Mapped[bool] = mapped_column(default=False)
-
     edited_at: Mapped[datetime] = mapped_column(onupdate=datetime.now, nullable=True)
-
-    category_id: Mapped[int] = mapped_column(
-        ForeignKey("categories.id"), nullable=False
-    )
-    category: Mapped["Category"] = relationship(back_populates="pages")
-
