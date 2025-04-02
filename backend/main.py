@@ -1,10 +1,14 @@
 import fastapi as fa
 from fastapi.middleware.cors import CORSMiddleware
 from router import ALL_ROUTERS
+from router.email import EMAIL_ROUTER
+
 from fastapi.middleware.cors import CORSMiddleware
 from router import authentication
 
+
 API = fa.FastAPI(title="API", version="0.1.0", root_path="/api")
+API.include_router(EMAIL_ROUTER)
 
 API.add_middleware(
     CORSMiddleware,
