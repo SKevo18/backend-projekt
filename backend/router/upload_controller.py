@@ -1,19 +1,30 @@
-"""
-
-"""
-
+import re
 from pathlib import Path
-from fastapi import APIRouter, UploadFile, HTTPException
 
-UPLOAD_CONTROLLER = APIRouter(prefix="/page/file")
+from db import get_db
+from db.orm import Page
+from fastapi import APIRouter, Depends, HTTPException, UploadFile
+from fastapi.responses import FileResponse
+from sqlalchemy.orm import Session
+
+UPLOAD_CONTROLLER = APIRouter(prefix="/page/{page_id}/upload")
+
+# HACK: temporary, look up proper way how to validate file name
+FILENAME_RGX = re.compile(r"^[\w\.-]+$")
 
 
-@UPLOAD_CONTROLLER.post("/upload")
-async def upload_file(file: UploadFile):
-    if file.filename is None:
+def validate_file_name(filename: str):
+    if FILENAME_RGX.match(filename):
+        return filename
+    else:
+        raise HTTPException(status_code=400, detail="Invalid file name.")
+
+
+def validate_file(uploaded_file: UploadFile):
+    if not validate_file_name(uploaded_file.filename or ""):
         raise HTTPException(status_code=400, detail="File name is required")
 
-    if file.content_type not in [
+    if uploaded_file.content_type not in [
         "image/jpeg",
         "image/png",
         "image/gif",
@@ -27,8 +38,34 @@ async def upload_file(file: UploadFile):
     ]:
         raise HTTPException(status_code=400, detail="Invalid file type.")
 
-    file_path = Path("uploads") / file.filename
-    with open(file_path, "wb") as f:
-        f.write(await file.read())
+    if uploaded_file.size is None or uploaded_file.size > 10 * 1024 * 1024:  # 10MB
+        raise HTTPException(status_code=400, detail="File is too large.")
 
-    return {"filename": file.filename}
+    return uploaded_file
+
+
+@UPLOAD_CONTROLLER.post("/")
+def upload_file(
+    page_id: int,
+    uploaded_file: UploadFile = Depends(validate_file),
+    db: Session = Depends(get_db),
+):
+    page = db.query(Page).filter(Page.id == page_id).first()
+    if page is None:
+        raise HTTPException(status_code=404, detail="Page not found.")
+
+    file_path = Path("uploads") / str(page_id) / uploaded_file.filename  # type: ignore
+    file_path.parent.mkdir(parents=True, exist_ok=True)
+    with file_path.open("wb") as f:  # will overwrite existing file
+        f.write(uploaded_file.file.read())
+
+    return {"uri": f"uploads/{page_id}/{uploaded_file.filename}"}
+
+
+@UPLOAD_CONTROLLER.get("/{filename}")
+async def get_file(page_id: int, filename: str = Depends(validate_file_name)):
+    file_path = Path("uploads") / str(page_id) / filename
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File not found.")
+
+    return FileResponse(file_path)

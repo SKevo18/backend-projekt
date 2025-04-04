@@ -1,7 +1,10 @@
 import fastapi as fa
-from router.page_crud import PAGE_CRUD_ROUTER
-from router.category_crud import CATEGORY_ROUTER
+
 from router.authentication import AUTH_ROUTER
+from router.category_crud import CATEGORY_ROUTER
+from router.email import EMAIL_ROUTER
+from router.page_crud import PAGE_CRUD_ROUTER
+from router.upload_controller import UPLOAD_CONTROLLER
 
 ROOT_ROUTER = fa.APIRouter()
 
@@ -11,4 +14,11 @@ def test():
     return {"hello": "world"}
 
 
-ALL_ROUTERS = [ROOT_ROUTER, PAGE_CRUD_ROUTER, AUTH_ROUTER, CATEGORY_ROUTER]
+ALL_CONTROLLERS = [
+    ROOT_ROUTER,
+    AUTH_ROUTER,
+    CATEGORY_ROUTER,
+    EMAIL_ROUTER,
+    PAGE_CRUD_ROUTER,
+    UPLOAD_CONTROLLER,
+]

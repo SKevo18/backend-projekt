@@ -1,13 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from pydantic import BaseModel
-from passlib.context import CryptContext
+from datetime import datetime
+
 from db import get_db
 from db.orm import User
-from datetime import datetime
-from .jwt_utils import create_access_token, verify_access_token
-from fastapi.security import OAuth2PasswordBearer
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
+from fastapi.security import OAuth2PasswordBearer
+from passlib.context import CryptContext
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from router.jwt_utils import create_access_token, verify_access_token
 
 AUTH_ROUTER = APIRouter(prefix="/authentication")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -31,7 +33,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool: #overova
     return pwd_context.verify(plain_password, hashed_password)
 
 @AUTH_ROUTER.post("/register")
-async def register(user: UserModel, db: Session = Depends(get_db)):
+def register(user: UserModel, db: Session = Depends(get_db)):
     existing_user = db.query(User).filter_by(user_email=user.user_email).first() #overovania ci je existuje user mail 
     if existing_user:
         raise HTTPException(status_code=400, detail="User already exists")
@@ -54,7 +56,7 @@ async def register(user: UserModel, db: Session = Depends(get_db)):
     return {"access_token": token, "token_type": "bearer"}
 
 @AUTH_ROUTER.post("/login")
-async def login(user: LoginModel, db: Session = Depends(get_db)):
+def login(user: LoginModel, db: Session = Depends(get_db)):
     db_user = db.query(User).filter_by(user_email=user.user_email).first() # tu je celkovo overovania na login ci je spravny mail alebo heslo
     if not db_user or not verify_password(user.user_password, db_user.user_password):
         raise HTTPException(status_code=400, detail="Invalid email or password") # musi sa pysat ze nepsravne mail alebo heslo, kvoli bezpecnosti nemozem dat ze je zly mail!
@@ -63,7 +65,7 @@ async def login(user: LoginModel, db: Session = Depends(get_db)):
     return {"access_token": token, "token_type": "bearer"}
 
 @AUTH_ROUTER.get("/me")
-async def get_me(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+def get_me(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     payload = verify_access_token(token)
     user_email = payload.get("sub")
     user = db.query(User).filter_by(user_email=user_email).first()

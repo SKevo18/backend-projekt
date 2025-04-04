@@ -1,7 +1,7 @@
 <script lang="ts">
+import api from "@/services/api";
 import PageEditorComponent from "@/components/page/PageEditorComponent.vue";
-
-// TODO: preč, ak nie je editor alebo admin (cez guard)
+// TODO: redirect to login if not editor or admin (via guard)
 
 export default {
   name: "PageEditView",
@@ -22,6 +22,7 @@ export default {
   data() {
     return {
       htmlContent: ``,
+      files: [],
     };
   },
   computed: {
@@ -34,9 +35,41 @@ export default {
   },
   methods: {
     savePage() {
+      this.saveContent();
+      this.uploadFiles();
+    },
+    saveContent() {
       // TODO: send to backend
       alert(this.htmlContent);
       console.log(this.htmlContent);
+    },
+    uploadFiles() {
+      for (const file of this.files) {
+        if (file.size > 1024 * 1024 * 10) {
+          alert(
+            `Maximálna povolená veľkosť súboru je 10 MB (${file.name} má ${file.size} B)`
+          );
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append("uploaded_file", file);
+
+        api.post(`/page/${this.slug}/upload`, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+      }
+    },
+    addFile(event: Event) {
+      const files = (event.target as HTMLInputElement).files;
+      if (files) {
+        this.files = Array.from(files);
+      }
+    },
+    removeFile(file: File) {
+      this.files = this.files.filter((f) => f !== file);
     },
   },
 };
@@ -56,6 +89,35 @@ export default {
 
   <div class="editor-container">
     <PageEditorComponent v-model="htmlContent" />
+
+    <div class="file-upload-container">
+      <h2 class="big mb-2">Priložené súbory</h2>
+
+      <div class="file-upload-list">
+        <input
+          type="file"
+          multiple
+          @change="addFile"
+          class="file-upload-input"
+          ref="fileInput"
+        />
+        <button
+          class="button button-green w-32"
+          @click="$refs.fileInput.click()"
+        >
+          Priložiť súbor
+        </button>
+
+        <div class="file-upload-item" v-for="file in files" :key="file.name">
+          <span class="file-upload-item-name"
+            >{{ file.name }}, {{ file.size }} B</span
+          >
+          <button class="button button-red" @click="removeFile(file)">
+            Odstrániť
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -76,5 +138,21 @@ export default {
 
 .editor-container {
   @apply my-6;
+}
+
+.file-upload-input {
+  @apply hidden;
+}
+
+.file-upload-container {
+  @apply my-6 border-1 border-gray-300 rounded-md p-2;
+}
+
+.file-upload-list {
+  @apply flex flex-col gap-2;
+}
+
+.file-upload-list .file-upload-item {
+  @apply mx-4 flex flex-row items-center justify-between;
 }
 </style>
