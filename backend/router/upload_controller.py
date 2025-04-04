@@ -44,6 +44,30 @@ def validate_file(uploaded_file: UploadFile):
     return uploaded_file
 
 
+@UPLOAD_CONTROLLER.get("/")
+def list_files(page_id: int, db: Session = Depends(get_db)):
+    page = db.query(Page).filter(Page.id == page_id).first()
+    if page is None:
+        raise HTTPException(status_code=404, detail="Page not found.")
+
+    upload_dir = Path("uploads") / str(page_id)
+    if not upload_dir.exists():
+        return []
+
+    files = []
+    for file_path in upload_dir.iterdir():
+        if file_path.is_file():
+            files.append(
+                {
+                    "name": file_path.name,
+                    "size": file_path.stat().st_size,
+                    "uri": f"uploads/{page_id}/{file_path.name}",
+                }
+            )
+
+    return files
+
+
 @UPLOAD_CONTROLLER.post("/")
 def upload_file(
     page_id: int,
@@ -69,3 +93,11 @@ async def get_file(page_id: int, filename: str = Depends(validate_file_name)):
         raise HTTPException(status_code=404, detail="File not found.")
 
     return FileResponse(file_path)
+
+
+@UPLOAD_CONTROLLER.delete("/{filename}")
+async def delete_file(page_id: int, filename: str = Depends(validate_file_name)):
+    file_path = Path("uploads") / str(page_id) / filename
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File not found.")
+    file_path.unlink()

@@ -33,18 +33,35 @@ export default {
       return this.slug.replace(/[-_]/g, " ");
     },
   },
+  async created() {
+    await this.loadExistingFiles();
+  },
   methods: {
-    savePage() {
-      this.saveContent();
-      this.uploadFiles();
+    async loadExistingFiles() {
+      try {
+        const response = await api.get(`/page/${this.slug}/upload`);
+        this.files = response.data.map((file: any) => ({
+          ...file,
+          alreadyUploaded: true,
+        }));
+      } catch (error) {
+        console.error("Failed to load existing files:", error);
+      }
     },
-    saveContent() {
+    async savePage() {
+      await this.saveContent();
+      await this.uploadFiles();
+    },
+    async saveContent() {
       // TODO: send to backend
-      alert(this.htmlContent);
       console.log(this.htmlContent);
     },
-    uploadFiles() {
-      for (const file of this.files) {
+    async uploadFiles() {
+      const newFiles = this.files.filter(
+        (file: { alreadyUploaded: boolean }) => !file.alreadyUploaded
+      );
+
+      for (const file of newFiles) {
         if (file.size > 1024 * 1024 * 10) {
           alert(
             `Maximálna povolená veľkosť súboru je 10 MB (${file.name} má ${file.size} B)`
@@ -53,23 +70,52 @@ export default {
         }
 
         const formData = new FormData();
-        formData.append("uploaded_file", file);
+        formData.append("uploaded_file", file.fileObj);
 
-        api.post(`/page/${this.slug}/upload`, formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
+        try {
+          await api.post(`/page/${this.slug}/upload`, formData, {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          });
+        } catch (error) {
+          console.error(`Failed to upload file ${file.name}:`, error);
+          alert(`Nepodarilo sa nahrať súbor ${file.name}`);
+        }
       }
+
+      await this.loadExistingFiles();
     },
     addFile(event: Event) {
-      const files = (event.target as HTMLInputElement).files;
-      if (files) {
-        this.files = Array.from(files);
+      const fileList = (event.target as HTMLInputElement).files;
+      if (fileList) {
+        const newFiles = Array.from(fileList).map((file) => {
+          return {
+            name: file.name,
+            size: file.size,
+            fileObj: file,
+            alreadyUploaded: false,
+          };
+        });
+        this.files = [...this.files, ...newFiles];
       }
     },
-    removeFile(file: File) {
-      this.files = this.files.filter((f) => f !== file);
+    async removeFile(file: any) {
+      if (!confirm(`Naozaj chcete odstrániť súbor ${file.name}?`)) {
+        return;
+      }
+
+      if (file.alreadyUploaded) {
+        try {
+          await api.delete(`/page/${this.slug}/upload/${file.name}`);
+          this.files = this.files.filter((f) => f.name !== file.name);
+        } catch (error) {
+          console.error(`Failed to delete file ${file.name}:`, error);
+          alert(`Nepodarilo sa odstrániť súbor ${file.name}`);
+        }
+      } else {
+        this.files = this.files.filter((f) => f !== file);
+      }
     },
   },
 };
@@ -103,7 +149,7 @@ export default {
         />
         <button
           class="button button-green w-32"
-          @click="$refs.fileInput.click()"
+          @click="() => ($refs.fileInput as HTMLInputElement).click()"
         >
           Priložiť súbor
         </button>
