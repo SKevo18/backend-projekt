@@ -26,7 +26,7 @@ def upgrade() -> None:
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
-    op.add_column('pages', sa.Column('title', sa.DateTime(), nullable=True))
+    op.add_column('pages', sa.Column('title', sa.String(length=100), nullable=True))
     op.add_column('pages', sa.Column('edited_at', sa.DateTime(), nullable=True))
     op.add_column('pages', sa.Column('category_id', sa.Integer(), nullable=False))
     op.create_foreign_key(None, 'pages', 'categories', ['category_id'], ['id'])
@@ -74,9 +74,5 @@ def downgrade() -> None:
                type_=mysql.VARCHAR(length=35),
                existing_nullable=False)
     op.drop_column('users', 'role')
-    op.drop_constraint(None, 'pages', type_='foreignkey')
-    op.drop_column('pages', 'category_id')
-    op.drop_column('pages', 'edited_at')
-    op.drop_column('pages', 'title')
     op.drop_table('categories')
     # ### end Alembic commands ###

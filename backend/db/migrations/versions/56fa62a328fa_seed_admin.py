@@ -34,4 +34,4 @@ def upgrade() -> None:
 def downgrade() -> None:
     """Použije sa pri `alembic downgrade ...`."""
 
-    op.execute(sa.delete(User).where(User.username == "admin"))
+    op.execute(sa.delete(User).where(User.user_email == "admin@nieco.sk"))
