@@ -2,6 +2,7 @@
 *.sqlite*
 .DS_Store
 bun.lock*
+backend/uploads/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

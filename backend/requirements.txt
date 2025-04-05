@@ -1,9 +1,16 @@
+# ORM
 sqlalchemy
 alembic
 pymysql
-PyJWT==2.8.0
-fastapi
-uvicorn
-python-dotenv # for loading env vars
 pydantic
+pydantic[email]
+
+# server
+fastapi
+python-multipart
+uvicorn
+
+# utils
+PyJWT
 passlib[bcrypt]
+python-dotenv
