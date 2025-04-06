@@ -4,6 +4,7 @@ import api from '@/services/api';
 interface Page {
     id?: number;
     title: string;
+    slug: string;
     html_content: string;
     category_id: number;
     created_at?: string;
@@ -33,16 +34,17 @@ export const usePagesStore = defineStore('pages', {
             }
         },
 
-        async fetchPageById(id: number) {
+        async fetchPageBySlug(slug: string) {
             try {
-                const response = await api.get(`/page/${id}`);
+                const response = await api.get(`/page/${slug}`);
                 return response.data;
             } catch (error) {
-                console.error(`Chyba pri načítaní stránky s ID ${id}:`, error);
+                console.error(`Chyba pri načítaní stránky so slugom "${slug}":`, error);
                 throw error;
             }
         },
-            async fetchCategories() {
+
+        async fetchCategories() {
             try {
                 const response = await api.get('/category/');
                 this.categories = response.data;
@@ -50,6 +52,7 @@ export const usePagesStore = defineStore('pages', {
                 this.error = 'Nepodarilo sa načítať kategórie.';
             }
         },
+
         async addCategory(title: string) {
             if (!this.categories.some(cat => cat.title === title)) {
                 try {
@@ -66,6 +69,14 @@ export const usePagesStore = defineStore('pages', {
         },
 
         async addPage(category_id: number, title: string, description: string) {
+            const categoryExists = this.categories.some(cat => cat.id === category_id);
+
+            if (!categoryExists) {
+                this.error = `Neplatná kategória s ID ${category_id}.`;
+                alert(this.error);
+                return;
+            }
+
             if (!this.pages.some(page => page.title === title)) {
                 try {
                     const newPage = {
@@ -84,28 +95,27 @@ export const usePagesStore = defineStore('pages', {
             }
         },
 
-        async updatePage(id: number, updatedData: Partial<Page>) {
+        async updatePage(slug: string, updatedData: Partial<Page>) {
             try {
                 if (!updatedData.title && !updatedData.html_content && !updatedData.category_id) {
                     console.warn('Žiadne dáta na aktualizáciu stránky.');
                     return;
                 }
 
-                await api.put(`/page/${id}`, updatedData);
+                await api.put(`/page/${slug}`, updatedData);
                 await this.fetchPages();
             } catch (error) {
-                this.error = `Nepodarilo sa aktualizovať stránku s ID ${id}.`;
+                this.error = `Nepodarilo sa aktualizovať stránku so slugom "${slug}".`;
                 console.error(error);
             }
         },
 
-
-        async deletePage(id: number) {
+        async deletePage(slug: string) {
             try {
-                await api.delete(`/page/${id}`);
+                await api.delete(`/page/${slug}`);
                 await this.fetchPages();
             } catch (error) {
-                this.error = `Nepodarilo sa odstrániť stránku s ID ${id}.`;
+                this.error = `Nepodarilo sa odstrániť stránku so slugom "${slug}".`;
             }
         },
     }

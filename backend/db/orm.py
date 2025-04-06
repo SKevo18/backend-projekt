@@ -45,6 +45,7 @@ class Page(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(String(100), nullable=False)
+    slug: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
     html_content: Mapped[t.Text] = mapped_column(Text(), nullable=False)
     created_at: Mapped[datetime] = mapped_column(default=datetime.now)
     edited_at: Mapped[datetime] = mapped_column(onupdate=datetime.now, nullable=True)

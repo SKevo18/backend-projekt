@@ -12,7 +12,7 @@ export default defineComponent({
       newCategory: '',
       showAddCategoryForm: false,
       activeCategoryForm: null as number | null,
-      editingPageId: null as number | null,
+      editingPageSlug: null as string | null,
       editTitle: '',
       editContent: '',
       editCategoryId: null as number | null
@@ -56,10 +56,11 @@ export default defineComponent({
         alert('Chyba pri pridávaní kategórie.');
       }
     },
-    async deletePage(id: number) {
-      if (confirm(`Chcete naozaj vymazať stránku s ID "${id}"?`)) {
+    async deletePage(slug: string) {
+      if (!slug) return alert('Chýba slug stránky!');
+      if (confirm(`Chcete naozaj vymazať stránku "${slug}"?`)) {
         try {
-          await this.pagesStore.deletePage(id);
+          await this.pagesStore.deletePage(slug);
         } catch {
           alert('Chyba pri mazaní stránky.');
         }
@@ -69,20 +70,21 @@ export default defineComponent({
       this.activeCategoryForm = this.activeCategoryForm === categoryId ? null : categoryId;
     },
     startEditingPage(page: any) {
-      this.editingPageId = page.id;
+      this.editingPageSlug = page.slug;
       this.editTitle = page.title;
       this.editContent = page.html_content;
       this.editCategoryId = page.category_id;
     },
-    async updatePage(id: number) {
+    async updatePage(slug: string) {
+      if (!slug) return alert('Chýba slug stránky!');
       try {
-        await this.pagesStore.updatePage(id, {
+        await this.pagesStore.updatePage(slug, {
           title: this.editTitle,
           html_content: this.editContent,
           category_id: this.editCategoryId!
         });
 
-        this.editingPageId = null;
+        this.editingPageSlug = null;
         this.editCategoryId = null;
 
         await this.pagesStore.fetchPages();
@@ -98,27 +100,41 @@ export default defineComponent({
 });
 </script>
 
-<template>
-  <div class="p-6 bg-gray-50 min-h-screen space-y-6">
-    <div class="space-y-6">
-      <div v-for="category in sortedCategories" :key="category.id" class="bg-white border border-gray-300 rounded-xl p-4 shadow-md">
-        <fieldset>
-          <legend class="font-bold text-lg text-gray-700">{{ category.title }}</legend>
 
-          <div v-if="!pagesStore.pages.some(page => page.category_id === category.id)" class="text-center text-gray-400">
+<template>
+  <div class="p-4 sm:p-6 bg-gray-50 min-h-screen space-y-6">
+    <div class="space-y-6">
+      <div v-for="category in sortedCategories" :key="category.id"
+        class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
+        <fieldset>
+          <legend class="font-semibold text-xl text-gray-700 mb-2">
+            {{ category.title }}
+          </legend>
+
+          <div v-if="!pagesStore.pages.some(page => page.category_id === category.id)"
+            class="text-center text-gray-400 text-sm py-2">
             Žiadne stránky pre tútu kategóriu.
           </div>
 
-          <div v-for="page in sortedPages.filter(p => p.category_id === category.id)" :key="page.id" class="bg-gray-100 border border-gray-200 rounded-lg p-3 my-2">
-            <div class="flex items-center justify-between">
-              <p class="text-gray-600">{{ page.title }} - {{ page.html_content }}</p>
+          <div v-for="page in sortedPages.filter(p => p.category_id === category.id)" :key="page.id"
+            class="bg-gray-100 border border-gray-200 rounded-xl p-4 my-3">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <p class="text-gray-700 break-words">
+                <span class="font-medium">{{ page.title }}</span> – {{ page.html_content }}
+              </p>
               <div class="flex gap-2">
-                <button @click="startEditingPage(page)" class="bg-yellow-500 text-white py-1 px-3 rounded-md hover:bg-yellow-600 transition">update</button>
-                <button @click="deletePage(page.id)" class="bg-red-500 text-white py-1 px-3 rounded-md hover:bg-green-600 transition">delete</button>
+                <button @click="startEditingPage(page)"
+                  class="bg-yellow-500 text-white py-1 px-3 rounded-md hover:bg-yellow-600 transition">
+                  Update
+                </button>
+                <button @click="deletePage(page.slug)"
+                  class="bg-red-500 text-white py-1 px-3 rounded-md hover:bg-red-600 transition">
+                  Delete
+                </button>
               </div>
             </div>
 
-            <div v-if="editingPageId === page.id" class="mt-3 space-y-2">
+            <div v-if="editingPageSlug === page.slug" class="mt-4 space-y-3">
               <input v-model="editTitle" class="w-full p-2 border rounded-md" placeholder="Nový názov stránky" />
               <input v-model="editContent" class="w-full p-2 border rounded-md" placeholder="Nový obsah stránky" />
               <select v-model.number="editCategoryId" class="w-full p-2 border rounded-md">
@@ -126,41 +142,55 @@ export default defineComponent({
                   {{ cat.title }}
                 </option>
               </select>
-              <button @click="updatePage(page.id)" class="bg-blue-500 text-white py-1 px-4 rounded-md hover:bg-blue-600 transition">Uložiť zmeny</button>
+              <button @click="updatePage(page.slug)"
+                class="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition">
+                Uložiť zmeny
+              </button>
             </div>
           </div>
 
-          <div class="text-center mt-4">
-            <button @click="toggleAddPageForm(category.id)" class="bg-green-500 text-white w-full py-2 rounded-md hover:bg-green-600 transition">
+          <div class="text-center mt-6">
+            <button @click="toggleAddPageForm(category.id)"
+              class="bg-green-500 text-white w-full py-2 rounded-md hover:bg-green-600 transition">
               {{ activeCategoryForm === category.id ? 'Skryť formulár' : 'Vytvoriť stránku' }}
             </button>
           </div>
 
-          <div v-if="activeCategoryForm === category.id" class="bg-white border border-gray-200 rounded-lg p-4 shadow-md mt-4">
-            <div class="flex gap-4">
-              <input v-model="title" placeholder="Názov stránky" type="text" class="flex-1 border border-gray-300 rounded-md p-2 bg-gray-50" />
-              <input v-model="html_content" placeholder="Obsah stránky" type="text" class="flex-1 border border-gray-300 rounded-md p-2 bg-gray-50" />
-              <button @click="addPage(category.id)" class="bg-green-500 text-white py-2 px-6 rounded-md hover:bg-green-600 transition">Pridať stránku</button>
+          <div v-if="activeCategoryForm === category.id"
+            class="bg-white border border-gray-200 rounded-xl p-4 shadow mt-4">
+            <div class="flex flex-col md:flex-row gap-3">
+              <input v-model="title" placeholder="Názov stránky" type="text"
+                class="flex-1 border border-gray-300 rounded-md p-2 bg-gray-50" />
+              <input v-model="html_content" placeholder="Obsah stránky" type="text"
+                class="flex-1 border border-gray-300 rounded-md p-2 bg-gray-50" />
+              <button @click="addPage(category.id)"
+                class="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition w-full md:w-auto">
+                Pridať stránku
+              </button>
             </div>
           </div>
         </fieldset>
       </div>
     </div>
 
-    <div class="space-y-4 mt-4">
+    <div class="space-y-4 mt-8">
       <div class="text-center">
-        <button @click="showAddCategoryForm = !showAddCategoryForm" class="bg-green-500 text-white w-full py-2 rounded-md hover:bg-green-600 transition">
+        <button @click="showAddCategoryForm = !showAddCategoryForm"
+          class="bg-green-500 text-white w-full py-2 rounded-md hover:bg-green-600 transition">
           {{ showAddCategoryForm ? 'Skryť formulár pre kategóriu' : 'Pridať novú kategóriu' }}
         </button>
       </div>
 
-      <div v-if="showAddCategoryForm" class="bg-white border border-gray-300 rounded-xl p-6 shadow-md space-y-4">
-        <div class="flex gap-4">
-          <input v-model="newCategory" placeholder="Kategória (napr. 2025, Informácie)" type="text" class="flex-1 border border-gray-300 rounded-md p-2 bg-gray-50" />
-          <button @click="addCategory" class="bg-green-500 text-white py-2 px-6 rounded-md hover:bg-green-600 transition">Pridať kategóriu</button>
+      <div v-if="showAddCategoryForm" class="bg-white border border-gray-300 rounded-2xl p-6 shadow space-y-4">
+        <div class="flex flex-col md:flex-row gap-4">
+          <input v-model="newCategory" placeholder="Kategória (napr. 2025, Informácie)" type="text"
+            class="flex-1 border border-gray-300 rounded-md p-2 bg-gray-50" />
+          <button @click="addCategory"
+            class="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition w-full md:w-auto">
+            Pridať kategóriu
+          </button>
         </div>
       </div>
     </div>
   </div>
 </template>
-
