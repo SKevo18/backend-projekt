@@ -18,42 +18,56 @@ export default defineComponent({
   computed: {
     sortedCategories() {
       return [...this.pagesStore.categories].sort((a, b) => a.title.localeCompare(b.title));
-    }
+    },
+    pagesByCategory() {
+      const map: Record<string, any[]> = {}; // napriklad ["PHP"] = [podstranka1, podstranka2]
+      for (const page of this.pagesStore.pages) {
+        const category = this.pagesStore.categories.find(c => c.id === page.category_id);
+        if (category) {
+          const title = category.title;
+          if (!map[title]) map[title] = [];
+          map[title].push(page);
+        }
+      }
+      return map;
+    },
   },
   methods: {
     logout() {
       this.$authStore.logout();
       this.$router.push("/login");
-    }
+    },
+    firstPageLink(categoryTitle: string) {
+      const pages = this.pagesByCategory[categoryTitle]; // hovorime pozri sa do kategorii, ak su tam stranky - zobrazi to, ak nie - len kategoriu
+      if (pages && pages.length > 0) {
+        const page = pages[0];
+        return { name: "page", params: { year: categoryTitle, idSlug: `${page.id}-${page.slug}` } };
+      } else {
+        return { name: "year", params: { year: categoryTitle } };
+      }
+    },
   },
   async mounted() {
     if (this.pagesStore.categories.length === 0) {
       await this.pagesStore.fetchCategories();
     }
-  }
-});
+    if (this.pagesStore.pages.length === 0) {
+      await this.pagesStore.fetchPages();
+    }
+  },
+}); 
 </script>
-
 
 <template>
   <header>
     <div class="header-topnav" v-if="!$authStore.isAuthenticated">
-      <RouterLink :to="{ name: 'login' }" active-class="nav-link-active">
-        Prihlásiť sa
-      </RouterLink>
+      <RouterLink :to="{ name: 'login' }" active-class="nav-link-active">Prihlásiť sa</RouterLink>
       <span> | </span>
-      <RouterLink :to="{ name: 'register' }" active-class="nav-link-active">
-        Registrácia
-      </RouterLink>
+      <RouterLink :to="{ name: 'register' }" active-class="nav-link-active">Registrácia</RouterLink>
     </div>
 
     <div class="header-topnav" v-else>
-      <RouterLink
-        :to="{ name: 'admin-settings' }"
-        active-class="nav-link-active"
-      >
-        Administrácia
-      </RouterLink>
+      <RouterLink :to="{ name: 'admin-settings' }" active-class="nav-link-active">Administrácia</RouterLink>
       <span> | </span>
       <a class="logout-link" @click="logout">Odhlásiť sa</a>
     </div>
@@ -61,13 +75,8 @@ export default defineComponent({
     <div class="header-content">
       <LogoComponent />
       <nav class="year-nav">
-        <RouterLink
-          v-for="category in sortedCategories"
-          :key="category.id"
-          :to="`/${category.title}`"
-          class="nav-link"
-          active-class="nav-link-active"
-        >
+        <RouterLink v-for="category in sortedCategories" :key="category.id" :to="firstPageLink(category.title)"
+          class="nav-link" active-class="nav-link-active">
           {{ category.title }}
         </RouterLink>
       </nav>

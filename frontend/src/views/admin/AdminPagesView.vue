@@ -12,7 +12,7 @@ export default defineComponent({
       newCategory: '',
       showAddCategoryForm: false,
       activeCategoryForm: null as number | null,
-      editingPageSlug: null as string | null,
+      editingPageId: null as number | null,
       editTitle: '',
       editContent: '',
       editCategoryId: null as number | null
@@ -56,11 +56,11 @@ export default defineComponent({
         alert('Chyba pri pridávaní kategórie.');
       }
     },
-    async deletePage(slug: string) {
-      if (!slug) return alert('Chýba slug stránky!');
-      if (confirm(`Chcete naozaj vymazať stránku "${slug}"?`)) {
+    async deletePage(page: any) {
+      if (!page?.slug || !page?.id) return alert('Chyba slug alebo ID stranky');
+      if (confirm(`Chcete naozaj vymazať stránku "${page.title}"?`)) {
         try {
-          await this.pagesStore.deletePage(slug);
+          await this.pagesStore.deletePage(page);
         } catch {
           alert('Chyba pri mazaní stránky.');
         }
@@ -70,21 +70,21 @@ export default defineComponent({
       this.activeCategoryForm = this.activeCategoryForm === categoryId ? null : categoryId;
     },
     startEditingPage(page: any) {
-      this.editingPageSlug = page.slug;
+      this.editingPageId = page.id;
       this.editTitle = page.title;
       this.editContent = page.html_content;
       this.editCategoryId = page.category_id;
     },
-    async updatePage(slug: string) {
-      if (!slug) return alert('Chýba slug stránky!');
+    async updatePage(page: any) {
+      if (!page?.slug || !page?.id) return alert('Chýba slug alebo ID stránky!');
       try {
-        await this.pagesStore.updatePage(slug, {
+        await this.pagesStore.updatePage(page, {
           title: this.editTitle,
           html_content: this.editContent,
           category_id: this.editCategoryId!
         });
 
-        this.editingPageSlug = null;
+        this.editingPageId = null;
         this.editCategoryId = null;
 
         await this.pagesStore.fetchPages();
@@ -127,14 +127,14 @@ export default defineComponent({
                   class="bg-yellow-500 text-white py-1 px-3 rounded-md hover:bg-yellow-600 transition">
                   Update
                 </button>
-                <button @click="deletePage(page.slug)"
+                <button @click="deletePage(page)"
                   class="bg-red-500 text-white py-1 px-3 rounded-md hover:bg-red-600 transition">
                   Delete
                 </button>
               </div>
             </div>
 
-            <div v-if="editingPageSlug === page.slug" class="mt-4 space-y-3">
+            <div v-if="editingPageId === page.id" class="mt-4 space-y-3">
               <input v-model="editTitle" class="w-full p-2 border rounded-md" placeholder="Nový názov stránky" />
               <input v-model="editContent" class="w-full p-2 border rounded-md" placeholder="Nový obsah stránky" />
               <select v-model.number="editCategoryId" class="w-full p-2 border rounded-md">
@@ -142,7 +142,7 @@ export default defineComponent({
                   {{ cat.title }}
                 </option>
               </select>
-              <button @click="updatePage(page.slug)"
+              <button @click="updatePage(page)"
                 class="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition">
                 Uložiť zmeny
               </button>

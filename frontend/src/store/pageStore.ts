@@ -34,16 +34,17 @@ export const usePagesStore = defineStore('pages', {
             }
         },
 
-        async fetchPageBySlug(slug: string) {
+        async fetchPageByIdSlug(id: number, slug: string) {
             try {
-                const response = await api.get(`/page/${slug}`);
-                return response.data;
+                const idSlug = `${id}-${slug}`;
+                  const response = await api.get(`/page/${id}-${slug}`);
+                  return response.data;
             } catch (error) {
-                console.error(`Chyba pri načítaní stránky so slugom "${slug}":`, error);
+                console.error(`Chyba pri načítaní stránky ${id}-${slug}:`, error);
                 throw error;
             }
         },
-
+        
         async fetchCategories() {
             try {
                 const response = await api.get('/category/');
@@ -95,27 +96,29 @@ export const usePagesStore = defineStore('pages', {
             }
         },
 
-        async updatePage(slug: string, updatedData: Partial<Page>) {
+        async updatePage(page: Page, updatedData: Partial<Page>) {
             try {
                 if (!updatedData.title && !updatedData.html_content && !updatedData.category_id) {
                     console.warn('Žiadne dáta na aktualizáciu stránky.');
                     return;
                 }
 
-                await api.put(`/page/${slug}`, updatedData);
+                const idSlug = `${page.id}-${page.slug}`;
+                await api.put(`/page/${idSlug}`, updatedData);
                 await this.fetchPages();
             } catch (error) {
-                this.error = `Nepodarilo sa aktualizovať stránku so slugom "${slug}".`;
+                this.error = `Nepodarilo sa aktualizovať stránku ${page.id}-${page.slug}.`;
                 console.error(error);
             }
         },
 
-        async deletePage(slug: string) {
+        async deletePage(page: Page) {
             try {
-                await api.delete(`/page/${slug}`);
+                const idSlug = `${page.id}-${page.slug}`;
+                await api.delete(`/page/${idSlug}`);
                 await this.fetchPages();
             } catch (error) {
-                this.error = `Nepodarilo sa odstrániť stránku so slugom "${slug}".`;
+                this.error = `Nepodarilo sa odstrániť stránku ${page.id}-${page.slug}.`;
             }
         },
     }

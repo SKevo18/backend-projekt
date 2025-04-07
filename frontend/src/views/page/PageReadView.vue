@@ -1,58 +1,112 @@
 <script lang="ts">
-import api from "@/services/api";
+import { defineComponent } from "vue";
+import { usePagesStore } from "@/store/pageStore";
 import PageSidebarComponent from "@/components/page/PageSidebarComponent.vue";
-import { RouterLink } from "vue-router";
+import { RouterLink, onBeforeRouteUpdate } from "vue-router";
 
-export default {
+export default defineComponent({
   name: "PageReadView",
+  components: {
+    PageSidebarComponent,
+    RouterLink,
+  },
   props: {
-    slug: {
-      type: String,
-      required: false,
-      default: "_",
-    },
     year: {
       type: String,
       required: true,
     },
-  },
-  components: {
-    PageSidebarComponent,
+    idSlug: {
+      type: String,
+      required: true,
+    },
   },
   data() {
     return {
-      pageHtml:
-        '<i>Táto stránka nemá žiadny obsah. Kliknite na tlačidlo "Upraviť", aby ste mohli pridávať obsah.</i>',
-      files: [],
+      pagesStore: usePagesStore(),
+      pageId: null as number | null,
+      slug: "",
+      pageHtml: "<i>Táto stránka nemá žiadny obsah.</i>",
+      files: [] as any[],
     };
   },
   computed: {
-    readableSlug() {
-      if (this.slug === "_") {
-        return `Ročník ${this.year}`;
-      }
-      return this.slug.replace(/[-_]/g, " ");
+    readableSlug(): string {
+      return !this.slug || this.slug === "_"
+        ? `Ročník ${this.year}`
+        : this.slug.replace(/[-_]/g, " ");
     },
-  },
-  async created() {
-    await this.loadExistingFiles();
+    fullIdSlug(): string {
+      return this.pageId && this.slug ? `${this.pageId}-${this.slug}` : "_";
+    },
+  },  
+  created() {
+    this.loadPage(this.idSlug);
+
+    onBeforeRouteUpdate((to, _from, next) => {
+      const newIdSlug = to.params.idSlug as string;
+      if (newIdSlug && newIdSlug !== this.fullIdSlug) {
+        this.loadPage(newIdSlug);
+      }
+      next();
+    });
   },
   methods: {
-    async loadExistingFiles() {
-      try {
-        const response = await api.get(`/page/${this.slug}/upload`);
-        this.files = response.data;
-      } catch (error) {
-        console.error("Failed to load existing files:", error);
+    async loadPage(idSlug: string) {
+      const [idStr, ...slugParts] = idSlug.split("-");
+      const parsedId = parseInt(idStr);
+      const joinedSlug = slugParts.join("-");
+
+      if (isNaN(parsedId) || !joinedSlug) {
+        console.warn("Neplatný formát idSlug:", idSlug);
+        return;
       }
+
+      this.pageId = parsedId;
+      this.slug = joinedSlug;
+
+      try {
+        const page = await this.pagesStore.fetchPageByIdSlug(parsedId, joinedSlug);
+        this.pageHtml = page?.html_content || "<i>Táto stránka nemá žiadny obsah.</i>";
+      } catch (error) {
+        console.error("Nepodarilo sa načítať stránku:", error);
+      }
+
+      await this.loadExistingFiles();
     },
+
+    async loadExistingFiles() {
+      if (!this.pageId) return;
+
+      try {
+        const response = await fetch(`/api/page/${this.pageId}/upload`);
+
+        const text = await response.text();
+
+        if (!response.ok) {
+          throw new Error(`Server response: ${response.status} ${text}`);
+        }
+
+        let json;
+        try {
+          json = JSON.parse(text);
+        } catch (parseError) {
+          console.error("Odpoveď nie je platný JSON:", text);
+          throw parseError;
+        }
+
+        this.files = Array.isArray(json) ? json : [];
+      } catch (error) {
+        console.error("Chyba pri načítaní súborov:", error);
+        this.files = [];
+      }
+    }
   },
-};
+});
 </script>
 
 <template>
   <div class="flex flex-col sm:flex-row">
-    <PageSidebarComponent :year :slug />
+    <PageSidebarComponent :year="year" :slug="slug" />
 
     <article>
       <div class="top-container">
@@ -60,6 +114,7 @@ export default {
           <h1 class="uppercase">{{ readableSlug }}</h1>
           <hr />
         </header>
+
         <div id="page-html" v-html="pageHtml"></div>
       </div>
 
@@ -68,23 +123,17 @@ export default {
           <h2 class="big mb-2">Priložené súbory</h2>
           <div class="files-list">
             <div class="file-item" v-for="file in files" :key="file.name">
-              <a
-                :href="`/api/page/${slug}/upload/${file.name}`"
-                target="_blank"
-                >{{ file.name }}</a
-              >
+              <a :href="`/api/page/${pageId}/upload/${file.name}`" target="_blank">
+                {{ file.name }}
+              </a>
               <span class="text-sm text-gray-500">{{ file.size }} B</span>
             </div>
           </div>
         </div>
 
         <nav>
-          <!-- TODO: iba ak je editor pre daný ročník alebo admin -->
-          <RouterLink
-            class="button button-green"
-            :to="{ name: 'page-edit', params: { slug: slug } }"
-          >
-            Upraviť
+          <RouterLink class="button button-green" :to="{ name: 'page-edit', params: { year, idSlug: fullIdSlug } }">
+            Upraviť stránku
           </RouterLink>
         </nav>
       </footer>

@@ -17,15 +17,14 @@ const router = createRouter({
       name: "year",
     },
     {
-      path: "/:year/:slug",
+      path: "/:year/:idSlug",
       component: PageReadView,
       props: true,
       name: "page",
     },
     {
-      path: "/:year/:slug/edit",
+      path: "/:year/:idSlug/edit",
       name: "page-edit",
-      // UMO editor has * { margin: 0; padding: 0; } CSS, must be dynamically loaded
       component: () => import("@/views/page/PageEditView.vue"),
       props: true,
     },

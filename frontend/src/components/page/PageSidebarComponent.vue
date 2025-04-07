@@ -1,69 +1,74 @@
 <script lang="ts">
-import { defineComponent, onMounted, ref, watch } from 'vue';
-import { useRoute } from 'vue-router';
-import api from '@/services/api';
+import { defineComponent, onMounted, watch } from "vue";
+import { RouterLink } from "vue-router";
+import { usePagesStore } from "@/store/pageStore";
 
 export default defineComponent({
-  name: 'PageSidebarComponent',
-  setup() {
-    const links = ref<{ id: number; title: string; category: any }[]>([]);
-    const route = useRoute();
-
-    const fetchLinks = async () => {
-      try {
-        const response = await api.get('/page/');
-        links.value = response.data.filter((page: any) => {
-          return page.category?.slug === route.params.slug;
-        });
-      } catch (error) {
-        console.error('Nepodarilo sa načítať stránky pre sidebar.', error);
-      }
+  name: "PageSidebarComponent",
+  components: {
+    RouterLink,
+  },
+  data() {
+    return {
+      pagesStore: usePagesStore(),
+      year: "",
+      categoryPages: [] as any[],
     };
+  },
+  methods: {
+    async fetchSidebarPages() {
+      this.year = this.$route.params.year as string;
 
-    onMounted(fetchLinks);
+      const category = this.pagesStore.categories.find(
+        (cat) => cat.title === this.year
+      );
+
+      if (!category) {
+        this.categoryPages = [];
+        return;
+      }
+
+      this.categoryPages = this.pagesStore.pages.filter(
+        (page) => page.category_id == category.id 
+      );
+    },
+  },
+  async mounted() {
+    if (this.pagesStore.categories.length === 0) {
+      await this.pagesStore.fetchCategories();
+    }
+    if (this.pagesStore.pages.length === 0) {
+      await this.pagesStore.fetchPages();
+    }
+
+    await this.fetchSidebarPages();
 
     watch(
-      () => route.params.slug,
-      () => {
-        fetchLinks();
+      () => this.$route.params.year,
+      async () => {
+        await this.fetchSidebarPages();
       }
     );
-
-    return {
-      links,
-      year: route.params.year,
-      slug: route.params.slug
-    };
-  }
+  },
 });
-
 </script>
 
 <template>
   <aside class="sidebar">
     <ul>
-      <li>
-        <RouterLink
-          :to="{ name: 'year', params: { year } }"
-          class="sidebar-link sidebar-year-link"
-          active-class="sidebar-link-active"
-        >
-          Ročník {{ year }}
-        </RouterLink>
+      <li class="text-yellow-400 font-bold px-4 py-2 border-b border-gray-700">
+        {{ year }}
       </li>
-      <li v-for="link in links" :key="link.id">
-        <RouterLink
-          :to="{ name: 'page', params: { year, slug: link.title } }"
-          class="sidebar-link"
-          active-class="sidebar-link-active"
-        >
-          {{ link.title }}
+      <li v-for="page in categoryPages" :key="page.id">
+        <RouterLink :to="{ name: 'page', params: { year, idSlug: `${page.id}-${page.slug}` } }" class="sidebar-link"
+          active-class="sidebar-link-active">
+          {{ page.title }}
         </RouterLink>
       </li>
     </ul>
 
-    <!-- TODO: iba ak je editor pre daný ročník alebo admin -->
-    <RouterLink class="text-center my-4" :to="{ name: 'admin-pages' }">
+    <RouterLink class="text-center my-4 block px-4 py-2 text-sm text-gray-400 hover:text-white"
+      :to="{ name: 'admin-pages' }">
       Upraviť
     </RouterLink>
   </aside>
@@ -73,15 +78,11 @@ export default defineComponent({
 @import "tailwindcss";
 
 .sidebar {
-  @apply bg-gray-800 text-white sm:w-[240px] text-center sm:text-left sm:h-[80vh] flex flex-col justify-between;
-}
-
-.sidebar a.sidebar-year-link {
-  @apply text-yellow-100 font-bold;
+  @apply bg-gray-800 text-white sm:w-[240px] text-center sm:text-left sm:h-[80vh] flex flex-col justify-between overflow-y-auto;
 }
 
 .sidebar .sidebar-link {
-  @apply text-white block py-4 px-6;
+  @apply text-white block py-2 px-6 text-sm;
 }
 
 .sidebar .sidebar-link-active {
