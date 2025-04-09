@@ -35,6 +35,15 @@ class PageOut(PageBase):
         from_attributes = True
 
 
+async def common_extract_page_id(id_slug: str) -> int:
+    try:
+        page_id = int(id_slug.split("-")[0])
+        return page_id
+
+    except (ValueError, IndexError):
+        raise HTTPException(status_code=400, detail="Neplatné ID v URL")
+
+
 @PAGE_CRUD_ROUTER.post("/", response_model=PageOut)
 def create_page(page: PageCreate, db: Session = Depends(get_db)):
     category = db.query(Category).filter(Category.id == page.category_id).first()
@@ -51,25 +60,22 @@ def create_page(page: PageCreate, db: Session = Depends(get_db)):
 
 
 @PAGE_CRUD_ROUTER.get("/{id_slug}", response_model=PageOut)
-def read_page(id_slug: str, db: Session = Depends(get_db)):
-    try:
-        page_id = int(id_slug.split("-")[0])
-    except (ValueError, IndexError):
-        raise HTTPException(status_code=400, detail="Neplatné ID v URL")
-
+def read_page(
+    page_id: int = Depends(common_extract_page_id),
+    db: Session = Depends(get_db),
+):
     db_page = db.query(Page).filter(Page.id == page_id).first()
     if db_page is None:
         raise HTTPException(status_code=404, detail="Stránka neexistuje")
     return db_page
 
 
-@PAGE_CRUD_ROUTER.put("/{id_slug}", response_model=PageOut)
-def update_page(id_slug: str, page: PageUpdate, db: Session = Depends(get_db)):
-    try:
-        page_id = int(id_slug.split("-")[0])
-    except (ValueError, IndexError):
-        raise HTTPException(status_code=400, detail="Neplatné ID v URL")
-
+@PAGE_CRUD_ROUTER.put("/{page_id}", response_model=PageOut)
+def update_page(
+    page_id: int,
+    page: PageUpdate,
+    db: Session = Depends(get_db),
+):
     db_page = db.query(Page).filter(Page.id == page_id).first()
     if db_page is None:
         raise HTTPException(status_code=404, detail="Stránka neexistuje")
@@ -87,13 +93,11 @@ def update_page(id_slug: str, page: PageUpdate, db: Session = Depends(get_db)):
     return db_page
 
 
-@PAGE_CRUD_ROUTER.delete("/{id_slug}", status_code=204)
-def delete_page(id_slug: str, db: Session = Depends(get_db)):
-    try:
-        page_id = int(id_slug.split("-")[0])
-    except (ValueError, IndexError):
-        raise HTTPException(status_code=400, detail="Neplatné ID v URL")
-
+@PAGE_CRUD_ROUTER.delete("/{page_id}", status_code=204)
+def delete_page(
+    page_id: int,
+    db: Session = Depends(get_db),
+):
     db_page = db.query(Page).filter(Page.id == page_id).first()
     if db_page is None:
         raise HTTPException(status_code=404, detail="Stránka neexistuje")

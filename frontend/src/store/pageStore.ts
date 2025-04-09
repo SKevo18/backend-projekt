@@ -104,7 +104,7 @@ export const usePagesStore = defineStore('pages', {
                 }
 
                 const idSlug = `${page.id}-${page.slug}`;
-                await api.put(`/page/${idSlug}`, updatedData);
+                await api.put(`/page/${page.id}`, updatedData);
                 await this.fetchPages();
             } catch (error) {
                 this.error = `Nepodarilo sa aktualizovať stránku ${page.id}-${page.slug}.`;
@@ -115,7 +115,7 @@ export const usePagesStore = defineStore('pages', {
         async deletePage(page: Page) {
             try {
                 const idSlug = `${page.id}-${page.slug}`;
-                await api.delete(`/page/${idSlug}`);
+                await api.delete(`/page/${page.id}`);
                 await this.fetchPages();
             } catch (error) {
                 this.error = `Nepodarilo sa odstrániť stránku ${page.id}-${page.slug}.`;
