@@ -1,9 +1,9 @@
 import typing as t
-from datetime import datetime
-from sqlalchemy import String, Text, ForeignKey
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-
 import uuid
+from datetime import datetime
+
+from sqlalchemy import ForeignKey, String, Text
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
 class Base(DeclarativeBase):

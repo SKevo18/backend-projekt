@@ -2,7 +2,7 @@ import fastapi as fa
 
 from router.authentication import AUTH_ROUTER
 from router.category_crud import CATEGORY_ROUTER
-from router.email import EMAIL_ROUTER
+from router.email_crud import EMAIL_ROUTER
 from router.page_crud import PAGE_CRUD_ROUTER
 from router.upload_controller import UPLOAD_CONTROLLER
 

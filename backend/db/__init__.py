@@ -1,7 +1,10 @@
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
-from db.orm import Base
+
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class Database:
@@ -11,10 +14,9 @@ class Database:
         except KeyError:
             raise RuntimeError("DATABASE_URL not found in .env file!")
         self.engine = create_engine(url)
-        self.session = Session(self.engine)
 
-    def close(self):
-        self.session.close()
+    def get_session(self):
+        return Session(self.engine)
 
 
 DB = Database()
@@ -22,7 +24,9 @@ DB = Database()
 
 def get_db():
     db_instance = Database()
+    session = db_instance.get_session()
+
     try:
-        yield db_instance.session
+        yield session
     finally:
-        db_instance.close()
+        session.close()
