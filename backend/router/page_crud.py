@@ -17,13 +17,14 @@ class PageBase(BaseModel):
 
 
 class PageCreate(PageBase):
-    pass
+    slug: Optional[str] = None
 
 
 class PageUpdate(BaseModel):
     category_id: Optional[int] = None
     title: Optional[str] = None
     html_content: Optional[str] = None
+    slug: Optional[str] = None
 
 
 class PageOut(PageBase):
@@ -50,9 +51,12 @@ def create_page(page: PageCreate, db: Session = Depends(get_db)):
     if not category:
         raise HTTPException(status_code=400, detail="Neplatná kategória")
 
-    slug = slugify(page.title)
+    slug = slugify(page.slug) if page.slug else slugify(page.title)
 
-    db_page = Page(**page.model_dump(), slug=slug)
+    if db.query(Page).filter(Page.slug == slug).first():
+        raise HTTPException(status_code=400, detail="Slug už existuje")
+
+    db_page = Page(**page.model_dump(exclude={"slug"}), slug=slug)
     db.add(db_page)
     db.commit()
     db.refresh(db_page)
@@ -77,12 +81,20 @@ def update_page(
     db: Session = Depends(get_db),
 ):
     db_page = db.query(Page).filter(Page.id == page_id).first()
-    if db_page is None:
+    if not db_page:
         raise HTTPException(status_code=404, detail="Stránka neexistuje")
 
     if page.title is not None:
         db_page.title = page.title
+
+    if page.slug is not None and page.slug != db_page.slug:
+        if db.query(Page).filter(Page.slug == page.slug).first():
+            raise HTTPException(status_code=400, detail="Slug už existuje")
+        db_page.slug = slugify(page.slug)
+
+    elif page.title is not None:
         db_page.slug = slugify(page.title)
+
     if page.html_content is not None:
         db_page.html_content = page.html_content
     if page.category_id is not None:

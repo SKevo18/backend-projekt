@@ -27,6 +27,7 @@ export default defineComponent({
       slug: "",
       pageHtml: "<i>Táto stránka nemá žiadny obsah.</i>",
       files: [] as any[],
+      title: ""
     };
   },
   computed: {
@@ -67,6 +68,7 @@ export default defineComponent({
       try {
         const page = await this.pagesStore.fetchPageByIdSlug(parsedId, joinedSlug);
         this.pageHtml = page?.html_content || "<i>Táto stránka nemá žiadny obsah.</i>";
+        this.title = page?.title || "";
       } catch (error) {
         console.error("Nepodarilo sa načítať stránku:", error);
       }
@@ -111,7 +113,7 @@ export default defineComponent({
     <article>
       <div class="top-container">
         <header>
-          <h1 class="uppercase">{{ readableSlug }}</h1>
+          <h1 class="uppercase">{{ title }}</h1>
           <hr />
         </header>
 
