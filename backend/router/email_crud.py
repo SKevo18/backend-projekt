@@ -54,7 +54,7 @@ def save_smtp(req: SaveSMTPRequest, db: Session = Depends(get_db)):
 
 
 @EMAIL_ROUTER.post("/send_test_email")
-def send_test_email(db: Session = Depends(get_db)):
+def send_test_email():
     send_email(TEST_EMAIL, "Test Email", "This is a test email.")
 
     return {"message": "Test mail sent successfully"}
