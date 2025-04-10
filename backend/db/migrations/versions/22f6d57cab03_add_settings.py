@@ -1,8 +1,8 @@
 """add_settings
 
 Revision ID: 22f6d57cab03
-Revises: 9721084e8855
-Create Date: 2025-04-06 15:52:32.426058
+Revises: 3bd498cba8c7
+Create Date: 2025-04-10 15:52:32.426058
 
 """
 
@@ -12,7 +12,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = '22f6d57cab03'
-down_revision = '9721084e8855'
+down_revision = '3bd498cba8c7'
 branch_labels = None
 depends_on = None
 
