@@ -66,7 +66,7 @@ export default defineComponent({
       this.slug = joinedSlug;
 
       try {
-        const page = await this.pagesStore.fetchPageByIdSlug(parsedId, joinedSlug);
+        const page = await this.pagesStore.fetchPageByIdSlug(parsedId);
         this.pageHtml = page?.html_content || "<i>Táto stránka nemá žiadny obsah.</i>";
         this.title = page?.title || "";
       } catch (error) {
@@ -80,22 +80,21 @@ export default defineComponent({
       if (!this.pageId) return;
 
       try {
-        const response = await fetch(`/api/page/${this.pageId}/upload`);
-
-        const text = await response.text();
+        const response = await fetch(`http://127.0.0.1:8000/api/page/${this.pageId}/upload/`);
+        const contentType = response.headers.get("content-type") || "";
 
         if (!response.ok) {
-          throw new Error(`Server response: ${response.status} ${text}`);
+          throw new Error(`Server response: ${response.status}`);
         }
 
-        let json;
-        try {
-          json = JSON.parse(text);
-        } catch (parseError) {
-          console.error("Odpoveď nie je platný JSON:", text);
-          throw parseError;
+        if (!contentType.includes("application/json")) {
+          const text = await response.text();
+          console.warn("Očakával sa JSON, ale server vrátil:", text);
+          this.files = [];
+          return;
         }
 
+        const json = await response.json();
         this.files = Array.isArray(json) ? json : [];
       } catch (error) {
         console.error("Chyba pri načítaní súborov:", error);
@@ -122,7 +121,7 @@ export default defineComponent({
 
       <footer>
         <div v-if="files.length > 0" class="files-container">
-          <h2 class="big mb-2">Priložené súbory</h2>
+         <h2 class="big mb-2">Priložené súbory</h2>
           <div class="files-list">
             <div class="file-item" v-for="file in files" :key="file.name">
               <a :href="`/api/page/${pageId}/upload/${file.name}`" target="_blank">

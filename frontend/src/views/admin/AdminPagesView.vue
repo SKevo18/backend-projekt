@@ -1,23 +1,23 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { usePagesStore } from '@/store/pageStore';
+import { RouterLink } from 'vue-router';
 
 export default defineComponent({
   name: 'AdminPagesView',
+  components: { RouterLink },
   data() {
     return {
       pagesStore: usePagesStore(),
       title: '',
-      html_content: '',
       slug: '',
       newCategory: '',
       showAddCategoryForm: false,
       activeCategoryForm: null as number | null,
       editingPageId: null as number | null,
       editTitle: '',
-      editContent: '',
-      editCategoryId: null as number | null,
       editSlug: '',
+      editCategoryId: null as number | null,
       slugConflict: false,
       slugManuallyEdited: false
     };
@@ -55,18 +55,17 @@ export default defineComponent({
       }
     },
     async addPage(categoryId: number) {
-      if (!this.title.trim() || !this.html_content.trim()) {
-        alert('Prosím, zadajte všetky polia.');
+      if (!this.title.trim()) {
+        alert('Prosím, zadajte názov stránky.');
         return;
       }
       if (this.slugConflict) {
-        alert('Slug je uz zabrany, zvolte iny.');
+        alert('Slug je už zabraný, zvoľte iný.');
         return;
       }
       try {
-        await this.pagesStore.addPage(categoryId, this.title, this.html_content, this.slug);
+        await this.pagesStore.addPage(categoryId, this.title, this.slug);
         this.title = '';
-        this.html_content = '';
         this.slug = '';
         this.slugManuallyEdited = false;
         this.activeCategoryForm = null;
@@ -79,7 +78,6 @@ export default defineComponent({
       try {
         await this.pagesStore.updatePage(page, {
           title: this.editTitle,
-          html_content: this.editContent,
           category_id: this.editCategoryId!,
           slug: this.editSlug
         });
@@ -93,9 +91,8 @@ export default defineComponent({
     startEditingPage(page: any) {
       this.editingPageId = page.id;
       this.editTitle = page.title;
-      this.editContent = page.html_content;
-      this.editCategoryId = page.category_id;
       this.editSlug = page.slug;
+      this.editCategoryId = page.category_id;
     },
     async addCategory() {
       const title = this.newCategory.trim();
@@ -113,7 +110,7 @@ export default defineComponent({
       }
     },
     async deletePage(page: any) {
-      if (!page?.id) return alert('Chyba ID stranky');
+      if (!page?.id) return alert('Chyba ID stránky');
       if (confirm(`Chcete naozaj vymazať stránku "${page.title}"?`)) {
         try {
           await this.pagesStore.deletePage(page);
@@ -133,6 +130,7 @@ export default defineComponent({
 });
 </script>
 
+
 <template>
   <div class="p-4 sm:p-6 bg-gray-50 min-h-screen space-y-6">
     <div class="space-y-6">
@@ -150,7 +148,7 @@ export default defineComponent({
             v-if="!pagesStore.pages.some(page => page.category_id === category.id)"
             class="text-center text-gray-400 text-sm py-2"
           >
-            Žiadne stránky pre tútu kategóriu.
+            Žiadne stránky pre túto kategóriu.
           </div>
 
           <div
@@ -159,16 +157,24 @@ export default defineComponent({
             class="bg-gray-100 border border-gray-200 rounded-xl p-4 my-3"
           >
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <p class="text-gray-700 break-words">
-                <span class="font-medium">{{ page.title }}</span> – {{ page.html_content }}
+              <p class="text-gray-700 break-words font-medium">
+                {{ page.title }}
               </p>
-              <div class="flex gap-2">
+              <div class="flex flex-wrap gap-2">
                 <button
                   @click="startEditingPage(page)"
                   class="bg-yellow-500 text-white py-1 px-3 rounded-md hover:bg-yellow-600 transition"
                 >
                   Update
                 </button>
+
+                <RouterLink
+                  :to="{ name: 'page-edit', params: { year: String(page.category_id), idSlug: `${page.id}-${page.slug}` } }"
+                  class="inline-block bg-blue-600 hover:bg-blue-700 !text-white text-sm font-medium py-1.5 px-4 rounded-md transition"
+                >
+                  Upraviť obsah
+                </RouterLink>
+
                 <button
                   @click="deletePage(page)"
                   class="bg-red-500 text-white py-1 px-3 rounded-md hover:bg-red-600 transition"
@@ -180,7 +186,6 @@ export default defineComponent({
 
             <div v-if="editingPageId === page.id" class="mt-4 space-y-3">
               <input v-model="editTitle" class="w-full p-2 border rounded-md" placeholder="Nový názov stránky" />
-              <input v-model="editContent" class="w-full p-2 border rounded-md" placeholder="Nový obsah stránky" />
               <input
                 v-model="editSlug"
                 @input="slugManuallyEdited = true"
@@ -228,12 +233,6 @@ export default defineComponent({
                 type="text"
                 class="flex-1 border border-gray-300 rounded-md p-2 bg-gray-50"
                 @blur="checkSlugConflict"
-              />
-              <input
-                v-model="html_content"
-                placeholder="Obsah stránky"
-                type="text"
-                class="flex-1 border border-gray-300 rounded-md p-2 bg-gray-50"
               />
               <button
                 @click="addPage(category.id)"
