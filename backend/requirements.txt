@@ -12,5 +12,6 @@ uvicorn
 
 # utils
 PyJWT
+slugify
 passlib[bcrypt]
 python-dotenv
