@@ -6,10 +6,9 @@ import PageEditorComponent from "@/components/page/PageEditorComponent.vue";
 export default {
   name: "PageEditView",
   props: {
-    slug: {
-      type: String,
+    id: {
+      type: Number,
       required: true,
-      default: "_",
     },
     year: {
       type: String,
@@ -21,6 +20,7 @@ export default {
   },
   data() {
     return {
+      slug: '_',
       htmlContent: ``,
       files: [],
     };
@@ -39,7 +39,7 @@ export default {
   methods: {
     async loadExistingFiles() {
       try {
-        const response = await api.get(`/page/${this.slug}/upload`);
+        const response = await api.get(`/page/${this.id}/upload`);
         this.files = response.data.map((file: any) => ({
           ...file,
           alreadyUploaded: true,
@@ -73,7 +73,7 @@ export default {
         formData.append("uploaded_file", file.fileObj);
 
         try {
-          await api.post(`/page/${this.slug}/upload`, formData, {
+          await api.post(`/page/${this.id}/upload`, formData, {
             headers: {
               "Content-Type": "multipart/form-data",
             },
@@ -107,7 +107,7 @@ export default {
 
       if (file.alreadyUploaded) {
         try {
-          await api.delete(`/page/${this.slug}/upload/${file.name}`);
+          await api.delete(`/page/${this.id}/upload/${file.name}`);
           this.files = this.files.filter((f) => f.name !== file.name);
         } catch (error) {
           console.error(`Failed to delete file ${file.name}:`, error);

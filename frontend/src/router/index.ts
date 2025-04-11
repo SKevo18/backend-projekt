@@ -17,13 +17,13 @@ const router = createRouter({
       name: "year",
     },
     {
-      path: "/:year/:idSlug",
+      path: "/page/:id",
       component: PageReadView,
       props: true,
       name: "page",
     },
     {
-      path: "/:year/:idSlug/edit",
+      path: "/:year/:id/edit",
       name: "page-edit",
       component: () => import("@/views/page/PageEditView.vue"),
       props: true,

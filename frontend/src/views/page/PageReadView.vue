@@ -3,6 +3,7 @@ import { defineComponent } from "vue";
 import { usePagesStore } from "@/store/pageStore";
 import PageSidebarComponent from "@/components/page/PageSidebarComponent.vue";
 import { RouterLink, onBeforeRouteUpdate } from "vue-router";
+import api from '@/services/api';
 
 export default defineComponent({
   name: "PageReadView",
@@ -11,19 +12,15 @@ export default defineComponent({
     RouterLink,
   },
   props: {
-    year: {
+    id: {
       type: String,
       required: true,
-    },
-    idSlug: {
-      type: String,
-      required: true,
+      default: 1
     },
   },
   data() {
     return {
       pagesStore: usePagesStore(),
-      pageId: null as number | null,
       slug: "",
       pageHtml: "<i>Táto stránka nemá žiadny obsah.</i>",
       files: [] as any[],
@@ -36,37 +33,15 @@ export default defineComponent({
         ? `Ročník ${this.year}`
         : this.slug.replace(/[-_]/g, " ");
     },
-    fullIdSlug(): string {
-      return this.pageId && this.slug ? `${this.pageId}-${this.slug}` : "_";
-    },
   },  
   created() {
-    this.loadPage(this.idSlug);
-
-    onBeforeRouteUpdate((to, _from, next) => {
-      const newIdSlug = to.params.idSlug as string;
-      if (newIdSlug && newIdSlug !== this.fullIdSlug) {
-        this.loadPage(newIdSlug);
-      }
-      next();
-    });
+    this.loadPage(this.id);
   },
   methods: {
-    async loadPage(idSlug: string) {
-      const [idStr, ...slugParts] = idSlug.split("-");
-      const parsedId = parseInt(idStr);
-      const joinedSlug = slugParts.join("-");
-
-      if (isNaN(parsedId) || !joinedSlug) {
-        console.warn("Neplatný formát idSlug:", idSlug);
-        return;
-      }
-
-      this.pageId = parsedId;
-      this.slug = joinedSlug;
-
+    async loadPage(id: number) {
       try {
-        const page = await this.pagesStore.fetchPageByIdSlug(parsedId);
+        const page = await this.pagesStore.fetchPageById(id);
+        this.slug = page.slug;
         this.pageHtml = page?.html_content || "<i>Táto stránka nemá žiadny obsah.</i>";
         this.title = page?.title || "";
       } catch (error) {
@@ -80,21 +55,20 @@ export default defineComponent({
       if (!this.pageId) return;
 
       try {
-        const response = await fetch(`http://127.0.0.1:8000/api/page/${this.pageId}/upload/`);
-        const contentType = response.headers.get("content-type") || "";
+        const response = await api.get(`/page/${this.pageId}/upload/`);
+        const contentType = (response.headers["Content-Type"] || "").toString();
 
-        if (!response.ok) {
+        if (response.status !== 200) {
           throw new Error(`Server response: ${response.status}`);
         }
 
         if (!contentType.includes("application/json")) {
-          const text = await response.text();
-          console.warn("Očakával sa JSON, ale server vrátil:", text);
+          const text = await response.data;
           this.files = [];
           return;
         }
 
-        const json = await response.json();
+        const json = await response.data;
         this.files = Array.isArray(json) ? json : [];
       } catch (error) {
         console.error("Chyba pri načítaní súborov:", error);
@@ -124,7 +98,7 @@ export default defineComponent({
          <h2 class="big mb-2">Priložené súbory</h2>
           <div class="files-list">
             <div class="file-item" v-for="file in files" :key="file.name">
-              <a :href="`/api/page/${pageId}/upload/${file.name}`" target="_blank">
+              <a :href="`/api/page/${id}/upload/${file.name}`" target="_blank">
                 {{ file.name }}
               </a>
               <span class="text-sm text-gray-500">{{ file.size }} B</span>
@@ -133,7 +107,7 @@ export default defineComponent({
         </div>
 
         <nav>
-          <RouterLink class="button button-green" :to="{ name: 'page-edit', params: { year, idSlug: fullIdSlug } }">
+          <RouterLink class="button button-green" :to="{ name: 'page-edit', params: { year, id } }">
             Upraviť stránku
           </RouterLink>
         </nav>

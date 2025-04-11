@@ -34,13 +34,12 @@ export const usePagesStore = defineStore('pages', {
             }
         },
 
-        async fetchPageByIdSlug(id: number, slug: string) {
+        async fetchPageById(id: number) {
             try {
-                const idSlug = `${id}-${slug}`;
-                  const response = await api.get(`/page/${id}-${slug}`);
+                  const response = await api.get(`/page/${id}`);
                   return response.data;
             } catch (error) {
-                console.error(`Chyba pri načítaní stránky ${id}-${slug}:`, error);
+                console.error(`Chyba pri načítaní stránky ${id}}:`, error);
                 throw error;
             }
         },
