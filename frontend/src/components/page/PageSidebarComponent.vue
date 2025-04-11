@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent, onMounted, watch } from "vue";
+import { defineComponent } from "vue";
 import { RouterLink } from "vue-router";
 import { usePagesStore } from "@/store/pageStore";
 
@@ -8,47 +8,38 @@ export default defineComponent({
   components: {
     RouterLink,
   },
+  props: {
+    activeCategoryId: {
+      type: Number,
+      required: true,
+    },
+  },
   data() {
     return {
       pagesStore: usePagesStore(),
-      year: "",
       categoryPages: [] as any[],
     };
   },
   methods: {
     async fetchSidebarPages() {
-      this.year = this.$route.params.year as string;
-
-      const category = this.pagesStore.categories.find(
-        (cat) => cat.title === this.year
+      const activeCategory = this.pagesStore.categories.find(
+        (cat) => cat.id === this.activeCategoryId
       );
 
-      if (!category) {
+      if (!activeCategory) {
         this.categoryPages = [];
         return;
       }
 
-      this.categoryPages = this.pagesStore.pages.filter(
-        (page) => page.category_id == category.id 
-      );
+      this.categoryPages = this.pagesStore.fetchPages(activeCategory.id);
     },
   },
   async mounted() {
     if (this.pagesStore.categories.length === 0) {
       await this.pagesStore.fetchCategories();
     }
-    if (this.pagesStore.pages.length === 0) {
-      await this.pagesStore.fetchPages();
-    }
 
     await this.fetchSidebarPages();
-
-    watch(
-      () => this.$route.params.year,
-      async () => {
-        await this.fetchSidebarPages();
-      }
-    );
   },
 });
 </script>
@@ -57,10 +48,10 @@ export default defineComponent({
   <aside class="sidebar">
     <ul>
       <li class="text-yellow-400 font-bold px-4 py-2 border-b border-gray-700">
-        {{ year }}
+        {{ category }}
       </li>
       <li v-for="page in categoryPages" :key="page.id">
-        <RouterLink :to="{ name: 'page', params: { year, idSlug: `${page.id}-${page.slug}` } }" class="sidebar-link"
+        <RouterLink :to="{ name: 'page', params: { slug: `${page.id}-${page.slug}` } }" class="sidebar-link"
           active-class="sidebar-link-active">
           {{ page.title }}
         </RouterLink>

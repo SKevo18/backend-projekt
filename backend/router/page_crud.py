@@ -1,11 +1,12 @@
-from typing import Optional
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException
-from slugify import slugify
-from pydantic import BaseModel
-from sqlalchemy.orm import Session
+from typing import Optional
+
 from db import get_db
-from db.orm import Page, Category
+from db.orm import Category, Page
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
+from slugify import slugify
+from sqlalchemy.orm import Session
 
 PAGE_CRUD_ROUTER = APIRouter(prefix="/page")
 
@@ -36,15 +37,6 @@ class PageOut(PageBase):
         from_attributes = True
 
 
-async def common_extract_page_id(id_slug: str) -> int:
-    try:
-        page_id = int(id_slug.split("-")[0])
-        return page_id
-
-    except (ValueError, IndexError):
-        raise HTTPException(status_code=400, detail="Neplatné ID v URL")
-
-
 @PAGE_CRUD_ROUTER.post("/", response_model=PageOut)
 def create_page(page: PageCreate, db: Session = Depends(get_db)):
     category = db.query(Category).filter(Category.id == page.category_id).first()
@@ -63,9 +55,21 @@ def create_page(page: PageCreate, db: Session = Depends(get_db)):
     return db_page
 
 
-@PAGE_CRUD_ROUTER.get("/{id_slug}", response_model=PageOut)
+@PAGE_CRUD_ROUTER.get("/", response_model=list[PageOut])
+def list_pages(
+    category_id: int = Query(),
+    db: Session = Depends(get_db),
+):
+    if not category_id:
+        raise HTTPException(status_code=400, detail="ID kategórie je povinné")
+
+    db_page = db.query(Page).filter(Page.category_id == category_id).all()
+    return db_page
+
+
+@PAGE_CRUD_ROUTER.get("/{page_id}", response_model=PageOut)
 def read_page(
-    page_id: int = Depends(common_extract_page_id),
+    page_id: int,
     db: Session = Depends(get_db),
 ):
     db_page = db.query(Page).filter(Page.id == page_id).first()

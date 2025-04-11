@@ -3,7 +3,7 @@ import { defineComponent } from "vue";
 import { usePagesStore } from "@/store/pageStore";
 import PageSidebarComponent from "@/components/page/PageSidebarComponent.vue";
 import { RouterLink, onBeforeRouteUpdate } from "vue-router";
-import api from '@/services/api';
+import api from "@/services/api";
 
 export default defineComponent({
   name: "PageReadView",
@@ -15,25 +15,20 @@ export default defineComponent({
     id: {
       type: String,
       required: true,
-      default: 1
+      default: 1,
     },
   },
   data() {
     return {
       pagesStore: usePagesStore(),
       slug: "",
-      pageHtml: "<i>Táto stránka nemá žiadny obsah.</i>",
+      categoryId: null,
+      pageHtml: "<i>Stránka sa nenašla.</i>",
       files: [] as any[],
-      title: ""
+      title: "",
+      pageFound: false,
     };
   },
-  computed: {
-    readableSlug(): string {
-      return !this.slug || this.slug === "_"
-        ? `Ročník ${this.year}`
-        : this.slug.replace(/[-_]/g, " ");
-    },
-  },  
   created() {
     this.loadPage(this.id);
   },
@@ -41,11 +36,16 @@ export default defineComponent({
     async loadPage(id: number) {
       try {
         const page = await this.pagesStore.fetchPageById(id);
+
+        this.pageFound = true;
         this.slug = page.slug;
-        this.pageHtml = page?.html_content || "<i>Táto stránka nemá žiadny obsah.</i>";
+        this.pageHtml =
+          page?.html_content || "<i>Stránka nemá žiadny obsah.</i>";
         this.title = page?.title || "";
+        this.categoryId = page?.category_id || null;
       } catch (error) {
-        console.error("Nepodarilo sa načítať stránku:", error);
+        this.pageFound = false;
+        this.pageHtml = "<i>Stránka sa nenašla.</i>";
       }
 
       await this.loadExistingFiles();
@@ -74,14 +74,14 @@ export default defineComponent({
         console.error("Chyba pri načítaní súborov:", error);
         this.files = [];
       }
-    }
+    },
   },
 });
 </script>
 
 <template>
   <div class="flex flex-col sm:flex-row">
-    <PageSidebarComponent :year="year" :slug="slug" />
+    <PageSidebarComponent :activeCategoryId="categoryId" />
 
     <article>
       <div class="top-container">
@@ -95,7 +95,7 @@ export default defineComponent({
 
       <footer>
         <div v-if="files.length > 0" class="files-container">
-         <h2 class="big mb-2">Priložené súbory</h2>
+          <h2 class="big mb-2">Priložené súbory</h2>
           <div class="files-list">
             <div class="file-item" v-for="file in files" :key="file.name">
               <a :href="`/api/page/${id}/upload/${file.name}`" target="_blank">
@@ -107,7 +107,11 @@ export default defineComponent({
         </div>
 
         <nav>
-          <RouterLink class="button button-green" :to="{ name: 'page-edit', params: { year, id } }">
+          <RouterLink
+            class="button button-green"
+            :to="{ name: 'page-edit', params: { id } }"
+            v-if="pageFound"
+          >
             Upraviť stránku
           </RouterLink>
         </nav>
@@ -153,5 +157,18 @@ article {
 
 .files-list .file-item a {
   @apply text-blue-500 hover:underline;
+}
+</style>
+
+<style>
+@import "tailwindcss";
+
+.ck-table-resized {
+  @apply table-fixed my-2;
+}
+
+.ck-table-resized td,
+.ck-table-resized th {
+  @apply border-black border-1 p-1;
 }
 </style>

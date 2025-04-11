@@ -11,10 +11,10 @@ const router = createRouter({
       name: "home",
     },
     {
-      path: "/:year",
-      component: PageReadView,
+      path: "/:category",
+      component: () => import("@/views/page/CategoryRedirectView.vue"),
       props: true,
-      name: "year",
+      name: "category",
     },
     {
       path: "/page/:id",
@@ -23,7 +23,7 @@ const router = createRouter({
       name: "page",
     },
     {
-      path: "/:year/:id/edit",
+      path: "/page/:id/edit",
       name: "page-edit",
       component: () => import("@/views/page/PageEditView.vue"),
       props: true,

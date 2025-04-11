@@ -23,9 +23,9 @@ export const usePagesStore = defineStore('pages', {
     }),
 
     actions: {
-        async fetchPages() {
+        async fetchPages(category_id: number) {
             try {
-                const response = await api.get('/page/');
+                const response = await api.get('/page/', { params: { category_id } });
                 this.pages = response.data;
                 this.getCategories();
                 await this.fetchCategories();
@@ -39,7 +39,6 @@ export const usePagesStore = defineStore('pages', {
                   const response = await api.get(`/page/${id}`);
                   return response.data;
             } catch (error) {
-                console.error(`Chyba pri načítaní stránky ${id}}:`, error);
                 throw error;
             }
         },
@@ -59,7 +58,7 @@ export const usePagesStore = defineStore('pages', {
                     const newCategory = { title };
                     const response = await api.post('/category/', newCategory);
                     this.categories.push(response.data);
-                    await this.fetchPages();
+                    await this.fetchPages(response.data.id);
                 } catch (error) {
                     throw error;
                 }
@@ -86,7 +85,7 @@ export const usePagesStore = defineStore('pages', {
                     };
                     const response = await api.post('/page/', newPage);
                     this.pages.push(response.data);
-                    await this.fetchPages();
+                    await this.fetchPages(category_id);
                 } catch (error) {
                     this.error = `Nepodarilo sa vytvoriť stránku "${title}".`;
                 }
@@ -95,29 +94,21 @@ export const usePagesStore = defineStore('pages', {
             }
         },
 
-        async updatePage(page: Page, updatedData: Partial<Page>) {
+        async updatePage(page_id: number, updatedData: Partial<Page>) {
             try {
-                if (!updatedData.title && !updatedData.html_content && !updatedData.category_id) {
-                    console.warn('Žiadne dáta na aktualizáciu stránky.');
-                    return;
-                }
-
-                const idSlug = `${page.id}-${page.slug}`;
-                await api.put(`/page/${page.id}`, updatedData);
-                await this.fetchPages();
+                await api.put(`/page/${page_id}`, updatedData);
             } catch (error) {
-                this.error = `Nepodarilo sa aktualizovať stránku ${page.id}-${page.slug}.`;
-                console.error(error);
+                this.error = `Nepodarilo sa aktualizovať stránku ${page_id}.`;
+                throw error;
             }
         },
 
         async deletePage(page: Page) {
             try {
-                const idSlug = `${page.id}-${page.slug}`;
                 await api.delete(`/page/${page.id}`);
-                await this.fetchPages();
+                await this.fetchPages(page.category_id);
             } catch (error) {
-                this.error = `Nepodarilo sa odstrániť stránku ${page.id}-${page.slug}.`;
+                this.error = `Nepodarilo sa odstrániť stránku ${page.id}.`;
             }
         },
     }

@@ -1,6 +1,8 @@
 <script lang="ts">
 import api from "@/services/api";
 import PageEditorComponent from "@/components/page/PageEditorComponent.vue";
+import { usePagesStore } from "@/store/pageStore";
+
 // TODO: redirect to login if not editor or admin (via guard)
 
 export default {
@@ -20,7 +22,8 @@ export default {
   },
   data() {
     return {
-      slug: '_',
+      pagesStore: usePagesStore(),
+      slug: "_",
       htmlContent: ``,
       files: [],
     };
@@ -34,6 +37,9 @@ export default {
     },
   },
   async created() {
+    const page = await this.pagesStore.fetchPageById(this.id);
+    this.slug = page.slug;
+    this.htmlContent = page.html_content;
     await this.loadExistingFiles();
   },
   methods: {
@@ -51,10 +57,12 @@ export default {
     async savePage() {
       await this.saveContent();
       await this.uploadFiles();
+      this.$router.push(`/page/${this.id}`);
     },
     async saveContent() {
-      // TODO: send to backend
-      console.log(this.htmlContent);
+      await this.pagesStore.updatePage(this.id, {
+        html_content: this.htmlContent,
+      });
     },
     async uploadFiles() {
       const newFiles = this.files.filter(

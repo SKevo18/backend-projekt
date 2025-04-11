@@ -76,14 +76,14 @@ export default defineComponent({
     async updatePage(page: any) {
       if (!page?.id) return alert('Chýba ID stránky!');
       try {
-        await this.pagesStore.updatePage(page, {
+        await this.pagesStore.updatePage(page.id, {
           title: this.editTitle,
           category_id: this.editCategoryId!,
           slug: this.editSlug
         });
         this.editingPageId = null;
         this.editCategoryId = null;
-        await this.pagesStore.fetchPages();
+        await this.pagesStore.fetchPages(page.category_id);
       } catch {
         alert('Chyba pri aktualizácii stránky.');
       }
@@ -124,7 +124,9 @@ export default defineComponent({
     }
   },
   async mounted() {
-    await this.pagesStore.fetchPages();
+    for (const category of this.sortedCategories) {
+      await this.pagesStore.fetchPages(category.id);
+    }
     await this.pagesStore.fetchCategories();
   }
 });
@@ -169,7 +171,7 @@ export default defineComponent({
                 </button>
 
                 <RouterLink
-                  :to="{ name: 'page-edit', params: { year: String(page.category_id), idSlug: `${page.id}-${page.slug}` } }"
+                  :to="{ name: 'page-edit', params: { id: page.id } }"
                   class="inline-block bg-blue-600 hover:bg-blue-700 !text-white text-sm font-medium py-1.5 px-4 rounded-md transition"
                 >
                   Upraviť obsah
