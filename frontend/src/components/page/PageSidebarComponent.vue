@@ -11,27 +11,31 @@ export default defineComponent({
   props: {
     activeCategoryId: {
       type: Number,
-      required: true,
+      required: false,
+      default: null,
     },
   },
   data() {
     return {
       pagesStore: usePagesStore(),
-      categoryPages: [] as any[],
+      categoryPagesMap: {} as Record<number, any[]>,
+      isLoading: true,
     };
   },
+  computed: {
+    categories() {
+      return this.pagesStore.categories;
+    },
+  },
   methods: {
-    async fetchSidebarPages() {
-      const activeCategory = this.pagesStore.categories.find(
-        (cat) => cat.id === this.activeCategoryId
-      );
-
-      if (!activeCategory) {
-        this.categoryPages = [];
-        return;
+    async fetchAllCategoryPages() {
+      this.isLoading = true;
+      for (const category of this.categories) {
+        this.categoryPagesMap[category.id] = await this.pagesStore.fetchPages(
+          category.id
+        );
       }
-
-      this.categoryPages = this.pagesStore.fetchPages(activeCategory.id);
+      this.isLoading = false;
     },
   },
   async mounted() {
@@ -39,27 +43,75 @@ export default defineComponent({
       await this.pagesStore.fetchCategories();
     }
 
-    await this.fetchSidebarPages();
+    await this.fetchAllCategoryPages();
+  },
+  watch: {
+    activeCategoryId: {
+      immediate: true,
+      handler(newId) {
+        if (this.categories.length > 0) {
+          if (newId && !this.categoryPagesMap[newId]) {
+            this.pagesStore.fetchPages(newId).then((pages) => {
+              this.categoryPagesMap[newId] = pages;
+            });
+          }
+        }
+      },
+    },
   },
 });
 </script>
 
 <template>
   <aside class="sidebar">
-    <ul>
-      <li class="text-yellow-400 font-bold px-4 py-2 border-b border-gray-700">
-        {{ category }}
-      </li>
-      <li v-for="page in categoryPages" :key="page.id">
-        <RouterLink :to="{ name: 'page', params: { slug: `${page.id}-${page.slug}` } }" class="sidebar-link"
-          active-class="sidebar-link-active">
-          {{ page.title }}
+    <div class="categories-list">
+      <div
+        v-for="category in categories"
+        :key="category.id"
+        class="category-item"
+      >
+        <RouterLink
+          :to="{ name: 'category', params: { category: category.id } }"
+          class="category-link"
+          :class="{ 'category-link-active': category.id === activeCategoryId }"
+        >
+          {{ category.title }}
         </RouterLink>
-      </li>
-    </ul>
 
-    <RouterLink class="text-center my-4 block px-4 py-2 text-sm text-gray-400 hover:text-white"
-      :to="{ name: 'admin-pages' }">
+        <ul
+          v-if="categoryPagesMap[category.id]?.length > 0"
+          class="pages-list"
+          :class="{ 'active-category': category.id === activeCategoryId }"
+        >
+          <li v-for="page in categoryPagesMap[category.id]" :key="page.id">
+            <RouterLink
+              :to="{ name: 'page', params: { idSlug: page.id + '-' + page.slug } }"
+              class="sidebar-link"
+              active-class="sidebar-link-active"
+            >
+              {{ page.title }}
+            </RouterLink>
+          </li>
+        </ul>
+        <div
+          v-else-if="isLoading && category.id === activeCategoryId"
+          class="p-2 text-center text-xs text-gray-400"
+        >
+          Načítavam...
+        </div>
+        <div
+          v-else-if="category.id === activeCategoryId"
+          class="p-2 text-center text-xs text-gray-400"
+        >
+          Žiadne stránky
+        </div>
+      </div>
+    </div>
+
+    <RouterLink
+      class="text-center my-4 block px-4 py-2 text-sm text-gray-400 hover:text-white"
+      :to="{ name: 'admin-pages' }"
+    >
       Upraviť
     </RouterLink>
   </aside>
@@ -72,15 +124,43 @@ export default defineComponent({
   @apply bg-gray-800 text-white sm:w-[240px] text-center sm:text-left sm:h-[80vh] flex flex-col justify-between overflow-y-auto;
 }
 
+.categories-list {
+  @apply flex flex-col;
+}
+
+.category-item {
+  @apply border-b border-gray-700;
+}
+
+.category-link {
+  @apply block py-2 px-4 font-medium text-gray-200;
+}
+
+.category-link:hover {
+  @apply bg-gray-700 text-white;
+}
+
+.category-link-active {
+  @apply bg-gray-900 text-yellow-400 font-bold;
+}
+
+.pages-list {
+  @apply bg-gray-700;
+}
+
+.pages-list.active-category {
+  @apply bg-gray-900;
+}
+
 .sidebar .sidebar-link {
-  @apply text-white block py-2 px-6 text-sm;
+  @apply text-white block py-2 px-6 text-sm pl-8;
 }
 
 .sidebar .sidebar-link-active {
-  @apply bg-gray-900 text-yellow-500;
+  @apply bg-gray-800 text-yellow-500;
 }
 
 .sidebar .sidebar-link:hover {
-  @apply bg-gray-900;
+  @apply bg-gray-700;
 }
 </style>

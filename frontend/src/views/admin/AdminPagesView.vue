@@ -1,49 +1,54 @@
 <script lang="ts">
-import { defineComponent } from 'vue';
-import { usePagesStore } from '@/store/pageStore';
-import { RouterLink } from 'vue-router';
+import { defineComponent } from "vue";
+import { usePagesStore } from "@/store/pageStore";
+import { RouterLink } from "vue-router";
 
 export default defineComponent({
-  name: 'AdminPagesView',
+  name: "AdminPagesView",
   components: { RouterLink },
   data() {
     return {
       pagesStore: usePagesStore(),
-      title: '',
-      slug: '',
-      newCategory: '',
+      title: "",
+      slug: "",
+      newCategory: "",
       showAddCategoryForm: false,
       activeCategoryForm: null as number | null,
       editingPageId: null as number | null,
-      editTitle: '',
-      editSlug: '',
+      editTitle: "",
+      editSlug: "",
       editCategoryId: null as number | null,
       slugConflict: false,
-      slugManuallyEdited: false
+      slugManuallyEdited: false,
     };
   },
   computed: {
-    sortedPages() {
-      return [...this.pagesStore.pages].sort((a, b) => a.category_id - b.category_id);
-    },
     sortedCategories() {
-      return [...this.pagesStore.categories].sort((a, b) => a.title.localeCompare(b.title));
-    }
+      return [...this.pagesStore.categories].sort((a, b) =>
+        a.title.localeCompare(b.title)
+      );
+    },
+    getPagesForCategory() {
+      return (categoryId: number) => {
+        const pages = this.pagesStore.pagesByCategory[categoryId] || [];
+        return [...pages].sort((a, b) => a.title.localeCompare(b.title));
+      };
+    },
   },
   watch: {
     title(newTitle) {
       if (!this.slugManuallyEdited) {
         this.slug = this.generateSlug(newTitle);
       }
-    }
+    },
   },
   methods: {
     generateSlug(text: string) {
       return text
         .toLowerCase()
-        .replace(/\s+/g, '-')
-        .replace(/[^\w\-]+/g, '')
-        .replace(/\-\-+/g, '-')
+        .replace(/\s+/g, "-")
+        .replace(/[^\w\-]+/g, "")
+        .replace(/\-\-+/g, "-")
         .trim();
     },
     async checkSlugConflict() {
@@ -56,36 +61,43 @@ export default defineComponent({
     },
     async addPage(categoryId: number) {
       if (!this.title.trim()) {
-        alert('Prosím, zadajte názov stránky.');
+        alert("Prosím, zadajte názov stránky.");
         return;
       }
       if (this.slugConflict) {
-        alert('Slug je už zabraný, zvoľte iný.');
+        alert("Slug je už zabraný, zvoľte iný.");
         return;
       }
       try {
         await this.pagesStore.addPage(categoryId, this.title, this.slug);
-        this.title = '';
-        this.slug = '';
+        this.title = "";
+        this.slug = "";
         this.slugManuallyEdited = false;
         this.activeCategoryForm = null;
+        await this.loadCategoryPages(categoryId);
       } catch {
-        alert('Chyba pri pridávaní stránky.');
+        alert("Chyba pri pridávaní stránky.");
       }
     },
     async updatePage(page: any) {
-      if (!page?.id) return alert('Chýba ID stránky!');
+      if (!page?.id) return alert("Chýba ID stránky!");
       try {
         await this.pagesStore.updatePage(page.id, {
           title: this.editTitle,
           category_id: this.editCategoryId!,
-          slug: this.editSlug
+          slug: this.editSlug,
         });
         this.editingPageId = null;
         this.editCategoryId = null;
-        await this.pagesStore.fetchPages(page.category_id);
+
+        if (page.category_id !== this.editCategoryId) {
+          await this.loadCategoryPages(page.category_id);
+          await this.loadCategoryPages(this.editCategoryId!);
+        } else {
+          await this.loadCategoryPages(page.category_id);
+        }
       } catch {
-        alert('Chyba pri aktualizácii stránky.');
+        alert("Chyba pri aktualizácii stránky.");
       }
     },
     startEditingPage(page: any) {
@@ -97,41 +109,51 @@ export default defineComponent({
     async addCategory() {
       const title = this.newCategory.trim();
       if (!title) {
-        alert('Prosím, zadajte názov kategórie.');
+        alert("Prosím, zadajte názov kategórie.");
         return;
       }
       try {
         await this.pagesStore.addCategory(title);
         await this.pagesStore.fetchCategories();
-        this.newCategory = '';
+        this.newCategory = "";
         this.showAddCategoryForm = false;
       } catch {
-        alert('Chyba pri pridávaní kategórie.');
+        alert("Chyba pri pridávaní kategórie.");
       }
     },
     async deletePage(page: any) {
-      if (!page?.id) return alert('Chyba ID stránky');
+      if (!page?.id) return alert("Chyba ID stránky");
       if (confirm(`Chcete naozaj vymazať stránku "${page.title}"?`)) {
         try {
+          const categoryId = page.category_id;
           await this.pagesStore.deletePage(page);
+          await this.loadCategoryPages(categoryId);
         } catch {
-          alert('Chyba pri mazaní stránky.');
+          alert("Chyba pri mazaní stránky.");
         }
       }
     },
     toggleAddPageForm(categoryId: number) {
-      this.activeCategoryForm = this.activeCategoryForm === categoryId ? null : categoryId;
-    }
+      this.activeCategoryForm =
+        this.activeCategoryForm === categoryId ? null : categoryId;
+    },
+    async loadCategoryPages(categoryId: number) {
+      await this.pagesStore.fetchPages(categoryId);
+    },
+    async loadAllCategoryPages() {
+      for (const category of this.sortedCategories) {
+        await this.loadCategoryPages(category.id);
+      }
+    },
   },
   async mounted() {
-    for (const category of this.sortedCategories) {
-      await this.pagesStore.fetchPages(category.id);
+    if (this.pagesStore.categories.length === 0) {
+      await this.pagesStore.fetchCategories();
     }
-    await this.pagesStore.fetchCategories();
-  }
+    await this.loadAllCategoryPages();
+  },
 });
 </script>
-
 
 <template>
   <div class="p-4 sm:p-6 bg-gray-50 min-h-screen space-y-6">
@@ -147,18 +169,20 @@ export default defineComponent({
           </legend>
 
           <div
-            v-if="!pagesStore.pages.some(page => page.category_id === category.id)"
+            v-if="!getPagesForCategory(category.id).length"
             class="text-center text-gray-400 text-sm py-2"
           >
             Žiadne stránky pre túto kategóriu.
           </div>
 
           <div
-            v-for="page in sortedPages.filter(p => p.category_id === category.id)"
+            v-for="page in getPagesForCategory(category.id)"
             :key="page.id"
             class="bg-gray-100 border border-gray-200 rounded-xl p-4 my-3"
           >
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div
+              class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+            >
               <p class="text-gray-700 break-words font-medium">
                 {{ page.title }}
               </p>
@@ -171,10 +195,23 @@ export default defineComponent({
                 </button>
 
                 <RouterLink
-                  :to="{ name: 'page-edit', params: { id: page.id } }"
+                  :to="{
+                    name: 'page-edit',
+                    params: { idSlug: `${page.id}-${page.slug}` },
+                  }"
                   class="inline-block bg-blue-600 hover:bg-blue-700 !text-white text-sm font-medium py-1.5 px-4 rounded-md transition"
                 >
                   Upraviť obsah
+                </RouterLink>
+
+                <RouterLink
+                  :to="{
+                    name: 'page',
+                    params: { idSlug: `${page.id}-${page.slug}` },
+                  }"
+                  class="inline-block bg-green-600 hover:bg-green-700 !text-white text-sm font-medium py-1.5 px-4 rounded-md transition"
+                >
+                  Zobraziť
                 </RouterLink>
 
                 <button
@@ -187,15 +224,26 @@ export default defineComponent({
             </div>
 
             <div v-if="editingPageId === page.id" class="mt-4 space-y-3">
-              <input v-model="editTitle" class="w-full p-2 border rounded-md" placeholder="Nový názov stránky" />
+              <input
+                v-model="editTitle"
+                class="w-full p-2 border rounded-md"
+                placeholder="Nový názov stránky"
+              />
               <input
                 v-model="editSlug"
                 @input="slugManuallyEdited = true"
                 class="w-full p-2 border rounded-md"
                 placeholder="Slug (napr. vlastny-url)"
               />
-              <select v-model.number="editCategoryId" class="w-full p-2 border rounded-md">
-                <option v-for="cat in sortedCategories" :key="cat.id" :value="cat.id">
+              <select
+                v-model.number="editCategoryId"
+                class="w-full p-2 border rounded-md"
+              >
+                <option
+                  v-for="cat in sortedCategories"
+                  :key="cat.id"
+                  :value="cat.id"
+                >
                   {{ cat.title }}
                 </option>
               </select>
@@ -213,7 +261,11 @@ export default defineComponent({
               @click="toggleAddPageForm(category.id)"
               class="bg-green-500 text-white w-full py-2 rounded-md hover:bg-green-600 transition"
             >
-              {{ activeCategoryForm === category.id ? 'Skryť formulár' : 'Vytvoriť stránku' }}
+              {{
+                activeCategoryForm === category.id
+                  ? "Skryť formulár"
+                  : "Vytvoriť stránku"
+              }}
             </button>
           </div>
 
@@ -257,7 +309,11 @@ export default defineComponent({
           @click="showAddCategoryForm = !showAddCategoryForm"
           class="bg-green-500 text-white w-full py-2 rounded-md hover:bg-green-600 transition"
         >
-          {{ showAddCategoryForm ? 'Skryť formulár pre kategóriu' : 'Pridať novú kategóriu' }}
+          {{
+            showAddCategoryForm
+              ? "Skryť formulár pre kategóriu"
+              : "Pridať novú kategóriu"
+          }}
         </button>
       </div>
 

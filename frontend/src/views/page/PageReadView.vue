@@ -1,8 +1,13 @@
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, onMounted } from "vue";
 import { usePagesStore } from "@/store/pageStore";
 import PageSidebarComponent from "@/components/page/PageSidebarComponent.vue";
-import { RouterLink, onBeforeRouteUpdate } from "vue-router";
+import {
+  RouterLink,
+  useRoute,
+  useRouter,
+  onBeforeRouteUpdate,
+} from "vue-router";
 import api from "@/services/api";
 
 export default defineComponent({
@@ -12,30 +17,54 @@ export default defineComponent({
     RouterLink,
   },
   props: {
-    id: {
+    idSlug: {
       type: String,
       required: true,
-      default: 1,
     },
+  },
+  setup(props) {
+    const route = useRoute();
+    const router = useRouter();
+
+    onBeforeRouteUpdate((to, from) => {
+      if (to.params.idSlug !== from.params.idSlug) {
+        const pageReadView =
+          document.querySelector("#page-read-view")?.__vueParentComponent?.ctx;
+        if (pageReadView) {
+          pageReadView.loadPage(to.params.idSlug.toString());
+        }
+      }
+    });
+
+    return {};
   },
   data() {
     return {
       pagesStore: usePagesStore(),
       slug: "",
-      categoryId: null,
+      categoryId: null as number | null,
       pageHtml: "<i>Stránka sa nenašla.</i>",
       files: [] as any[],
       title: "",
       pageFound: false,
+      pageId: null as number | null,
     };
   },
   created() {
-    this.loadPage(this.id);
+    this.loadPage(this.idSlug);
   },
   methods: {
-    async loadPage(id: number) {
+    async loadPage(idSlug: string) {
       try {
-        const page = await this.pagesStore.fetchPageById(id);
+        const id = parseInt(idSlug.split("-")[0]);
+        if (isNaN(id)) {
+          this.pageFound = false;
+          this.pageHtml = "<i>Neplatné ID stránky.</i>";
+          return;
+        }
+
+        this.pageId = id;
+        const page = await this.pagesStore.fetchPageById(this.pageId);
 
         this.pageFound = true;
         this.slug = page.slug;
@@ -46,6 +75,7 @@ export default defineComponent({
       } catch (error) {
         this.pageFound = false;
         this.pageHtml = "<i>Stránka sa nenašla.</i>";
+        this.categoryId = null;
       }
 
       await this.loadExistingFiles();
@@ -56,20 +86,7 @@ export default defineComponent({
 
       try {
         const response = await api.get(`/page/${this.pageId}/upload/`);
-        const contentType = (response.headers["Content-Type"] || "").toString();
-
-        if (response.status !== 200) {
-          throw new Error(`Server response: ${response.status}`);
-        }
-
-        if (!contentType.includes("application/json")) {
-          const text = await response.data;
-          this.files = [];
-          return;
-        }
-
-        const json = await response.data;
-        this.files = Array.isArray(json) ? json : [];
+        this.files = response.data;
       } catch (error) {
         console.error("Chyba pri načítaní súborov:", error);
         this.files = [];
@@ -80,7 +97,7 @@ export default defineComponent({
 </script>
 
 <template>
-  <div class="flex flex-col sm:flex-row">
+  <div id="page-read-view" class="flex flex-col sm:flex-row">
     <PageSidebarComponent :activeCategoryId="categoryId" />
 
     <article>
@@ -98,7 +115,10 @@ export default defineComponent({
           <h2 class="big mb-2">Priložené súbory</h2>
           <div class="files-list">
             <div class="file-item" v-for="file in files" :key="file.name">
-              <a :href="`/api/page/${id}/upload/${file.name}`" target="_blank">
+              <a
+                :href="`/api/page/${pageId}/upload/${file.name}`"
+                target="_blank"
+              >
                 {{ file.name }}
               </a>
               <span class="text-sm text-gray-500">{{ file.size }} B</span>
@@ -109,7 +129,7 @@ export default defineComponent({
         <nav>
           <RouterLink
             class="button button-green"
-            :to="{ name: 'page-edit', params: { id } }"
+            :to="{ name: 'page-edit', params: { idSlug: `${pageId}-${slug}` } }"
             v-if="pageFound"
           >
             Upraviť stránku

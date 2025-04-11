@@ -8,11 +8,7 @@ import { usePagesStore } from "@/store/pageStore";
 export default {
   name: "PageEditView",
   props: {
-    id: {
-      type: Number,
-      required: true,
-    },
-    year: {
+    idSlug: {
       type: String,
       required: true,
     },
@@ -23,22 +19,26 @@ export default {
   data() {
     return {
       pagesStore: usePagesStore(),
-      slug: "_",
+      id: null as number | null,
+      title: "",
+      slug: "",
       htmlContent: ``,
       files: [],
     };
   },
-  computed: {
-    readableSlug() {
-      if (this.slug === "_") {
-        return `Hlavná stránka`;
-      }
-      return this.slug.replace(/[-_]/g, " ");
-    },
-  },
   async created() {
-    const page = await this.pagesStore.fetchPageById(this.id);
-    this.slug = page.slug;
+    let [id, slug] = this.idSlug.split("-");
+
+    id = parseInt(id);
+    if (isNaN(id)) {
+      this.$router.push(`/page/${this.idSlug}`);
+      return;
+    }
+
+    this.id = id;
+    const page = await this.pagesStore.fetchPageById(id);
+    this.title = page.title;
+    this.slug = slug;
     this.htmlContent = page.html_content;
     await this.loadExistingFiles();
   },
@@ -57,7 +57,7 @@ export default {
     async savePage() {
       await this.saveContent();
       await this.uploadFiles();
-      this.$router.push(`/page/${this.id}`);
+      this.$router.push(`/page/${this.id}-${this.slug}`);
     },
     async saveContent() {
       await this.pagesStore.updatePage(this.id, {
@@ -133,7 +133,7 @@ export default {
   <nav class="top-nav">
     <h1 class="nav-inner">
       <span class="title whitespace-nowrap">Upravuje sa:</span>
-      <span class="nav-label uppercase">{{ year }} / {{ readableSlug }}</span>
+      <span class="nav-label uppercase">{{ title }}</span>
     </h1>
     <div class="nav-inner">
       <button class="button button-red">Odstrániť</button>

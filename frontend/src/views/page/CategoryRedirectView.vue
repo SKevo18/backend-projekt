@@ -1,8 +1,13 @@
 <script lang="ts">
+import { defineComponent } from "vue";
 import { usePagesStore } from "@/store/pageStore";
+import PageSidebarComponent from "@/components/page/PageSidebarComponent.vue";
 
-export default {
+export default defineComponent({
   name: "CategoryRedirectView",
+  components: {
+    PageSidebarComponent,
+  },
   props: {
     category: {
       type: String,
@@ -11,25 +16,88 @@ export default {
   },
   data() {
     return {
-      info: "Redirecting...",
+      loading: true,
+      info: "Loading...",
+      categoryId: null as number | null,
+      categoryTitle: "",
+      pagesStore: usePagesStore(),
     };
   },
   async created() {
-    const categoryId = parseInt(this.category);
-    const firstPageInCategory = await usePagesStore().fetchPages(categoryId)[0];
-
-    if (firstPageInCategory) {
-      this.$router.replace(`/page/${firstPageInCategory.id}`);
-    } else {
-      this.info =
-        "No pages found in this category. Redirecting to home page...";
-    }
+    await this.loadCategory();
   },
-};
+  methods: {
+    async loadCategory() {
+      try {
+        this.categoryId = parseInt(this.category);
+
+        if (isNaN(this.categoryId)) {
+          this.loading = false;
+          this.info = `Neplatný identifikátor kategórie: "${this.category}"`;
+          return;
+        }
+
+        if (this.pagesStore.categories.length === 0) {
+          await this.pagesStore.fetchCategories();
+        }
+
+        const foundCategory = this.pagesStore.categories.find(
+          (cat) => cat.id === this.categoryId
+        );
+
+        if (!foundCategory) {
+          this.loading = false;
+          this.info = `Kategória s ID "${this.categoryId}" sa nenašla.`;
+          return;
+        }
+
+        this.categoryTitle = foundCategory.title;
+
+        const pages = await this.pagesStore.fetchPages(this.categoryId);
+
+        if (pages && pages.length > 0) {
+          this.$router.replace(`/page/${pages[0].id}-${pages[0].slug}`);
+        } else {
+          this.loading = false;
+          this.info = `Kategória "${this.categoryTitle}" nemá žiadne stránky.`;
+        }
+      } catch (error) {
+        console.error("Error loading category:", error);
+        this.loading = false;
+        this.info = "Nastala chyba pri načítaní kategórie.";
+      }
+    },
+  },
+});
 </script>
 
 <template>
-  <PageSidebarComponent :activeCategoryId="categoryId" />
+  <div class="flex flex-col sm:flex-row">
+    <PageSidebarComponent :activeCategoryId="categoryId" />
 
-  <div class="text-center my-10">{{ info }}</div>
+    <div class="flex-1 p-8 flex items-center justify-center">
+      <div class="text-center">
+        <div v-if="loading" class="spinner mb-4"></div>
+        <p>{{ info }}</p>
+      </div>
+    </div>
+  </div>
 </template>
+
+<style scoped>
+@import "tailwindcss";
+
+.spinner {
+  @apply w-8 h-8 border-4 border-gray-300 border-t-green-600 rounded-full mx-auto;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+</style>
