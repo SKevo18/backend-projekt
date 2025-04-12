@@ -15,45 +15,30 @@ export default defineComponent({
       pagesStore: usePagesStore(),
     };
   },
-  computed: {
-    sortedCategories() {
-      return [...this.pagesStore.categories].sort((a, b) => a.title.localeCompare(b.title));
-    }
-  },
   methods: {
     logout() {
       this.$authStore.logout();
       this.$router.push("/login");
-    }
+    },
   },
   async mounted() {
     if (this.pagesStore.categories.length === 0) {
       await this.pagesStore.fetchCategories();
     }
-  }
-});
+  },
+}); 
 </script>
-
 
 <template>
   <header>
     <div class="header-topnav" v-if="!$authStore.isAuthenticated">
-      <RouterLink :to="{ name: 'login' }" active-class="nav-link-active">
-        Prihlásiť sa
-      </RouterLink>
+      <RouterLink :to="{ name: 'login' }" active-class="nav-link-active">Prihlásiť sa</RouterLink>
       <span> | </span>
-      <RouterLink :to="{ name: 'register' }" active-class="nav-link-active">
-        Registrácia
-      </RouterLink>
+      <RouterLink :to="{ name: 'register' }" active-class="nav-link-active">Registrácia</RouterLink>
     </div>
 
     <div class="header-topnav" v-else>
-      <RouterLink
-        :to="{ name: 'admin-settings' }"
-        active-class="nav-link-active"
-      >
-        Administrácia
-      </RouterLink>
+      <RouterLink :to="{ name: 'admin-settings' }" active-class="nav-link-active">Administrácia</RouterLink>
       <span> | </span>
       <a class="logout-link" @click="logout">Odhlásiť sa</a>
     </div>
@@ -61,13 +46,8 @@ export default defineComponent({
     <div class="header-content">
       <LogoComponent />
       <nav class="year-nav">
-        <RouterLink
-          v-for="category in sortedCategories"
-          :key="category.id"
-          :to="`/${category.title}`"
-          class="nav-link"
-          active-class="nav-link-active"
-        >
+        <RouterLink v-for="category in sortedCategories" :key="category.id" :to="{ name: 'category', params: { category: category.title } }"
+          class="nav-link" active-class="nav-link-active">
           {{ category.title }}
         </RouterLink>
       </nav>

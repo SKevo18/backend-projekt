@@ -1,17 +1,14 @@
 <script lang="ts">
 import api from "@/services/api";
 import PageEditorComponent from "@/components/page/PageEditorComponent.vue";
+import { usePagesStore } from "@/store/pageStore";
+
 // TODO: redirect to login if not editor or admin (via guard)
 
 export default {
   name: "PageEditView",
   props: {
-    slug: {
-      type: String,
-      required: true,
-      default: "_",
-    },
-    year: {
+    idSlug: {
       type: String,
       required: true,
     },
@@ -21,25 +18,34 @@ export default {
   },
   data() {
     return {
+      pagesStore: usePagesStore(),
+      id: null as number | null,
+      title: "",
+      slug: "",
       htmlContent: ``,
       files: [],
     };
   },
-  computed: {
-    readableSlug() {
-      if (this.slug === "_") {
-        return `Hlavná stránka`;
-      }
-      return this.slug.replace(/[-_]/g, " ");
-    },
-  },
   async created() {
+    let [id, slug] = this.idSlug.split("-");
+
+    id = parseInt(id);
+    if (isNaN(id)) {
+      this.$router.push(`/page/${this.idSlug}`);
+      return;
+    }
+
+    this.id = id;
+    const page = await this.pagesStore.fetchPageById(id);
+    this.title = page.title;
+    this.slug = slug;
+    this.htmlContent = page.html_content;
     await this.loadExistingFiles();
   },
   methods: {
     async loadExistingFiles() {
       try {
-        const response = await api.get(`/page/${this.slug}/upload`);
+        const response = await api.get(`/page/${this.id}/upload`);
         this.files = response.data.map((file: any) => ({
           ...file,
           alreadyUploaded: true,
@@ -51,10 +57,12 @@ export default {
     async savePage() {
       await this.saveContent();
       await this.uploadFiles();
+      this.$router.push(`/page/${this.id}-${this.slug}`);
     },
     async saveContent() {
-      // TODO: send to backend
-      console.log(this.htmlContent);
+      await this.pagesStore.updatePage(this.id, {
+        html_content: this.htmlContent,
+      });
     },
     async uploadFiles() {
       const newFiles = this.files.filter(
@@ -73,7 +81,7 @@ export default {
         formData.append("uploaded_file", file.fileObj);
 
         try {
-          await api.post(`/page/${this.slug}/upload`, formData, {
+          await api.post(`/page/${this.id}/upload`, formData, {
             headers: {
               "Content-Type": "multipart/form-data",
             },
@@ -107,7 +115,7 @@ export default {
 
       if (file.alreadyUploaded) {
         try {
-          await api.delete(`/page/${this.slug}/upload/${file.name}`);
+          await api.delete(`/page/${this.id}/upload/${file.name}`);
           this.files = this.files.filter((f) => f.name !== file.name);
         } catch (error) {
           console.error(`Failed to delete file ${file.name}:`, error);
@@ -125,7 +133,7 @@ export default {
   <nav class="top-nav">
     <h1 class="nav-inner">
       <span class="title whitespace-nowrap">Upravuje sa:</span>
-      <span class="nav-label uppercase">{{ year }} / {{ readableSlug }}</span>
+      <span class="nav-label uppercase">{{ title }}</span>
     </h1>
     <div class="nav-inner">
       <button class="button button-red">Odstrániť</button>
