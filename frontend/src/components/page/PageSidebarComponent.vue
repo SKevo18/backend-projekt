@@ -108,12 +108,13 @@ export default defineComponent({
       </div>
     </div>
 
-    <RouterLink
+    <!--<RouterLink
       class="text-center my-4 block px-4 py-2 text-sm text-gray-400 hover:text-white"
       :to="{ name: 'admin-pages' }"
     >
       Upraviť
     </RouterLink>
+    -->
   </aside>
 </template>
 
