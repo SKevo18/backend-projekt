@@ -2,6 +2,7 @@
 import { defineComponent } from "vue";
 import { RouterLink } from "vue-router";
 import { usePagesStore } from "@/store/pageStore";
+import { useAuthStore } from "@/store/authStore";
 
 export default defineComponent({
   name: "PageSidebarComponent",
@@ -17,6 +18,7 @@ export default defineComponent({
   },
   data() {
     return {
+      authStore: useAuthStore(),
       pagesStore: usePagesStore(),
       categoryPagesMap: {} as Record<number, any[]>,
       isLoading: true,
@@ -108,13 +110,13 @@ export default defineComponent({
       </div>
     </div>
 
-    <!--<RouterLink
+    <RouterLink
+      v-if="authStore.isAdmin"
       class="text-center my-4 block px-4 py-2 text-sm text-gray-400 hover:text-white"
       :to="{ name: 'admin-pages' }"
     >
       Upraviť
     </RouterLink>
-    -->
   </aside>
 </template>
 

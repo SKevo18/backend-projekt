@@ -78,7 +78,7 @@ export const useAuthStore = defineStore("auth", {
       if (!this.token) return;
       try {
         const response = await api.get(
-          "http://localhost:8000/authentication/me",
+          "/authentication/me",
           {
             headers: {
               Authorization: `Bearer ${this.token}`,
