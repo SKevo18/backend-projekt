@@ -12,76 +12,74 @@ export default defineComponent({
       password: "",
       confirmPassword: "",
       registeredSuccessfully: null as boolean | null,
+      errorInfo: "Neznáma chyba",
       authStore: useAuthStore(),
     };
   },
   methods: {
     async handleRegister() {
-        this.registeredSuccessfully = await this.authStore.register(
-        this.first_name,
-        this.last_name,
-        this.email,
-        this.password,
-        this.confirmPassword
-      );
+      try {
+        let response = await this.authStore.register(
+          this.first_name,
+          this.last_name,
+          this.email,
+          this.password,
+          this.confirmPassword
+        );
+        this.registeredSuccessfully = response.success;
+      } catch (error) {
+        if (
+          error.response?.data?.detail &&
+          Array.isArray(error.response.data.detail)
+        ) {
+          const errorMessages = error.response.data.detail.map(
+            (err) => err.msg
+          );
+          this.errorInfo = errorMessages.join(", ");
+        } else {
+          this.errorInfo = error.response?.data?.detail || "Neznáma chyba...";
+        }
+        this.registeredSuccessfully = false;
+      }
     },
   },
 });
 </script>
 
 <template>
-  <div class="form-container" v-if="registeredSuccessfully === null">
+  <div class="form-container my-6" v-if="registeredSuccessfully === null">
     <form @submit.prevent="handleRegister" class="auth-form">
       <fieldset>
         <legend>Registrácia</legend>
 
         <div class="form-group">
           <label for="first_name">Meno</label>
-          <input 
-          type="text" 
-          id="first_name" 
-          v-model="first_name" 
-          required 
-          />
+          <input type="text" id="first_name" v-model="first_name" required />
         </div>
 
         <div class="form-group">
           <label for="last_name">Priezvisko </label>
-          <input 
-          type="text" 
-          id="last_name" 
-          v-model="last_name" 
-          required 
-          />
+          <input type="text" id="last_name" v-model="last_name" required />
         </div>
 
         <div class="form-group">
           <label for="email">Email</label>
-          <input 
-          type="email" 
-          id="email" 
-          v-model="email" 
-          required />
+          <input type="email" id="email" v-model="email" required />
         </div>
 
         <div class="form-group">
           <label for="password">Heslo</label>
-          <input 
-          type="password" 
-          id="password" 
-          v-model="password" 
-          required 
-          />
+          <input type="password" id="password" v-model="password" required />
         </div>
 
         <div class="form-group">
           <label for="confirmPassword">Potvrdenie hesla</label>
-          <input 
-            type="password" 
-            id="confirmPassword" 
-            v-model="confirmPassword" 
-            required 
-            />
+          <input
+            type="password"
+            id="confirmPassword"
+            v-model="confirmPassword"
+            required
+          />
         </div>
 
         <button class="button button-green" type="submit">Registrovať</button>
@@ -101,7 +99,7 @@ export default defineComponent({
   <div class="info-container" v-else>
     <div class="error">
       <h1>
-        Registrácia zlyhala.<br />
+        Registrácia zlyhala: {{ errorInfo }}<br />
         Prosím, skúste to znova neskôr.
       </h1>
     </div>
