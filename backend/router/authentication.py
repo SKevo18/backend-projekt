@@ -27,7 +27,6 @@ class UserModel(BaseModel):
     last_name: str
     user_email: str
     user_password: str
-    role: int = USER  # Default role
 
     @validator("user_email")
     def validate_email(cls, v):
@@ -73,7 +72,7 @@ def register(user: UserModel, db: Session = Depends(get_db)):
             last_name=user.last_name,
             user_email=user.user_email,
             user_password=hashed_password,
-            role=user.role,
+            role=USER,
             registered_at=datetime.now(),
         )
         db.add(new_user)
