@@ -1,6 +1,6 @@
 import typing as t
 from datetime import datetime
-from sqlalchemy import String, Text, ForeignKey
+from sqlalchemy import String, ForeignKey
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.dialects.mysql import LONGTEXT
 import uuid
