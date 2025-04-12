@@ -26,6 +26,7 @@ class User(Base):
     )
     user_password: Mapped[str] = mapped_column(String(length=80), nullable=False)
     registered_at: Mapped[datetime] = mapped_column(default=datetime.now)
+    edited_at: Mapped[datetime] = mapped_column(onupdate=datetime.now, nullable=True)  # Добавляем поле
 
 
 class Category(Base):

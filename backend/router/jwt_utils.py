@@ -2,10 +2,10 @@ import jwt
 from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException
 
-SECRET_KEY = "Trz32_afRs1c_35tf14yvc_hksdpGRRq_2dV"  
+SECRET_KEY = "Trz32_afRs1c_35tf14yvc_hksdpGRRq_2dV"
 
 
-def create_access_token(data: dict, expires_delta: timedelta = timedelta(hours=12)): 
+def create_access_token(data: dict, expires_delta: timedelta = timedelta(hours=12)):
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + expires_delta
     to_encode.update({"exp": expire})
