@@ -52,7 +52,13 @@ export default defineComponent({
 
         <div class="form-group">
           <label for="password">Heslo</label>
-          <input type="password" id="password" v-model="password" required />
+          <input
+            type="password"
+            id="password"
+            v-model="password"
+            minlength="8"
+            required
+          />
         </div>
 
         <button class="button button-green" type="submit">Prihlásiť sa</button>
