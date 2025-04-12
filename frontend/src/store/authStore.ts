@@ -56,7 +56,7 @@ export const useAuthStore = defineStore("auth", {
       localStorage.setItem("token", this.token);
       api.defaults.headers.common["Authorization"] = `Bearer ${this.token}`;
       await this.fetchUserData();
-      return response.data;
+      return response;
     },
 
     async login(email: string, password: string) {
@@ -71,7 +71,7 @@ export const useAuthStore = defineStore("auth", {
       localStorage.setItem("token", this.token);
       api.defaults.headers.common["Authorization"] = `Bearer ${this.token}`;
       await this.fetchUserData();
-      return response.data;
+      return response;
     },
 
     async fetchUserData() {

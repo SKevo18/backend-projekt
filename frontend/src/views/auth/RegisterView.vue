@@ -26,7 +26,7 @@ export default defineComponent({
           this.password,
           this.confirmPassword
         );
-        this.registeredSuccessfully = response.success;
+        this.registeredSuccessfully = response.status === 200;
       } catch (error) {
         if (
           error.response?.data?.detail &&

@@ -16,12 +16,13 @@ export default defineComponent({
     async handleLogin() {
       try {
         let response = await this.authStore.login(this.email, this.password);
-        if (response.success) {
+        if (response.status === 200) {
           this.$router.push("/");
         } else {
           this.info = response.data.msg;
         }
       } catch (error) {
+        console.log(error);
         if (
           error.response?.data?.detail &&
           Array.isArray(error.response.data.detail)
