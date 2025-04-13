@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
+import api from '@/services/api'
 
 const smtpHost = ref('')
 const smtpPort = ref(587)
@@ -21,44 +22,38 @@ const saveSmtpSettings = async () => {
   try {
     console.log("Payload:", payload)
 
-    const response = await fetch('http://localhost:8000/email/save_smtp', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    })
+    const response = await api.post('/email/save_smtp', payload)
 
-    const result = await response.json()
-
-    if (response.ok) {
+    if (response.status == 200
+    ) {
       alert('SMTP nastavenia boli uložené.')
     } else {
-      alert('Chyba pri ukladaní: ' + result.message || 'Neznáma chyba')
+      alert('Chyba pri ukladaní.')
     }
 
-  } catch (error) {
-    alert('Chyba pripojenia k serveru.')
-    console.error(error)
+  } catch (error: any) {
+    if (error.response) {
+      console.error('Server error:', error.response.data)
+      alert('Chyba pri ukladaní: ' + error.response.data.detail)
+    } else {
+      console.error('Network error:', error)
+      alert('Chyba pripojenia k serveru.')
+    }
   }
 }
 
 const sendTestEmail = async () => {
-  testEmailStatus.value = '' // очищаем перед новым запросом
+  testEmailStatus.value = ''
   try {
-    const response = await fetch('http://localhost:8000/email/send_test_email', {
-      method: 'POST',
-    })
+    const response = await api.post('/email/send_test_email')
 
-    const result = await response.json()
-
-    if (response.ok) {
-      testEmailStatus.value = '✅ Testovací email bol odoslaný.'
+    if (response.status == 200) {
+      testEmailStatus.value = 'Testovací email bol odoslaný.'
     } else {
-      testEmailStatus.value = '❌ Chyba pri odosielaní testovacieho emailu: ' + (result.message || 'Neznáma chyba.')
+      testEmailStatus.value = 'Chyba pri odosielaní testovacieho emailu:.'
     }
-  } catch (error) {
-    testEmailStatus.value = '❌ Nepodarilo sa pripojiť k serveru.'
+  } catch (error: any) {
+    testEmailStatus.value = 'Nepodarilo sa pripojiť k serveru.'
     console.error(error)
   }
 }
@@ -101,18 +96,19 @@ const sendTestEmail = async () => {
       </fieldset>
     </div>
 
-    <button class="button button-green mt-4 self-end" @click="saveSmtpSettings">
-      Uložiť
-    </button>
+    <div class="flex justify-between items-end mt-4">
+      <button class="button bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg shadow transition"
+        @click="sendTestEmail">
+        Odoslať testovací email
+      </button>
 
-    <button
-      class="button mt-2 self-end bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg shadow transition"
-      @click="sendTestEmail">
-      Odoslať testovací email
-    </button>
+      <button class="button button-green" @click="saveSmtpSettings">
+        Uložiť
+      </button>
+    </div>
 
     <p v-if="testEmailStatus" class="mt-2 text-sm font-medium"
-      :class="testEmailStatus.startsWith('✅') ? 'text-green-600' : 'text-red-600'">
+      :class="testEmailStatus.startsWith('T') ? 'text-green-600' : 'text-red-600'">
       {{ testEmailStatus }}
     </p>
   </div>
