@@ -1,6 +1,13 @@
 <script lang="ts" setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import api from "@/services/api";
+
+interface SmtpSettings {
+  smtp_host: string;
+  smtp_port: number;
+  email_sender: string | null;
+  email_password: string | null;
+}
 
 const smtpHost = ref("");
 const smtpPort = ref(587);
@@ -55,6 +62,21 @@ const sendTestEmail = async () => {
     console.error(error);
   }
 };
+
+onMounted(async () => {
+  try {
+    const response = await api.get("/email/settings");
+    const data = response.data as SmtpSettings | null;
+
+    smtpHost.value = data?.smtp_host ?? "";
+    smtpPort.value = data?.smtp_port && data.smtp_port !== 0 ? data.smtp_port : 587;
+    smtpUsername.value = data?.email_sender ?? "";
+    smtpPassword.value = data?.email_password ?? "";
+
+  } catch (error) {
+    console.error("Chyba pri načítavaní nastavení SMTP:", error);
+  }
+});
 </script>
 
 <template>

@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
 from sqlalchemy.dialects.mysql import insert
-from utils.mail import send_email
+from utils.mail import send_email, get_setting
 
 EMAIL_ROUTER = APIRouter(prefix="/email")
 # TODO: použiť adminov mail:
@@ -27,13 +27,13 @@ class SaveSMTPRequest(BaseModel):
 
 @EMAIL_ROUTER.post("/password_reset")
 def password_reset(req: EmailResetRequest, db: Session = Depends(get_db)):
-    user = db.query(User).filter_by(email=req.email).first()
+    user = db.query(User).filter_by(user_email=req.email).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
     reset_token = str(uuid.uuid4())
-    reset_link = f"https://reset-password.sk/reset-password?token={reset_token}"
-
+    reset_link = f"http://localhost:5173/reset-password?token={reset_token}"
+    
     message = f"Click here to reset your password: {reset_link}"
     send_email(req.email, "Password Reset", message)
 
@@ -65,3 +65,12 @@ def send_test_email():
         raise HTTPException(status_code=500, detail=str(e))
 
     return {"message": "Test mail sent successfully"}
+
+@EMAIL_ROUTER.get("/settings")
+def get_smtp_settings():
+    return {
+        "smtp_host": get_setting("smtp_host"),
+        "smtp_port": get_setting("smtp_port"),
+        "email_sender": get_setting("email_sender"),
+        "email_password": get_setting("email_password"),
+    }
