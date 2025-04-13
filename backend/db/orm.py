@@ -4,6 +4,7 @@ from datetime import datetime
 
 from sqlalchemy import ForeignKey, String, Text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy.dialects.mysql import LONGTEXT
 
 
 class Base(DeclarativeBase):
@@ -45,7 +46,8 @@ class Page(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(String(100), nullable=False)
-    html_content: Mapped[t.Text] = mapped_column(Text(), nullable=False)
+    slug: Mapped[str] = mapped_column(String(100), nullable=False)
+    html_content: Mapped[t.Text] = mapped_column(LONGTEXT(), nullable=False)
     created_at: Mapped[datetime] = mapped_column(default=datetime.now)
     edited_at: Mapped[datetime] = mapped_column(onupdate=datetime.now, nullable=True)
 

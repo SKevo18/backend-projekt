@@ -261,6 +261,16 @@ export default {
       };
     },
   },
+  watch: {
+    modelValue(newValue) {
+      const editor = this.$refs.editorElement?.querySelector(
+        ".ck-editor__editable"
+      );
+      if (!editor || !editor.contains(document.activeElement)) {
+        this.initialData = newValue;
+      }
+    },
+  },
   mounted() {
     this.isLayoutReady = true;
   },
@@ -282,7 +292,7 @@ export default {
       editorInstance.model.document.on("change:data", () => {
         this.$emit("update:modelValue", editorInstance.getData());
       });
-    }
+    },
   },
 };
 </script>
