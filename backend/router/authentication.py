@@ -9,7 +9,7 @@ import logging
 
 from db import get_db
 from db.orm import User
-from router.jwt_utils import create_access_token, verify_access_token
+from utils.jwt_utils import create_access_token, verify_access_token
 
 logger = logging.getLogger(__name__)
 AUTH_ROUTER = APIRouter(prefix="/authentication")

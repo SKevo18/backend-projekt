@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from db import get_db
 from db.orm import User
 from router.authentication import oauth2_scheme, ADMIN
-from router.jwt_utils import verify_access_token
+from utils.jwt_utils import verify_access_token
 
 
 def get_current_user(
