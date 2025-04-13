@@ -58,3 +58,20 @@ def update_user_role(
 
     logger.info(f"User role updated for user ID: {user_id}")
     return {"msg": "User role updated successfully"}
+
+
+@USER_ROUTER.delete("/{user_id}")
+def delete_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_admin_user),
+):
+    user_to_delete = db.query(User).filter_by(id=user_id).first()
+    if user_to_delete is None:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    db.delete(user_to_delete)
+    db.commit()
+
+    logger.info(f"User deleted with ID: {user_id}")
+    return {"msg": "User deleted successfully"}
