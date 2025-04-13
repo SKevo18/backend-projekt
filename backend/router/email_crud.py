@@ -10,7 +10,8 @@ from sqlalchemy.dialects.mysql import insert
 from utils.mail import send_email
 
 EMAIL_ROUTER = APIRouter(prefix="/email")
-TEST_EMAIL = os.getenv("email_sender")
+# TODO: použiť adminov mail:
+TEST_EMAIL = os.getenv("test_email_recipient")
 
 
 class EmailResetRequest(BaseModel):
@@ -55,6 +56,12 @@ def save_smtp(req: SaveSMTPRequest, db: Session = Depends(get_db)):
 
 @EMAIL_ROUTER.post("/send_test_email")
 def send_test_email():
-    send_email(TEST_EMAIL, "Test Email", "This is a test email.")
-    
+    if TEST_EMAIL is None:
+        raise HTTPException(status_code=500, detail="SMTP settings are not set")
+
+    try:
+        send_email(TEST_EMAIL, "Test Email", "This is a test email.")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
     return {"message": "Test mail sent successfully"}
