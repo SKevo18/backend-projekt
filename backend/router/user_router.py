@@ -2,24 +2,20 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from db import get_db
 from db.orm import User
-from router.jwt_utils import verify_access_token
-from router.authentication import oauth2_scheme, USER, EDITOR, ADMIN
 from datetime import datetime
 import logging
+from router.dependencies import get_admin_user
+from router.authentication import USER, EDITOR, ADMIN
 
 logger = logging.getLogger(__name__)
 USER_ROUTER = APIRouter(prefix="/user")
 
 
 @USER_ROUTER.get("/")
-def get_all_users(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    payload = verify_access_token(token)
-    user_email = payload.get("sub")
-    current_user = db.query(User).filter_by(user_email=user_email).first()
-
-    if not current_user or current_user.role < ADMIN:
-        raise HTTPException(status_code=403, detail="Admin access required")
-
+def get_all_users(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_admin_user),
+):
     users = db.query(User).all()
     return [
         {
@@ -39,16 +35,9 @@ def get_all_users(token: str = Depends(oauth2_scheme), db: Session = Depends(get
 def update_user_role(
     user_id: int,
     role_data: dict,
-    token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_admin_user),
 ):
-    payload = verify_access_token(token)
-    user_email = payload.get("sub")
-    current_user = db.query(User).filter_by(user_email=user_email).first()
-
-    if not current_user or current_user.role < ADMIN:
-        raise HTTPException(status_code=403, detail="Admin access required")
-
     user_to_update = db.query(User).filter_by(id=user_id).first()
     if user_to_update is None:
         raise HTTPException(status_code=404, detail="User not found")

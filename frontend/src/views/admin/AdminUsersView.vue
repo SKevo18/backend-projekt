@@ -1,6 +1,6 @@
 <script lang="ts">
 import { useAuthStore } from "@/store/authStore";
-import axios from "axios";
+import api from "@/services/api";
 
 export default {
   name: "AdminUsersView",
@@ -27,7 +27,7 @@ export default {
       }
 
       try {
-        const response = await axios.get<User[]>("http://localhost:8000/user/", {
+        const response = await api.get<User[]>("http://localhost:8000/user/", {
           headers: {
             Authorization: `Bearer ${authStore.token}`,
           },
@@ -45,7 +45,7 @@ export default {
       }
 
       try {
-        await axios.delete(`http://localhost:8000/user/${id}`, {
+        await api.delete(`http://localhost:8000/user/${id}`, {
           headers: {
             Authorization: `Bearer ${authStore.token}`,
           },
@@ -58,12 +58,11 @@ export default {
     async changeUserRole(id: number, event: Event) {
       const role = (event.target as HTMLSelectElement).value;
       if (this.users.find(user => user.id === id)?.role !== parseInt(role)) {
-        this.editedRoles[id] = role; 
+        this.editedRoles[id] = role;
       } else {
-        delete this.editedRoles[id]; 
+        delete this.editedRoles[id];
       }
     },
-    //fix
     async confirmRoleChange(userId: number) {
       const authStore = useAuthStore();
       const newRole = this.editedRoles[userId];
@@ -73,19 +72,19 @@ export default {
       }
 
       try {
-        await axios.patch(
-          `http://localhost:8000/user/${userId}/role`, 
-          { role: newRole }, 
+        await api.patch(
+          `http://localhost:8000/user/${userId}/role`,
+          { role: newRole },
           {
-        headers: {
-          Authorization: `Bearer ${authStore.token}`,
-        },
-    }
-  );
+            headers: {
+              Authorization: `Bearer ${authStore.token}`,
+            },
+          }
+        );
 
         alert("Role updated successfully!");
-        delete this.editedRoles[userId]; 
-        this.getUsers(); 
+        delete this.editedRoles[userId];
+        this.getUsers();
       } catch (error) {
         console.error("Error updating role:", error);
         alert("Failed to update role.");
@@ -137,7 +136,7 @@ export default {
           <td>
             <button class="cursor-pointer rounded-lg text-sm text-white button-red px-2 py-1"
               @click="deleteUser(user.id)">
-              Odstrániť
+              Delete
             </button>
             <button v-if="editedRoles[user.id]"
               class="cursor-pointer rounded-lg text-sm text-white button-green px-2 py-1"
@@ -185,7 +184,7 @@ export default {
       <div class="user-field">
         <span class="field-label">Actions:</span>
         <button class="cursor-pointer rounded-lg text-sm text-white button-red px-2 py-1" @click="deleteUser(user.id)">
-          Odstrániť
+          Delete
         </button>
         <button v-if="editedRoles[user.id]" class="cursor-pointer rounded-lg text-sm text-white button-green px-2 py-1"
           @click="confirmRoleChange(user.id)">
