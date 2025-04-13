@@ -20,7 +20,7 @@ def create_access_token(data: dict, expires_delta: timedelta = timedelta(hours=1
     return encoded_jwt
 
 
-def verify_access_token(token: str):
+def verify_access_token(token: str) -> dict:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
         return payload
