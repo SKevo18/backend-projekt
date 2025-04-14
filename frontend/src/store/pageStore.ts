@@ -68,6 +68,26 @@ export const usePagesStore = defineStore("pages", {
         alert(`Kategória "${title}" už existuje.`);
       }
     },
+    async updateCategory(category_id: number, updatedData: Partial<Category>) {
+      try {
+        await api.put(`/category/${category_id}`, updatedData);
+      }
+      catch (error) {
+        this.error = `Nepodarilo sa aktualizovať kategóriu ${category_id}.`;
+        throw error;
+      }
+    },
+    async deleteCategory(category: Category) {
+      try {
+        await api.delete(`/category/${category.id}`);
+        this.categories = this.categories.filter((cat) => cat.id !== category.id);
+        delete this.pagesByCategory[category.id];
+        this.pages = this.pages.filter((page) => page.category_id !== category.id);
+      } catch (error) {
+        this.error = `Nepodarilo sa odstrániť kategóriu ${category.id}.`;
+        throw error;
+      }
+    },
 
     async addPage(category_id: number, title: string, description: string) {
       const categoryExists = this.categories.some(

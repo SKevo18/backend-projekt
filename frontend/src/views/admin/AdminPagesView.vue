@@ -20,6 +20,8 @@ export default defineComponent({
       editCategoryId: null as number | null,
       slugConflict: false,
       slugManuallyEdited: false,
+      editingCategoryId: null as number | null,
+      editCategoryTitle: "",
     };
   },
   computed: {
@@ -133,6 +135,36 @@ export default defineComponent({
         }
       }
     },
+      startEditingCategory(category: any) {
+      this.editingCategoryId = category.id;
+      this.editCategoryTitle = category.title;
+    },
+
+    async updateCategory(category: any) {
+      const newTitle = this.editCategoryTitle.trim();
+      if (!newTitle) return alert("Názov kategórie nemôže byť prázdny.");
+
+      try {
+        await this.pagesStore.updateCategory(category.id, { title: newTitle });
+        this.editingCategoryId = null;
+        await this.pagesStore.fetchCategories();
+      } catch {
+        alert("Chyba pri aktualizácii kategórie.");
+      }
+    },
+
+    async deleteCategory(category: any) {
+      if (
+        confirm(`Chcete naozaj vymazať kategóriu "${category.title}"? Tým sa odstránia aj všetky stránky v nej.`)
+      ) {
+        try {
+          await this.pagesStore.deleteCategory(category);
+          await this.pagesStore.fetchCategories();
+        } catch {
+          alert("Chyba pri mazaní kategórie.");
+        }
+      }
+    },
     toggleAddPageForm(categoryId: number) {
       this.activeCategoryForm =
         this.activeCategoryForm === categoryId ? null : categoryId;
@@ -164,15 +196,45 @@ export default defineComponent({
         class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm"
       >
         <fieldset>
-          <legend class="font-semibold text-xl text-gray-700 mb-2">
-            {{ category.title }}
-          </legend>
+          <div class="flex items-center justify-between mb-2">
+            <legend class="font-semibold text-xl text-gray-700">
+              <span v-if="editingCategoryId !== category.id">{{ category.title }}</span>
+              <input
+                v-else
+                v-model="editCategoryTitle"
+                class="border px-2 py-1 rounded-md text-base"
+                @keyup.enter="updateCategory(category)"
+              />
+            </legend>
+            <div class="flex gap-2 ml-4">
+              <button
+                v-if="editingCategoryId !== category.id"
+                @click="startEditingCategory(category)"
+                class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-md text-sm"
+              >
+                Update
+              </button>
+              <button
+                v-else
+                @click="updateCategory(category)"
+                class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md text-sm"
+              >
+                Save
+              </button>
+              <button
+                @click="deleteCategory(category)"
+                class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
 
           <div
             v-if="!getPagesForCategory(category.id).length"
             class="text-center text-gray-400 text-sm py-2"
           >
-            Žiadne stránky pre túto kategóriu.
+            No pages for this category.
           </div>
 
           <div
@@ -201,7 +263,7 @@ export default defineComponent({
                   }"
                   class="inline-block bg-blue-600 hover:bg-blue-700 !text-white text-sm font-medium py-1.5 px-4 rounded-md transition"
                 >
-                  Upraviť obsah
+                  Edit content
                 </RouterLink>
 
                 <RouterLink
@@ -211,7 +273,7 @@ export default defineComponent({
                   }"
                   class="inline-block bg-green-600 hover:bg-green-700 !text-white text-sm font-medium py-1.5 px-4 rounded-md transition"
                 >
-                  Zobraziť
+                  View
                 </RouterLink>
 
                 <button
@@ -227,13 +289,13 @@ export default defineComponent({
               <input
                 v-model="editTitle"
                 class="w-full p-2 border rounded-md"
-                placeholder="Nový názov stránky"
+                placeholder="New page title"
               />
               <input
                 v-model="editSlug"
                 @input="slugManuallyEdited = true"
                 class="w-full p-2 border rounded-md"
-                placeholder="Slug (napr. vlastny-url)"
+                placeholder="Slug (e.g. my-url)"
               />
               <select
                 v-model.number="editCategoryId"
@@ -251,7 +313,7 @@ export default defineComponent({
                 @click="updatePage(page)"
                 class="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition"
               >
-                Uložiť zmeny
+                Save changes
               </button>
             </div>
           </div>
@@ -263,8 +325,8 @@ export default defineComponent({
             >
               {{
                 activeCategoryForm === category.id
-                  ? "Skryť formulár"
-                  : "Vytvoriť stránku"
+                  ? "Hide form"
+                  : "Create new page"
               }}
             </button>
           </div>
@@ -276,14 +338,14 @@ export default defineComponent({
             <div class="flex flex-col md:flex-row gap-3">
               <input
                 v-model="title"
-                placeholder="Názov stránky"
+                placeholder="Page title"
                 type="text"
                 class="flex-1 border border-gray-300 rounded-md p-2 bg-gray-50"
               />
               <input
                 v-model="slug"
                 @input="slugManuallyEdited = true"
-                placeholder="Slug (automaticky sa vyplní z názvu)"
+                placeholder="Slug (auto-generated from title)"
                 type="text"
                 class="flex-1 border border-gray-300 rounded-md p-2 bg-gray-50"
                 @blur="checkSlugConflict"
@@ -292,11 +354,11 @@ export default defineComponent({
                 @click="addPage(category.id)"
                 class="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition w-full md:w-auto"
               >
-                Pridať stránku
+                Add page
               </button>
             </div>
             <p v-if="slugConflict" class="text-red-600 text-sm mt-1">
-              Tento slug už existuje. Prosím zvoľ iný.
+              This slug already exists. Please choose another one.
             </p>
           </div>
         </fieldset>
@@ -311,8 +373,8 @@ export default defineComponent({
         >
           {{
             showAddCategoryForm
-              ? "Skryť formulár pre kategóriu"
-              : "Pridať novú kategóriu"
+              ? "Hide category form"
+              : "Add new category"
           }}
         </button>
       </div>
@@ -324,7 +386,7 @@ export default defineComponent({
         <div class="flex flex-col md:flex-row gap-4">
           <input
             v-model="newCategory"
-            placeholder="Kategória (napr. 2025, Informácie)"
+            placeholder="Category (e.g. 2025, Information)"
             type="text"
             class="flex-1 border border-gray-300 rounded-md p-2 bg-gray-50"
           />
@@ -332,7 +394,7 @@ export default defineComponent({
             @click="addCategory"
             class="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition w-full md:w-auto"
           >
-            Pridať kategóriu
+            Add category
           </button>
         </div>
       </div>
