@@ -1,45 +1,103 @@
 <script lang="ts">
+import { useAuthStore } from "@/store/authStore";
+import api from "@/services/api";
+
 export default {
   name: "AdminUsersView",
   data() {
     return {
-      users: [],
+      users: [] as {
+        id: number;
+        first_name: string;
+        last_name: string;
+        user_email: string;
+        role: number;
+        registered_at: string;
+        edited_at: string | null;
+      }[],
+      editedRoles: {} as Record<number, string>,
     };
   },
-  methods: {  
+  methods: {
     async getUsers() {
-      // this.users = await this.$authStore.fetchJsonAuth("/api/admin/users");
-      this.users = [
-        {
-          id: 2,
-          name: "John Doe",
-          email: "john.doe@example.com",
-          role: "admin",
-          createdAt: "2025-03-02",
-          updatedAt: "2025-03-17",
-        },
-        {
-          id: 1,
-          name: "Jane Doe",
-          email: "jane.doe@example.com",
-          role: "editor",
-          createdAt: "2025-03-06",
-          updatedAt: null,
-        },
-      ];
+      const authStore = useAuthStore();
+      if (!authStore.isAuthenticated) {
+        alert("Please log in to access this page.");
+        return;
+      }
+
+      try {
+        const response = await api.get<User[]>("http://localhost:8000/user/", {
+          headers: {
+            Authorization: `Bearer ${authStore.token}`,
+          },
+        });
+        this.users = response.data;
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
     },
     async deleteUser(id: number) {
-      // await this.$authStore.fetchJsonAuth(`/api/admin/users/${id}`, {
-      //   method: "DELETE",
-      // });
-      this.users = this.users.filter((user) => user.id !== id);
+      const authStore = useAuthStore();
+      if (!authStore.isAuthenticated) {
+        alert("Please log in to access this page.");
+        return;
+      }
+
+      try {
+        await api.delete(`http://localhost:8000/user/${id}`, {
+          headers: {
+            Authorization: `Bearer ${authStore.token}`,
+          },
+        });
+        this.users = this.users.filter((user) => user.id !== id);
+      } catch (error) {
+        console.error("Error deleting user:", error);
+      }
     },
     async changeUserRole(id: number, event: Event) {
       const role = (event.target as HTMLSelectElement).value;
-      console.log(id, role);
+      if (this.users.find(user => user.id === id)?.role !== parseInt(role)) {
+        this.editedRoles[id] = role;
+      } else {
+        delete this.editedRoles[id];
+      }
+    },
+    async confirmRoleChange(userId: number) {
+      const authStore = useAuthStore();
+      const newRole = this.editedRoles[userId];
+      if (!authStore.isAuthenticated) {
+        alert("Please log in to access this page.");
+        return;
+      }
+
+      try {
+        await api.patch(
+          `http://localhost:8000/user/${userId}/role`,
+          { role: newRole },
+          {
+            headers: {
+              Authorization: `Bearer ${authStore.token}`,
+            },
+          }
+        );
+
+        alert("Role updated successfully!");
+        delete this.editedRoles[userId];
+        this.getUsers();
+      } catch (error) {
+        console.error("Error updating role:", error);
+        alert("Failed to update role.");
+      }
     },
   },
   mounted() {
+    const authStore = useAuthStore();
+    if (!authStore.isAuthenticated || authStore.user?.role !== 2) {
+      alert("Admin access required");
+      this.$router.push("/");
+      return;
+    }
     this.getUsers();
   },
 };
@@ -51,42 +109,39 @@ export default {
     <table class="users-table table-fixed">
       <thead>
         <tr>
-          <th>Meno</th>
+          <th>First Name</th>
+          <th>Last Name</th>
           <th>Email</th>
-          <th>Rola</th>
-          <th>Vytvorený</th>
-          <th>Upravený</th>
-          <th>Akcie</th>
+          <th>Role</th>
+          <th>Created At</th>
+          <th>Edited At</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="user in users" :key="user.id">
-          <td>{{ user.name }}</td>
-          <td class="break-words">{{ user.email }}</td>
+          <td>{{ user.first_name }}</td>
+          <td>{{ user.last_name }}</td>
+          <td class="break-words">{{ user.user_email }}</td>
           <td>
-            <select
-              class="cursor-pointer rounded-lg text-sm text-white button-green px-2 py-1"
-              @change="changeUserRole(user.id, $event)"
-            >
-              <option :selected="user.role === 'admin'" value="admin">
-                Admin
-              </option>
-              <option :selected="user.role === 'editor'" value="editor">
-                Editor
-              </option>
-              <option :selected="user.role === 'user'" value="user">
-                Používateľ
-              </option>
+            <select class="cursor-pointer rounded-lg text-sm text-white button-green px-2 py-1"
+              @change="changeUserRole(user.id, $event)" :value="user.role">
+              <option :value="2">Admin</option>
+              <option :value="1">Editor</option>
+              <option :value="0">User</option>
             </select>
           </td>
-          <td>{{ user.createdAt }}</td>
-          <td>{{ user.updatedAt || "–" }}</td>
+          <td>{{ user.registered_at }}</td>
+          <td>{{ user.edited_at ? user.edited_at : 'Not Edited' }}</td>
           <td>
-            <button
-              class="cursor-pointer rounded-lg text-sm text-white button-red px-2 py-1"
-              @click="deleteUser(user.id)"
-            >
-              Odstrániť
+            <button class="cursor-pointer rounded-lg text-sm text-white button-red px-2 py-1"
+              @click="deleteUser(user.id)">
+              Delete
+            </button>
+            <button v-if="editedRoles[user.id]"
+              class="cursor-pointer rounded-lg text-sm text-white button-green px-2 py-1"
+              @click="confirmRoleChange(user.id)">
+              Confirm
             </button>
           </td>
         </tr>
@@ -98,41 +153,42 @@ export default {
   <div class="md:hidden">
     <div v-for="user in users" :key="user.id" class="mobile-user-card">
       <div class="user-field">
-        <span class="field-label">Meno:</span>
-        <span>{{ user.name }}</span>
+        <span class="field-label">First name:</span>
+        <span>{{ user.first_name }}</span>
+      </div>
+      <div class="user-field">
+        <span class="field-label">Last name:</span>
+        <span>{{ user.last_name }}</span>
       </div>
       <div class="user-field">
         <span class="field-label">Email:</span>
-        <span>{{ user.email }}</span>
+        <span>{{ user.user_email }}</span>
       </div>
       <div class="user-field">
-        <span class="field-label">Rola:</span>
-        <select
-          class="cursor-pointer rounded-lg text-sm text-white button-green px-2 py-1"
-          @change="changeUserRole(user.id, $event)"
-        >
-          <option :selected="user.role === 'admin'" value="admin">Admin</option>
-          <option :selected="user.role === 'editor'" value="editor">
-            Editor
-          </option>
-          <option :selected="user.role === 'user'" value="user">User</option>
+        <span class="field-label">Role:</span>
+        <select class="cursor-pointer rounded-lg text-sm text-white button-green px-2 py-1"
+          @change="changeUserRole(user.id, $event)" :value="user.role">
+          <option :value="2">Admin</option>
+          <option :value="1">Editor</option>
+          <option :value="0">User</option>
         </select>
       </div>
       <div class="user-field">
-        <span class="field-label">Vytvorený:</span>
-        <span>{{ user.createdAt }}</span>
+        <span class="field-label">Created:</span>
+        <span>{{ user.registered_at }}</span>
       </div>
       <div class="user-field">
-        <span class="field-label">Upravený:</span>
-        <span>{{ user.updatedAt || "–" }}</span>
+        <span class="field-label">Edited:</span>
+        <span>{{ user.edited_at ? user.edited_at : 'Not Edited' }}</span>
       </div>
       <div class="user-field">
-        <span class="field-label">Akcie:</span>
-        <button
-          class="cursor-pointer rounded-lg text-sm text-white button-red px-2 py-1"
-          @click="deleteUser(user.id)"
-        >
-          Odstrániť
+        <span class="field-label">Actions:</span>
+        <button class="cursor-pointer rounded-lg text-sm text-white button-red px-2 py-1" @click="deleteUser(user.id)">
+          Delete
+        </button>
+        <button v-if="editedRoles[user.id]" class="cursor-pointer rounded-lg text-sm text-white button-green px-2 py-1"
+          @click="confirmRoleChange(user.id)">
+          Confirm
         </button>
       </div>
     </div>
@@ -142,7 +198,6 @@ export default {
 <style>
 @import "tailwindcss";
 
-/* desktop */
 .users-table {
   @apply w-full;
 }
@@ -167,7 +222,6 @@ export default {
   @apply text-left p-3;
 }
 
-/* mobile */
 .mobile-user-card {
   @apply bg-green-100 p-4 mb-4 rounded-lg;
 }

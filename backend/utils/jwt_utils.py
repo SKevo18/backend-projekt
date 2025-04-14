@@ -1,11 +1,18 @@
 import jwt
 from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException
+import os
+from dotenv import load_dotenv
 
-SECRET_KEY = "Trz32_afRs1c_35tf14yvc_hksdpGRRq_2dV"  
+
+load_dotenv()
+
+SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    raise RuntimeError("SECRET_KEY not found in environment variables.") #potom delete
 
 
-def create_access_token(data: dict, expires_delta: timedelta = timedelta(hours=12)): 
+def create_access_token(data: dict, expires_delta: timedelta = timedelta(hours=12)):
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + expires_delta
     to_encode.update({"exp": expire})
@@ -13,7 +20,7 @@ def create_access_token(data: dict, expires_delta: timedelta = timedelta(hours=1
     return encoded_jwt
 
 
-def verify_access_token(token: str):
+def verify_access_token(token: str) -> dict:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
         return payload

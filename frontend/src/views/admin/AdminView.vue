@@ -1,42 +1,53 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
+import { useAuthStore } from '@/store/authStore';
 
 export default defineComponent({
   name: "AdminView",
+  setup() {
+    const authStore = useAuthStore();
+    return { authStore };
+  },
 });
 </script>
 
 <template>
   <div class="p-6">
-    <div class="mb-0">
-      <nav class="tab-nav">
-        <RouterLink
-          :to="{ name: 'admin-settings' }"
-          class="tab-link"
-          active-class="tab-active"
-        >
-          Nastavenia
-        </RouterLink>
-        <RouterLink
-          :to="{ name: 'admin-users' }"
-          class="tab-link"
-          active-class="tab-active"
-        >
-          Používatelia
-        </RouterLink>
-        <RouterLink
-          :to="{ name: 'admin-pages' }"
-          class="tab-link"
-          active-class="tab-active"
-        >
-          Stránky
-        </RouterLink>
-      </nav>
+    <div v-if="!authStore.isAdmin" class="text-center p-8">
+      <h1 class="text-xl font-bold">Access Denied</h1>
+      <p>You don't have permission to view this page</p>
     </div>
+    <template v-else>
+      <div class="mb-0">
+        <nav class="tab-nav">
+          <RouterLink
+            :to="{ name: 'admin-settings' }"
+            class="tab-link"
+            active-class="tab-active"
+          >
+            Nastavenia
+          </RouterLink>
+          <RouterLink
+            :to="{ name: 'admin-users' }"
+            class="tab-link"
+            active-class="tab-active"
+          >
+            Používatelia
+          </RouterLink>
+          <RouterLink
+            :to="{ name: 'admin-pages' }"
+            class="tab-link"
+            active-class="tab-active"
+          >
+            Stránky
+          </RouterLink>
+        </nav>
+      </div>
 
       <div class="tab-content">
-          <RouterView />
+        <RouterView />
       </div>
+    </template>
   </div>
 </template>
 

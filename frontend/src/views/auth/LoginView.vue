@@ -9,13 +9,31 @@ export default defineComponent({
       email: "",
       password: "",
       authStore: useAuthStore(),
+      info: "",
     };
   },
   methods: {
     async handleLogin() {
-      let success = await this.authStore.login(this.email, this.password);
-      if (success) {
-        this.$router.push("/");
+      try {
+        let response = await this.authStore.login(this.email, this.password);
+        if (response.status === 200) {
+          this.$router.push("/");
+        } else {
+          this.info = response.data.msg;
+        }
+      } catch (error) {
+        console.log(error);
+        if (
+          error.response?.data?.detail &&
+          Array.isArray(error.response.data.detail)
+        ) {
+          const errorMessages = error.response.data.detail.map(
+            (err) => err.msg
+          );
+          this.info = errorMessages.join(", ");
+        } else {
+          this.info = error.response?.data?.detail || "Prihlásenie zlyhalo...";
+        }
       }
     },
   },
@@ -23,7 +41,7 @@ export default defineComponent({
 </script>
 
 <template>
-  <div class="auth-form-container">
+  <div class="auth-form-container my-6">
     <form @submit.prevent="handleLogin" class="auth-form">
       <fieldset>
         <legend>Prihlásenie</legend>
@@ -35,12 +53,20 @@ export default defineComponent({
 
         <div class="form-group">
           <label for="password">Heslo</label>
-          <input type="password" id="password" v-model="password" required />
+          <input
+            type="password"
+            id="password"
+            v-model="password"
+            minlength="8"
+            required
+          />
         </div>
 
         <button class="button button-green" type="submit">Prihlásiť sa</button>
       </fieldset>
     </form>
+
+    <div v-if="info" class="text-center text-red-500 my-6">{{ info }}</div>
   </div>
 </template>
 
