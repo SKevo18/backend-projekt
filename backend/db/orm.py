@@ -1,6 +1,6 @@
 import typing as t
 from datetime import datetime
-from sqlalchemy import String, Text, ForeignKey
+from sqlalchemy import String, ForeignKey
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.dialects.mysql import LONGTEXT
 import uuid
@@ -26,6 +26,7 @@ class User(Base):
     )
     user_password: Mapped[str] = mapped_column(String(length=80), nullable=False)
     registered_at: Mapped[datetime] = mapped_column(default=datetime.now)
+    edited_at: Mapped[datetime] = mapped_column(onupdate=datetime.now, nullable=True)  # Добавляем поле
 
 
 class Category(Base):

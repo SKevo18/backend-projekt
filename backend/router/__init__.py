@@ -5,6 +5,7 @@ from router.category_crud import CATEGORY_ROUTER
 from router.email import EMAIL_ROUTER
 from router.page_crud import PAGE_CRUD_ROUTER
 from router.upload_controller import UPLOAD_CONTROLLER
+from router.user_router import USER_ROUTER
 
 ROOT_ROUTER = fa.APIRouter()
 
@@ -21,4 +22,5 @@ ALL_CONTROLLERS = [
     EMAIL_ROUTER,
     PAGE_CRUD_ROUTER,
     UPLOAD_CONTROLLER,
+    USER_ROUTER,
 ]
