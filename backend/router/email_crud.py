@@ -13,6 +13,7 @@ from datetime import datetime
 EMAIL_ROUTER = APIRouter(prefix="/email")
 # TODO: použiť adminov mail:
 TEST_EMAIL = os.getenv("test_email_recipient")
+FRONTEND_URL = os.getenv("FRONTEND_URL")
 
 
 class EmailResetRequest(BaseModel):
@@ -67,10 +68,8 @@ def password_reset(req: EmailResetRequest, db: Session = Depends(get_db)):
     )
     db.add(password_reset)
     db.commit()
-    FRONTEND_URL = os.getenv("FRONTEND_URL")
-    reset_link = f"{FRONTEND_URL}/reset-password?token={reset_token}"
 
-    
+    reset_link = f"{FRONTEND_URL}/reset-password?token={reset_token}"
     message = f"Click here to reset your password: {reset_link}"
     send_email(req.email, "Password Reset", message)
 
