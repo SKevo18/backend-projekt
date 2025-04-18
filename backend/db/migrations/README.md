@@ -11,7 +11,7 @@ Zmysel migrácií je popísať, ako sa databáza mení naprieč verziami apliká
 Všetky migrácie sa spravujú pomocou terminálu cez príkaz `alembic`, ktorý je platformovo nezávislý a funguje rovnako ako na Macu a Linuxe, tak aj na Windowse (ak je tento modul správne nainštalovaný vo venv a to venv je aktivované). S každým príkazom `alembic` sa musíme nachádzať v priečinku pre migrácie, to jest:
 
 ```bash
-cd backend/db/migrations # ak predpokladáme, že aktuálne sme v koreňovom adresári projektu
+cd backend/db # ak predpokladáme, že aktuálne sme v koreňovom adresári projektu
 ```
 
 ### Pridanie novej migrácie
