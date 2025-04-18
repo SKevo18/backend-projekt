@@ -8,7 +8,6 @@ from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
 from sqlalchemy.dialects.mysql import insert
 from utils.mail import send_email, get_setting
-import bcrypt
 from datetime import datetime
 
 EMAIL_ROUTER = APIRouter(prefix="/email")
@@ -32,8 +31,10 @@ class PasswordUpdateRequest(BaseModel):
 
 @EMAIL_ROUTER.post("/password_update")
 def password_update(req: PasswordUpdateRequest, db: Session = Depends(get_db)):
-    password_reset = db.query(PasswordReset).filter_by(token=req.token, used=False).first()
-    
+    password_reset = (
+        db.query(PasswordReset).filter_by(token=req.token, used=False).first()
+    )
+
     if not password_reset:
         raise HTTPException(status_code=404, detail="Invalid or expired token")
 
@@ -41,8 +42,9 @@ def password_update(req: PasswordUpdateRequest, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    hashed_password = bcrypt.hashpw(req.new_password.encode('utf-8'), bcrypt.gensalt())
-    user.user_password = hashed_password.decode('utf-8')
+    from utils.password import hash_password
+
+    user.user_password = hash_password(req.new_password)
     password_reset.used = True
     password_reset.edited_at = datetime.now()
 
@@ -87,7 +89,6 @@ def save_smtp(req: SaveSMTPRequest, db: Session = Depends(get_db)):
     db.commit()
 
     return {"message": "SMTP settings saved"}
-
 
 @EMAIL_ROUTER.post("/send_test_email")
 def send_test_email():
