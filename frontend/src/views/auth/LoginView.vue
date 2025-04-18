@@ -36,6 +36,9 @@ export default defineComponent({
         }
       }
     },
+    goToForgotPassword() {
+      this.$router.push({ name: "forgot-password" });
+    },
   },
 });
 </script>
@@ -62,7 +65,15 @@ export default defineComponent({
           />
         </div>
 
-        <button class="button button-green" type="submit">Prihlásiť sa</button>
+        <div class="flex justify-between items-center w-full">
+          <button type="button" @click="goToForgotPassword" class="text-blue-600 hover:underline text-sm font-medium">
+            Zabudli ste heslo?
+          </button>
+
+          <button type="submit" class="button button-green">
+            Prihlásiť sa
+          </button>
+        </div>
       </fieldset>
     </form>
 

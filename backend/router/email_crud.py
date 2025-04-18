@@ -2,12 +2,14 @@ import uuid
 
 import os
 from db import get_db
-from db.orm import User, Setting
+from db.orm import User, Setting, PasswordReset
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
 from sqlalchemy.dialects.mysql import insert
 from utils.mail import send_email, get_setting
+import bcrypt
+from datetime import datetime
 
 EMAIL_ROUTER = APIRouter(prefix="/email")
 # TODO: použiť adminov mail:
@@ -24,6 +26,30 @@ class SaveSMTPRequest(BaseModel):
     email_sender: str
     email_password: str
 
+class PasswordUpdateRequest(BaseModel):
+    token: str
+    new_password: str
+
+@EMAIL_ROUTER.post("/password_update")
+def password_update(req: PasswordUpdateRequest, db: Session = Depends(get_db)):
+    password_reset = db.query(PasswordReset).filter_by(token=req.token, used=False).first()
+    
+    if not password_reset:
+        raise HTTPException(status_code=404, detail="Invalid or expired token")
+
+    user = db.query(User).filter_by(id=password_reset.user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    hashed_password = bcrypt.hashpw(req.new_password.encode('utf-8'), bcrypt.gensalt())
+    user.user_password = hashed_password.decode('utf-8')
+    password_reset.used = True
+    password_reset.edited_at = datetime.now()
+
+    db.commit()
+
+    return {"message": "Password successfully updated"}
+
 
 @EMAIL_ROUTER.post("/password_reset")
 def password_reset(req: EmailResetRequest, db: Session = Depends(get_db)):
@@ -32,7 +58,16 @@ def password_reset(req: EmailResetRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
 
     reset_token = str(uuid.uuid4())
-    reset_link = f"http://localhost:5173/reset-password?token={reset_token}"
+    password_reset = PasswordReset(
+        user_id=user.id,
+        token=reset_token,
+        created_at=datetime.now(),
+    )
+    db.add(password_reset)
+    db.commit()
+    FRONTEND_URL = os.getenv("FRONTEND_URL")
+    reset_link = f"{FRONTEND_URL}/reset-password?token={reset_token}"
+
     
     message = f"Click here to reset your password: {reset_link}"
     send_email(req.email, "Password Reset", message)
