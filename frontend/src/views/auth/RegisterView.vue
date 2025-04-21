@@ -53,12 +53,12 @@ export default defineComponent({
         <legend>Register</legend>
 
         <div class="form-group">
-          <label for="first_name">Name</label>
+          <label for="first_name">First name</label>
           <input type="text" id="first_name" v-model="first_name" required />
         </div>
 
         <div class="form-group">
-          <label for="last_name">Last name  </label>
+          <label for="last_name">Last name</label>
           <input type="text" id="last_name" v-model="last_name" required />
         </div>
 

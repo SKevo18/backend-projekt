@@ -32,7 +32,7 @@ export default defineComponent({
 <template>
   <header>
     <div class="header-topnav" v-if="!$authStore.isAuthenticated">
-      <RouterLink :to="{ name: 'login' }" active-class="nav-link-active">Log in</RouterLink>
+      <RouterLink :to="{ name: 'login' }" active-class="nav-link-active">Login</RouterLink>
       <span> | </span>
       <RouterLink :to="{ name: 'register' }" active-class="nav-link-active">Register</RouterLink>
     </div>
@@ -40,7 +40,7 @@ export default defineComponent({
     <div class="header-topnav" v-else>
       <RouterLink :to="{ name: 'admin-settings' }" active-class="nav-link-active">Administration</RouterLink>
       <span> | </span>
-      <a class="logout-link" @click="logout">Log out</a>
+      <a class="logout-link" @click="logout">Logout</a>
     </div>
 
     <div class="header-content">

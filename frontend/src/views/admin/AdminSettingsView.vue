@@ -34,12 +34,12 @@ const saveSmtpSettings = async () => {
     if (response.status == 200) {
       alert("SMTP settings have been saved.");
     } else {
-      alert("Saving error.");
+      alert("Error when saving the SMTP settings.");
     }
   } catch (error: any) {
     if (error.response) {
       console.error("Server error:", error.response.data);
-      alert("Saving error: " + error.response.data.detail);
+      alert("Error when saving the SMTP settings: " + error.response.data.detail);
     } else {
       console.error("Network error:", error);
       alert("Server connection error.");
@@ -55,10 +55,10 @@ const sendTestEmail = async () => {
     if (response.status == 200) {
       testEmailStatus.value = "The test email has been sent.";
     } else {
-      testEmailStatus.value = "Error sending test email:.";
+      testEmailStatus.value = `Error sending test email: ${response?.data?.detail || "Unknown error"}`;
     }
   } catch (error: any) {
-    testEmailStatus.value = error.response?.data?.detail;
+    testEmailStatus.value = `Error sending test email: ${error.response?.data?.detail || "Unknown error"}`;
     console.error(error);
   }
 };

@@ -18,7 +18,7 @@ const handlePasswordReset = async () => {
     error.value = "";
 
     if (!password.value || !confirmPassword.value) {
-        error.value = "Please enter both passwords.";
+        error.value = "Please enter the new password and confirm it.";
         return;
     }
 

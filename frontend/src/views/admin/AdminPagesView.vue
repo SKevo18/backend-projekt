@@ -78,7 +78,7 @@ export default defineComponent({
         this.activeCategoryForm = null;
         await this.loadCategoryPages(categoryId);
       } catch {
-        alert("Error when adding a page.");
+        alert("Error when adding the page.");
       }
     },
     async updatePage(page: any) {
@@ -120,7 +120,7 @@ export default defineComponent({
         this.newCategory = "";
         this.showAddCategoryForm = false;
       } catch {
-        alert("Error when adding a category.");
+        alert("Error when adding the category.");
       }
     },
     async deletePage(page: any) {
@@ -131,7 +131,7 @@ export default defineComponent({
           await this.pagesStore.deletePage(page);
           await this.loadCategoryPages(categoryId);
         } catch {
-          alert("Error when deleting a page.");
+          alert("Error when deleting the page.");
         }
       }
     },
@@ -155,13 +155,13 @@ export default defineComponent({
 
     async deleteCategory(category: any) {
       if (
-        confirm(`Do you really want to delete a category "${category.title}"? This will also remove all the pages in it.`)
+        confirm(`Do you really want to delete the category "${category.title}"? This will also remove all the pages in it.`)
       ) {
         try {
           await this.pagesStore.deleteCategory(category);
           await this.pagesStore.fetchCategories();
         } catch {
-          alert("Error when deleting a category.");
+          alert("Error when deleting the category.");
         }
       }
     },

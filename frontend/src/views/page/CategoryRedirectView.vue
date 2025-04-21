@@ -33,7 +33,7 @@ export default defineComponent({
 
         if (isNaN(this.categoryId)) {
           this.loading = false;
-          this.info = `Invalid category identifier: "${this.category}"`;
+          this.info = `Invalid category ID: "${this.categoryId}"`;
           return;
         }
 

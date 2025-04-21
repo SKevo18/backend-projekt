@@ -18,10 +18,10 @@ const sendEmail = async () => {
     if (response.status === 200) {
       message.value = `A password reset link has been sent to your email.`;
     } else {
-      error.value = "There was an error when sending an email.";
+      error.value = "There was an error when sending the email.";
     }
   } catch (err: any) {
-    error.value = err.response?.data?.detail || "Error sending email.";
+    error.value = "There was an error when sending the email.";
     console.error(err);
   }
 };

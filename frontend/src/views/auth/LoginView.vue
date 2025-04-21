@@ -71,7 +71,7 @@ export default defineComponent({
           </button>
 
           <button type="submit" class="button button-green">
-            Log in
+            Login
           </button>
         </div>
       </fieldset>

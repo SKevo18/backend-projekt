@@ -39,7 +39,7 @@ export default defineComponent({
             class="tab-link"
             active-class="tab-active"
           >
-            Website
+            Pages
           </RouterLink>
         </nav>
       </div>

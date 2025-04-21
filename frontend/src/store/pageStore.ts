@@ -111,7 +111,7 @@ export const usePagesStore = defineStore("pages", {
           this.pages.push(response.data);
           await this.fetchPages(category_id);
         } catch (error) {
-          this.error = `Failed to create a page "${title}".`;
+          this.error = `Failed to create page "${title}".`;
         }
       } else {
         alert(`The page called "${title}" already exists.`);
