@@ -32,17 +32,17 @@ const saveSmtpSettings = async () => {
     const response = await api.post("/email/save_smtp", payload);
 
     if (response.status == 200) {
-      alert("SMTP nastavenia boli uložené.");
+      alert("SMTP settings have been saved.");
     } else {
-      alert("Chyba pri ukladaní.");
+      alert("Error when saving the SMTP settings.");
     }
   } catch (error: any) {
     if (error.response) {
       console.error("Server error:", error.response.data);
-      alert("Chyba pri ukladaní: " + error.response.data.detail);
+      alert("Error when saving the SMTP settings: " + error.response.data.detail);
     } else {
       console.error("Network error:", error);
-      alert("Chyba pripojenia k serveru.");
+      alert("Server connection error.");
     }
   }
 };
@@ -53,12 +53,12 @@ const sendTestEmail = async () => {
     const response = await api.post("/email/send_test_email");
 
     if (response.status == 200) {
-      testEmailStatus.value = "Testovací email bol odoslaný.";
+      testEmailStatus.value = "The test email has been sent.";
     } else {
-      testEmailStatus.value = "Chyba pri odosielaní testovacieho emailu:.";
+      testEmailStatus.value = `Error sending test email: ${response?.data?.detail || "Unknown error"}`;
     }
   } catch (error: any) {
-    testEmailStatus.value = error.response?.data?.detail;
+    testEmailStatus.value = `Error sending test email: ${error.response?.data?.detail || "Unknown error"}`;
     console.error(error);
   }
 };
@@ -74,7 +74,7 @@ onMounted(async () => {
     smtpPassword.value = data?.email_password ?? "";
 
   } catch (error) {
-    console.error("Chyba pri načítavaní nastavení SMTP:", error);
+    console.error("Error loading SMTP settings:", error);
   }
 });
 </script>

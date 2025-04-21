@@ -39,7 +39,7 @@ export const useAuthStore = defineStore("auth", {
       if (password !== confirmPassword) {
         return {
           success: false,
-          msg: "Heslá sa nezhodujú",
+          msg: "Passwords do not match",
         };
       }
 

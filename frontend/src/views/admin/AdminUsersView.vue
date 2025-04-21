@@ -82,7 +82,6 @@ export default {
           }
         );
 
-        alert("Role updated successfully!");
         delete this.editedRoles[userId];
         this.getUsers();
       } catch (error) {

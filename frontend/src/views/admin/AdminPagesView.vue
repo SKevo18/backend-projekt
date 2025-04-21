@@ -63,11 +63,11 @@ export default defineComponent({
     },
     async addPage(categoryId: number) {
       if (!this.title.trim()) {
-        alert("Prosím, zadajte názov stránky.");
+        alert("Please enter the name of the page.");
         return;
       }
       if (this.slugConflict) {
-        alert("Slug je už zabraný, zvoľte iný.");
+        alert("Slug is already taken, choose another.");
         return;
       }
       try {
@@ -78,11 +78,11 @@ export default defineComponent({
         this.activeCategoryForm = null;
         await this.loadCategoryPages(categoryId);
       } catch {
-        alert("Chyba pri pridávaní stránky.");
+        alert("Error when adding the page.");
       }
     },
     async updatePage(page: any) {
-      if (!page?.id) return alert("Chýba ID stránky!");
+      if (!page?.id) return alert("Page ID is missing!");
       try {
         await this.pagesStore.updatePage(page.id, {
           title: this.editTitle,
@@ -99,7 +99,7 @@ export default defineComponent({
           await this.loadCategoryPages(page.category_id);
         }
       } catch {
-        alert("Chyba pri aktualizácii stránky.");
+        alert("Error when updating the page.");
       }
     },
     startEditingPage(page: any) {
@@ -111,7 +111,7 @@ export default defineComponent({
     async addCategory() {
       const title = this.newCategory.trim();
       if (!title) {
-        alert("Prosím, zadajte názov kategórie.");
+        alert("Please enter the name of the category.");
         return;
       }
       try {
@@ -120,18 +120,18 @@ export default defineComponent({
         this.newCategory = "";
         this.showAddCategoryForm = false;
       } catch {
-        alert("Chyba pri pridávaní kategórie.");
+        alert("Error when adding the category.");
       }
     },
     async deletePage(page: any) {
-      if (!page?.id) return alert("Chyba ID stránky");
-      if (confirm(`Chcete naozaj vymazať stránku "${page.title}"?`)) {
+      if (!page?.id) return alert("Page ID error");
+      if (confirm(`Do you really want to delete the page "${page.title}"?`)) {
         try {
           const categoryId = page.category_id;
           await this.pagesStore.deletePage(page);
           await this.loadCategoryPages(categoryId);
         } catch {
-          alert("Chyba pri mazaní stránky.");
+          alert("Error when deleting the page.");
         }
       }
     },
@@ -142,26 +142,26 @@ export default defineComponent({
 
     async updateCategory(category: any) {
       const newTitle = this.editCategoryTitle.trim();
-      if (!newTitle) return alert("Názov kategórie nemôže byť prázdny.");
+      if (!newTitle) return alert("The category name cannot be empty.");
 
       try {
         await this.pagesStore.updateCategory(category.id, { title: newTitle });
         this.editingCategoryId = null;
         await this.pagesStore.fetchCategories();
       } catch {
-        alert("Chyba pri aktualizácii kategórie.");
+        alert("Category update error.");
       }
     },
 
     async deleteCategory(category: any) {
       if (
-        confirm(`Chcete naozaj vymazať kategóriu "${category.title}"? Tým sa odstránia aj všetky stránky v nej.`)
+        confirm(`Do you really want to delete the category "${category.title}"? This will also remove all the pages in it.`)
       ) {
         try {
           await this.pagesStore.deleteCategory(category);
           await this.pagesStore.fetchCategories();
         } catch {
-          alert("Chyba pri mazaní kategórie.");
+          alert("Error when deleting the category.");
         }
       }
     },

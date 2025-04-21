@@ -31,7 +31,7 @@ export const usePagesStore = defineStore("pages", {
         this.pagesByCategory[category_id] = pages;
         return pages;
       } catch (error) {
-        this.error = "Nepodarilo sa načítať stránky.";
+        this.error = "Failed to load pages.";
         return [];
       }
     },
@@ -50,7 +50,7 @@ export const usePagesStore = defineStore("pages", {
         const response = await api.get("/category/");
         this.categories = response.data;
       } catch (error) {
-        this.error = "Nepodarilo sa načítať kategórie.";
+        this.error = "Failed to load categories.";
       }
     },
 
@@ -73,7 +73,7 @@ export const usePagesStore = defineStore("pages", {
         await api.put(`/category/${category_id}`, updatedData);
       }
       catch (error) {
-        this.error = `Nepodarilo sa aktualizovať kategóriu ${category_id}.`;
+        this.error = `Failed to update category ${category_id}.`;
         throw error;
       }
     },
@@ -84,7 +84,7 @@ export const usePagesStore = defineStore("pages", {
         delete this.pagesByCategory[category.id];
         this.pages = this.pages.filter((page) => page.category_id !== category.id);
       } catch (error) {
-        this.error = `Nepodarilo sa odstrániť kategóriu ${category.id}.`;
+        this.error = `Failed to remove category ${category.id}.`;
         throw error;
       }
     },
@@ -95,7 +95,7 @@ export const usePagesStore = defineStore("pages", {
       );
 
       if (!categoryExists) {
-        this.error = `Neplatná kategória s ID ${category_id}.`;
+        this.error = `Invalid category with ID ${category_id}.`;
         alert(this.error);
         return;
       }
@@ -111,10 +111,10 @@ export const usePagesStore = defineStore("pages", {
           this.pages.push(response.data);
           await this.fetchPages(category_id);
         } catch (error) {
-          this.error = `Nepodarilo sa vytvoriť stránku "${title}".`;
+          this.error = `Failed to create page "${title}".`;
         }
       } else {
-        alert(`Stránka s názvom "${title}" už existuje.`);
+        alert(`The page called "${title}" already exists.`);
       }
     },
 
@@ -122,7 +122,7 @@ export const usePagesStore = defineStore("pages", {
       try {
         await api.put(`/page/${page_id}`, updatedData);
       } catch (error) {
-        this.error = `Nepodarilo sa aktualizovať stránku ${page_id}.`;
+        this.error = `Failed to update page ${page_id}.`;
         throw error;
       }
     },
@@ -132,7 +132,7 @@ export const usePagesStore = defineStore("pages", {
         await api.delete(`/page/${page.id}`);
         await this.fetchPages(page.category_id);
       } catch (error) {
-        this.error = `Nepodarilo sa odstrániť stránku ${page.id}.`;
+        this.error = `Failed to delete page ${page.id}.`;
       }
     },
   },

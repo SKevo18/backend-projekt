@@ -32,7 +32,7 @@ export default defineComponent({
           );
           this.info = errorMessages.join(", ");
         } else {
-          this.info = error.response?.data?.detail || "Prihlásenie zlyhalo...";
+          this.info = error.response?.data?.detail || "Login failed...";
         }
       }
     },
@@ -47,7 +47,7 @@ export default defineComponent({
   <div class="auth-form-container my-6">
     <form @submit.prevent="handleLogin" class="auth-form">
       <fieldset>
-        <legend>Prihlásenie</legend>
+        <legend>Login</legend>
 
         <div class="form-group">
           <label for="email">Email</label>
@@ -55,7 +55,7 @@ export default defineComponent({
         </div>
 
         <div class="form-group">
-          <label for="password">Heslo</label>
+          <label for="password">Password</label>
           <input
             type="password"
             id="password"
@@ -67,11 +67,11 @@ export default defineComponent({
 
         <div class="flex justify-between items-center w-full">
           <button type="button" @click="goToForgotPassword" class="text-blue-600 hover:underline text-sm font-medium">
-            Zabudli ste heslo?
+            Forgot your password?
           </button>
 
           <button type="submit" class="button button-green">
-            Prihlásiť sa
+            Login
           </button>
         </div>
       </fieldset>
