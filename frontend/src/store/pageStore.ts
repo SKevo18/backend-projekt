@@ -31,7 +31,7 @@ export const usePagesStore = defineStore("pages", {
         this.pagesByCategory[category_id] = pages;
         return pages;
       } catch (error) {
-        this.error = "Failed to load page.";
+        this.error = "Failed to load pages.";
         return [];
       }
     },
