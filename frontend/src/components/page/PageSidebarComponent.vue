@@ -105,7 +105,7 @@ export default defineComponent({
           v-else-if="category.id === activeCategoryId"
           class="p-2 text-center text-xs text-gray-400"
         >
-          Žiadne stránky
+          No pages
         </div>
       </div>
     </div>

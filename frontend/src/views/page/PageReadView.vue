@@ -43,7 +43,7 @@ export default defineComponent({
       pagesStore: usePagesStore(),
       slug: "",
       categoryId: null as number | null,
-      pageHtml: "<i>Stránka sa nenašla.</i>",
+      pageHtml: "<i>Page not found.</i>",
       files: [] as any[],
       title: "",
       pageFound: false,
@@ -59,7 +59,7 @@ export default defineComponent({
         const id = parseInt(idSlug.split("-")[0]);
         if (isNaN(id)) {
           this.pageFound = false;
-          this.pageHtml = "<i>Neplatné ID stránky.</i>";
+          this.pageHtml = "<i>Invalid page ID.</i>";
           return;
         }
 
@@ -69,12 +69,12 @@ export default defineComponent({
         this.pageFound = true;
         this.slug = page.slug;
         this.pageHtml =
-          page?.html_content || "<i>Stránka nemá žiadny obsah.</i>";
+          page?.html_content || "<i>The page has no content.</i>";
         this.title = page?.title || "";
         this.categoryId = page?.category_id || null;
       } catch (error) {
         this.pageFound = false;
-        this.pageHtml = "<i>Stránka sa nenašla.</i>";
+        this.pageHtml = "<i>Page not found.</i>";
         this.categoryId = null;
       }
 
@@ -88,7 +88,7 @@ export default defineComponent({
         const response = await api.get(`/page/${this.pageId}/upload/`);
         this.files = response.data;
       } catch (error) {
-        console.error("Chyba pri načítaní súborov:", error);
+        console.error("Error loading files:", error);
         this.files = [];
       }
     },

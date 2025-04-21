@@ -6,9 +6,9 @@ export default {
 
 <template>
   <div class="not-found-container">
-    <h1 class="title mb-2">404 - Stránka nenájdená</h1>
-    <p>Stránka ktorú hľadáte neexistuje.</p>
-    <RouterLink :to="{ name: 'home' }">Vrátiť sa domov</RouterLink>
+    <h1 class="title mb-2">404 - Page not found</h1>
+    <p>The page you are looking for does not exist.</p>
+    <RouterLink :to="{ name: 'home' }">Returning home</RouterLink>
   </div>
 </template>
 

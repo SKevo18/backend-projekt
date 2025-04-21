@@ -72,7 +72,7 @@ export default {
       for (const file of newFiles) {
         if (file.size > 1024 * 1024 * 10) {
           alert(
-            `Maximálna povolená veľkosť súboru je 10 MB (${file.name} má ${file.size} B)`
+            `The maximum allowed file size is 10 MB  (${file.name} has ${file.size} B)`
           );
           return;
         }
@@ -109,7 +109,7 @@ export default {
       }
     },
     async removeFile(file: any) {
-      if (!confirm(`Naozaj chcete odstrániť súbor ${file.name}?`)) {
+      if (!confirm(`Do you really want to delete the file ${file.name}?`)) {
         return;
       }
 
@@ -119,7 +119,7 @@ export default {
           this.files = this.files.filter((f) => f.name !== file.name);
         } catch (error) {
           console.error(`Failed to delete file ${file.name}:`, error);
-          alert(`Nepodarilo sa odstrániť súbor ${file.name}`);
+          alert(`Failed to delete file ${file.name}`);
         }
       } else {
         this.files = this.files.filter((f) => f !== file);

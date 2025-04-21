@@ -12,7 +12,7 @@ export default defineComponent({
       password: "",
       confirmPassword: "",
       registeredSuccessfully: null as boolean | null,
-      errorInfo: "Neznáma chyba",
+      errorInfo: "Unknown error",
       authStore: useAuthStore(),
     };
   },
@@ -37,7 +37,7 @@ export default defineComponent({
           );
           this.errorInfo = errorMessages.join(", ");
         } else {
-          this.errorInfo = error.response?.data?.detail || "Neznáma chyba...";
+          this.errorInfo = error.response?.data?.detail || "Unknown error...";
         }
         this.registeredSuccessfully = false;
       }
@@ -50,15 +50,15 @@ export default defineComponent({
   <div class="form-container my-6" v-if="registeredSuccessfully === null">
     <form @submit.prevent="handleRegister" class="auth-form">
       <fieldset>
-        <legend>Registrácia</legend>
+        <legend>Register</legend>
 
         <div class="form-group">
-          <label for="first_name">Meno</label>
+          <label for="first_name">Name</label>
           <input type="text" id="first_name" v-model="first_name" required />
         </div>
 
         <div class="form-group">
-          <label for="last_name">Priezvisko </label>
+          <label for="last_name">Last name  </label>
           <input type="text" id="last_name" v-model="last_name" required />
         </div>
 
@@ -68,7 +68,7 @@ export default defineComponent({
         </div>
 
         <div class="form-group">
-          <label for="password">Heslo</label>
+          <label for="password">Password</label>
           <input
             type="password"
             id="password"
@@ -79,7 +79,7 @@ export default defineComponent({
         </div>
 
         <div class="form-group">
-          <label for="confirmPassword">Potvrdenie hesla</label>
+          <label for="confirmPassword">Confirmation password </label>
           <input
             type="password"
             id="confirmPassword"
@@ -88,7 +88,7 @@ export default defineComponent({
           />
         </div>
 
-        <button class="button button-green" type="submit">Registrovať</button>
+        <button class="button button-green" type="submit">Register</button>
       </fieldset>
     </form>
   </div>
@@ -96,8 +96,8 @@ export default defineComponent({
   <div class="info-container" v-else-if="registeredSuccessfully">
     <div class="success">
       <h1>
-        Úspešne ste sa registrovali!<br />
-        Skontrolujte si e-mail pre overenie.
+        You have successfully registered!<br />
+        Please check your email for verification.
       </h1>
     </div>
   </div>
@@ -105,8 +105,8 @@ export default defineComponent({
   <div class="info-container" v-else>
     <div class="error">
       <h1>
-        Registrácia zlyhala: {{ errorInfo }}<br />
-        Prosím, skúste to znova neskôr.
+        Registration failed: {{ errorInfo }}<br />
+        Please try again later.
       </h1>
     </div>
   </div>

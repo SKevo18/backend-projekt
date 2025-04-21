@@ -33,7 +33,7 @@ export default defineComponent({
 
         if (isNaN(this.categoryId)) {
           this.loading = false;
-          this.info = `Neplatný identifikátor kategórie: "${this.category}"`;
+          this.info = `Invalid category identifier: "${this.category}"`;
           return;
         }
 
@@ -47,7 +47,7 @@ export default defineComponent({
 
         if (!foundCategory) {
           this.loading = false;
-          this.info = `Kategória s ID "${this.categoryId}" sa nenašla.`;
+          this.info = `Category with ID "${this.categoryId}" was not found.`;
           return;
         }
 
@@ -59,12 +59,12 @@ export default defineComponent({
           this.$router.replace(`/page/${pages[0].id}-${pages[0].slug}`);
         } else {
           this.loading = false;
-          this.info = `Kategória "${this.categoryTitle}" nemá žiadne stránky.`;
+          this.info = `Category "${this.categoryTitle}" has no pages.`;
         }
       } catch (error) {
         console.error("Error loading category:", error);
         this.loading = false;
-        this.info = "Nastala chyba pri načítaní kategórie.";
+        this.info = "There was an error loading the category.";
       }
     },
   },

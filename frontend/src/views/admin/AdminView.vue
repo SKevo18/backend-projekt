@@ -25,21 +25,21 @@ export default defineComponent({
             class="tab-link"
             active-class="tab-active"
           >
-            Nastavenia
+            Settings
           </RouterLink>
           <RouterLink
             :to="{ name: 'admin-users' }"
             class="tab-link"
             active-class="tab-active"
           >
-            Používatelia
+            Users
           </RouterLink>
           <RouterLink
             :to="{ name: 'admin-pages' }"
             class="tab-link"
             active-class="tab-active"
           >
-            Stránky
+            Website
           </RouterLink>
         </nav>
       </div>

@@ -16,12 +16,12 @@ const sendEmail = async () => {
     });
 
     if (response.status === 200) {
-      message.value = `Na váš e-mail bol odoslaný odkaz na obnovenie hesla.`;
+      message.value = `A password reset link has been sent to your email.`;
     } else {
-      error.value = "Nastala chyba pri odosielaní e-mailu.";
+      error.value = "There was an error when sending an email.";
     }
   } catch (err: any) {
-    error.value = err.response?.data?.detail || "Chyba pri odosielaní e-mailu.";
+    error.value = err.response?.data?.detail || "Error sending email.";
     console.error(err);
   }
 };
@@ -31,7 +31,7 @@ const sendEmail = async () => {
     <div class="auth-form-container">
         <form class="auth-form" @submit.prevent="sendEmail">
             <fieldset>
-                <legend>Obnovenie hesla</legend>
+                <legend>Reset password</legend>
 
                 <div class="form-group">
                     <label for="email">Email</label>
@@ -39,7 +39,7 @@ const sendEmail = async () => {
                 </div>
 
                 <button type="submit" class="button button-green">
-                    Odoslať e-mail
+                  Send e-mail
                 </button>
 
                 <p v-if="message" class="text-green-600 mt-2">{{ message }}</p>
