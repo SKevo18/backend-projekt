@@ -124,7 +124,7 @@ export default defineComponent({
 @import "tailwindcss";
 
 .sidebar {
-  @apply bg-gray-800 text-white sm:w-[240px] text-center sm:text-left sm:h-[80vh] flex flex-col justify-between overflow-y-auto;
+  @apply bg-gray-800 text-white sm:w-[240px] text-center sm:text-left sm:min-h-[80vh] flex flex-col justify-between overflow-y-auto;
 }
 
 .categories-list {
