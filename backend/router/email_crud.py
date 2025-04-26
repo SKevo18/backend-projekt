@@ -1,18 +1,18 @@
-import uuid
-
 import os
-from db import get_db
-from db.orm import User, Setting, PasswordReset
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, EmailStr
-from sqlalchemy.orm import Session
-from sqlalchemy.dialects.mysql import insert
-from utils.mail import send_email, get_setting
+import uuid
 from datetime import datetime
 
+from db import get_db
+from db.orm import PasswordReset, Setting, User
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, EmailStr
+from sqlalchemy.dialects.mysql import insert
+from sqlalchemy.orm import Session
+from utils.mail import get_setting, send_email
+
+from router.dependencies import get_admin_user
+
 EMAIL_ROUTER = APIRouter(prefix="/email")
-# TODO: použiť adminov mail:
-TEST_EMAIL = os.getenv("test_email_recipient")
 FRONTEND_URL = os.getenv("FRONTEND_URL")
 
 
@@ -26,9 +26,11 @@ class SaveSMTPRequest(BaseModel):
     email_sender: str
     email_password: str
 
+
 class PasswordUpdateRequest(BaseModel):
     token: str
     new_password: str
+
 
 @EMAIL_ROUTER.post("/password_update")
 def password_update(req: PasswordUpdateRequest, db: Session = Depends(get_db)):
@@ -89,17 +91,18 @@ def save_smtp(req: SaveSMTPRequest, db: Session = Depends(get_db)):
 
     return {"message": "SMTP settings saved"}
 
-@EMAIL_ROUTER.post("/send_test_email")
-def send_test_email():
-    if TEST_EMAIL is None:
-        raise HTTPException(status_code=500, detail="SMTP settings are not set")
 
+@EMAIL_ROUTER.post("/send_test_email")
+def send_test_email(
+    current_user: User = Depends(get_admin_user)
+):
     try:
-        send_email(TEST_EMAIL, "Test Email", "This is a test email.")
+        send_email(current_user.user_email, "Test Email", "This is a test email.")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
     return {"message": "Test mail sent successfully"}
+
 
 @EMAIL_ROUTER.get("/settings")
 def get_smtp_settings():
