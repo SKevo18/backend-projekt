@@ -65,7 +65,7 @@ export default defineComponent({
 
     async requestPasswordReset() {
       try {
-        await api.post("/email/reset_password", {
+        await api.post("/email/password_reset", {
           email: this.profileData.user_email,
         });
         this.passwordResetMessage = "Password reset link sent to your email";
@@ -181,7 +181,7 @@ export default defineComponent({
         <button @click="requestPasswordReset" class="button button-yellow">
           Send Password Reset Link
         </button>
-        <div v-if="passwordResetMessage" class="message success">
+        <div v-if="passwordResetMessage" class="message success mt-4">
           {{ passwordResetMessage }}
         </div>
       </div>

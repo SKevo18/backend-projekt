@@ -101,7 +101,7 @@ def send_test_email(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-    return {"message": "Test mail sent successfully"}
+    return {"message": f"Test mail sent successfully to {current_user.user_email}"}
 
 
 @EMAIL_ROUTER.get("/settings")

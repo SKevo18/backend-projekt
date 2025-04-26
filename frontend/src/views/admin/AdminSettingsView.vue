@@ -53,7 +53,7 @@ const sendTestEmail = async () => {
     const response = await api.post("/email/send_test_email");
 
     if (response.status == 200) {
-      testEmailStatus.value = "The test email has been sent.";
+      testEmailStatus.value = response.data.message;
     } else {
       testEmailStatus.value = `Error sending test email: ${response?.data?.detail || "Unknown error"}`;
     }
