@@ -26,19 +26,31 @@ export default defineComponent({
       await this.pagesStore.fetchCategories();
     }
   },
-}); 
+});
 </script>
 
 <template>
   <header>
     <div class="header-topnav" v-if="!$authStore.isAuthenticated">
-      <RouterLink :to="{ name: 'login' }" active-class="nav-link-active">Login</RouterLink>
+      <RouterLink :to="{ name: 'login' }" active-class="nav-link-active"
+        >Login</RouterLink
+      >
       <span> | </span>
-      <RouterLink :to="{ name: 'register' }" active-class="nav-link-active">Register</RouterLink>
+      <RouterLink :to="{ name: 'register' }" active-class="nav-link-active"
+        >Register</RouterLink
+      >
     </div>
 
     <div class="header-topnav" v-else>
-      <RouterLink :to="{ name: 'admin-settings' }" active-class="nav-link-active">Administration</RouterLink>
+      <RouterLink
+        :to="{ name: 'admin-settings' }"
+        active-class="nav-link-active"
+        >Administration</RouterLink
+      >
+      <span> | </span>
+      <RouterLink :to="{ name: 'profile' }" active-class="nav-link-active"
+        >Profile</RouterLink
+      >
       <span> | </span>
       <a class="logout-link" @click="logout">Logout</a>
     </div>
@@ -46,8 +58,13 @@ export default defineComponent({
     <div class="header-content">
       <LogoComponent />
       <nav class="year-nav">
-        <RouterLink v-for="category in sortedCategories" :key="category.id" :to="{ name: 'category', params: { category: category.title } }"
-          class="nav-link" active-class="nav-link-active">
+        <RouterLink
+          v-for="category in sortedCategories"
+          :key="category.id"
+          :to="{ name: 'category', params: { category: category.title } }"
+          class="nav-link"
+          active-class="nav-link-active"
+        >
           {{ category.title }}
         </RouterLink>
       </nav>

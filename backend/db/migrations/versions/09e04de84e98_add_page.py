@@ -1,8 +1,14 @@
+"""add_page
+
+Revision ID: 09e04de84e98
+Revises: 56fa62a328fa
+"""
+
 import sqlalchemy as sa
 from alembic import op
 
-revision = '09e04de84e98'
-down_revision = '56fa62a328fa'
+revision = "09e04de84e98"
+down_revision = "56fa62a328fa"
 branch_labels = None
 depends_on = None
 
