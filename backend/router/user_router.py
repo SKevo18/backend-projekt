@@ -5,7 +5,7 @@ from db.orm import User
 from datetime import datetime
 import logging
 from router.dependencies import get_admin_user
-from router.authentication import USER, EDITOR, ADMIN
+from router.authentication import UserRole
 
 logger = logging.getLogger(__name__)
 USER_ROUTER = APIRouter(prefix="/user")
@@ -47,7 +47,7 @@ def update_user_role(
 
     try:
         role = int(role_data["role"])
-        if role not in [USER, EDITOR, ADMIN]:
+        if role not in [r.value for r in UserRole]:
             raise ValueError("Invalid role value")
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

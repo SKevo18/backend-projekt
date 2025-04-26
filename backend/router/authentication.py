@@ -1,42 +1,46 @@
-from datetime import datetime
-from email_validator import validate_email, EmailNotValidError
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi.security import OAuth2PasswordBearer
-from passlib.context import CryptContext
-from pydantic import BaseModel, validator
-from sqlalchemy.orm import Session
 import logging
+from datetime import datetime
+from enum import Enum
 
 from db import get_db
 from db.orm import User
-from utils.jwt_utils import create_access_token, verify_access_token
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import OAuth2PasswordBearer
+from passlib.context import CryptContext
+from pydantic import BaseModel, EmailStr, field_validator
+from sqlalchemy.orm import Session
+from utils.jwt_utils import create_access_token
 
-logger = logging.getLogger(__name__)
+
+class UserRole(Enum):
+    USER = 0
+    EDITOR = 1
+    ADMIN = 2
+
+
 AUTH_ROUTER = APIRouter(prefix="/authentication")
+OAUTH2_SCHEME = OAuth2PasswordBearer(tokenUrl="authentication/login")
+logger = logging.getLogger(__name__)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="authentication/login")
+
+# circular
+from router.dependencies import get_current_user  # noqa: E402
 
 
-USER = 0
-EDITOR = 1
-ADMIN = 2
+class UserBaseModel(BaseModel):
+    title_before_name: str = ""
+    title_after_name: str = ""
 
-
-class UserModel(BaseModel):
     first_name: str
+    middle_name: str = ""
     last_name: str
-    user_email: str
+
+
+class UserRegisterModel(UserBaseModel):
+    user_email: EmailStr
     user_password: str
 
-    @validator("user_email")
-    def validate_email(cls, v):
-        try:
-            validate_email(v)
-            return v
-        except EmailNotValidError:
-            raise ValueError("Invalid email format")
-
-    @validator("user_password")
+    @field_validator("user_password")
     def validate_password(cls, v):
         if len(v) < 8:
             raise ValueError("Password must be at least 8 characters")
@@ -57,7 +61,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 
 @AUTH_ROUTER.post("/register")
-def register(user: UserModel, db: Session = Depends(get_db)):
+def register(user: UserRegisterModel, db: Session = Depends(get_db)):
     try:
         existing_user = db.query(User).filter_by(user_email=user.user_email).first()
         if existing_user:
@@ -72,7 +76,7 @@ def register(user: UserModel, db: Session = Depends(get_db)):
             last_name=user.last_name,
             user_email=user.user_email,
             user_password=hashed_password,
-            role=USER,
+            role=UserRole.USER.value,
             registered_at=datetime.now(),
         )
         db.add(new_user)
@@ -99,16 +103,38 @@ def login(user: LoginModel, db: Session = Depends(get_db)):
 
 
 @AUTH_ROUTER.get("/me")
-def get_me(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    payload = verify_access_token(token)
-    user_email = payload.get("sub")
-    user = db.query(User).filter_by(user_email=user_email).first()
-    if user is None:
-        raise HTTPException(status_code=404, detail="User not found")
+def get_me(
+    current_user: User = Depends(get_current_user),
+):
     return {
-        "id": user.id,
-        "first_name": user.first_name,
-        "last_name": user.last_name,
-        "user_email": user.user_email,
-        "role": user.role,
+        "id": current_user.id,
+        "title_before_name": current_user.title_before_name,
+        "title_after_name": current_user.title_after_name,
+        "first_name": current_user.first_name,
+        "middle_name": current_user.middle_name,
+        "last_name": current_user.last_name,
+        "user_email": current_user.user_email,
+        "role": current_user.role,
     }
+
+
+@AUTH_ROUTER.post("/update_profile")
+def update_profile(
+    profile: UserBaseModel,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    try:
+        current_user.title_before_name = profile.title_before_name
+        current_user.title_after_name = profile.title_after_name
+        current_user.first_name = profile.first_name
+        current_user.middle_name = profile.middle_name
+        current_user.last_name = profile.last_name
+
+        db.commit()
+        logger.info(f"Profile updated for user: {current_user.user_email}")
+
+        return {"status": "success", "message": "Profile updated successfully!"}
+    except Exception as e:
+        logger.error(f"Profile update failed: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))

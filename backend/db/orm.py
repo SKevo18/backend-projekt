@@ -2,7 +2,7 @@ import typing as t
 import uuid
 from datetime import datetime
 
-from sqlalchemy import ForeignKey, String, Text
+from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.dialects.mysql import LONGTEXT
 
@@ -16,9 +16,12 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     role: Mapped[int] = mapped_column(nullable=False)
+    title_before_name: Mapped[str] = mapped_column(String(length=10), nullable=True)
+    title_after_name: Mapped[str] = mapped_column(String(length=10), nullable=True)
     first_name: Mapped[str] = mapped_column(
         String(length=15), nullable=False, index=True
     )
+    middle_name: Mapped[str] = mapped_column(String(length=15), nullable=True)
     last_name: Mapped[str] = mapped_column(
         String(length=15), nullable=False, index=True
     )
