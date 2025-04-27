@@ -48,6 +48,7 @@ export default defineComponent({
       title: "",
       pageFound: false,
       pageId: null as number | null,
+      apiUrl: api.defaults.baseURL,
     };
   },
   created() {
@@ -68,8 +69,7 @@ export default defineComponent({
 
         this.pageFound = true;
         this.slug = page.slug;
-        this.pageHtml =
-          page?.html_content || "<i>The page has no content.</i>";
+        this.pageHtml = page?.html_content || "<i>The page has no content.</i>";
         this.title = page?.title || "";
         this.categoryId = page?.category_id || null;
       } catch (error) {
@@ -116,7 +116,7 @@ export default defineComponent({
           <div class="files-list">
             <div class="file-item" v-for="file in files" :key="file.name">
               <a
-                :href="`/api/page/${pageId}/upload/${file.name}`"
+                :href="`${apiUrl}/page/${pageId}/upload/${file.name}`"
                 target="_blank"
               >
                 {{ file.name }}

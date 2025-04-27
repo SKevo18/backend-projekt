@@ -1,4 +1,3 @@
-import re
 from pathlib import Path
 
 from db import get_db
@@ -6,23 +5,31 @@ from db.orm import Page
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
+from pathvalidate import sanitize_filename, validate_filename
 
 UPLOAD_CONTROLLER = APIRouter(prefix="/page/{page_id}/upload")
-
-# HACK: temporary, look up proper way how to validate file name
-FILENAME_RGX = re.compile(r"^[\w\.-]+$")
+FILE_UPLOAD_MAX_MB = 10
 
 
 def validate_file_name(filename: str):
-    if FILENAME_RGX.match(filename):
-        return filename
-    else:
-        raise HTTPException(status_code=400, detail="Invalid file name.")
+    try:
+        validate_filename(filename)
+        safe_filename = sanitize_filename(filename)
+
+        if not safe_filename:
+            raise HTTPException(
+                status_code=400, detail="Invalid file name after sanitization."
+            )
+        return safe_filename
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid file name: {str(e)}")
 
 
 def validate_file(uploaded_file: UploadFile):
-    if not validate_file_name(uploaded_file.filename or ""):
+    if not uploaded_file.filename:
         raise HTTPException(status_code=400, detail="File name is required")
+
+    uploaded_file.filename = validate_file_name(uploaded_file.filename)
 
     if uploaded_file.content_type not in [
         "image/jpeg",
@@ -38,8 +45,11 @@ def validate_file(uploaded_file: UploadFile):
     ]:
         raise HTTPException(status_code=400, detail="Invalid file type.")
 
-    if uploaded_file.size is None or uploaded_file.size > 10 * 1024 * 1024:  # 10MB
-        raise HTTPException(status_code=400, detail="File is too large.")
+    if (
+        uploaded_file.size is None
+        or uploaded_file.size > FILE_UPLOAD_MAX_MB * 1024 * 1024
+    ):
+        raise HTTPException(status_code=400, detail="File is too large (max: 10 MB).")
 
     return uploaded_file
 
