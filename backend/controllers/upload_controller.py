@@ -4,11 +4,14 @@ from db import get_db
 from db.orm import Page
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from fastapi.responses import FileResponse
-from sqlalchemy.orm import Session
 from pathvalidate import sanitize_filename, validate_filename
+from sqlalchemy.orm import Session
 
 UPLOAD_CONTROLLER = APIRouter(prefix="/page/{page_id}/upload")
 FILE_UPLOAD_MAX_MB = 10
+
+# TODO: get current user, only allow him to upload files if he is editor of the page or admin
+# TODO: remove uploaded files for removed pages/categories (tricky when CASCADE is used)
 
 
 def validate_file_name(filename: str):

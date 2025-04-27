@@ -1,13 +1,8 @@
 <script lang="ts">
-import { defineComponent, onMounted } from "vue";
+import { defineComponent } from "vue";
 import { usePagesStore } from "@/store/pageStore";
 import PageSidebarComponent from "@/components/page/PageSidebarComponent.vue";
-import {
-  RouterLink,
-  useRoute,
-  useRouter,
-  onBeforeRouteUpdate,
-} from "vue-router";
+import { RouterLink, onBeforeRouteUpdate } from "vue-router";
 import api from "@/services/api";
 
 export default defineComponent({
@@ -22,13 +17,11 @@ export default defineComponent({
       required: true,
     },
   },
-  setup(props) {
-    const route = useRoute();
-    const router = useRouter();
-
+  setup() {
     onBeforeRouteUpdate((to, from) => {
       if (to.params.idSlug !== from.params.idSlug) {
         const pageReadView =
+          // @ts-ignore
           document.querySelector("#page-read-view")?.__vueParentComponent?.ctx;
         if (pageReadView) {
           pageReadView.loadPage(to.params.idSlug.toString());

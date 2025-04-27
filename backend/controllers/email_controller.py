@@ -3,28 +3,21 @@ import uuid
 from datetime import datetime
 
 from db import get_db
-from db.orm import PasswordReset, Setting, User
-from fastapi import APIRouter, Depends, HTTPException
+from db.orm import PasswordReset, User
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, EmailStr
-from sqlalchemy.dialects.mysql import insert
 from sqlalchemy.orm import Session
-from utils.mail import get_setting, send_email
+from utils.mail import send_email
 
-from router.dependencies import get_admin_user
+from controllers.dependencies import get_admin_user, validate_turnstile_token
 
-EMAIL_ROUTER = APIRouter(prefix="/email")
+EMAIL_CONTROLLER = APIRouter(prefix="/email")
 FRONTEND_URL = os.getenv("FRONTEND_URL")
 
 
 class EmailResetRequest(BaseModel):
     email: EmailStr
-
-
-class SaveSMTPRequest(BaseModel):
-    smtp_host: str
-    smtp_port: int
-    email_sender: str
-    email_password: str
+    turnstile_token: str
 
 
 class PasswordUpdateRequest(BaseModel):
@@ -32,7 +25,7 @@ class PasswordUpdateRequest(BaseModel):
     new_password: str
 
 
-@EMAIL_ROUTER.post("/password_update")
+@EMAIL_CONTROLLER.post("/password_update")
 def password_update(req: PasswordUpdateRequest, db: Session = Depends(get_db)):
     password_reset = (
         db.query(PasswordReset).filter_by(token=req.token, used=False).first()
@@ -56,8 +49,14 @@ def password_update(req: PasswordUpdateRequest, db: Session = Depends(get_db)):
     return {"message": "Password successfully updated"}
 
 
-@EMAIL_ROUTER.post("/password_reset")
-def password_reset(req: EmailResetRequest, db: Session = Depends(get_db)):
+@EMAIL_CONTROLLER.post("/password_reset")
+async def password_reset(
+    req: EmailResetRequest,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    validate_turnstile_token(request, req.turnstile_token)
+
     user = db.query(User).filter_by(user_email=req.email).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -78,37 +77,11 @@ def password_reset(req: EmailResetRequest, db: Session = Depends(get_db)):
     return {"message": "Password reset email sent"}
 
 
-@EMAIL_ROUTER.post("/save_smtp")
-def save_smtp(req: SaveSMTPRequest, db: Session = Depends(get_db)):
-    data = req.model_dump()
-
-    insert_values = [{"key": k, "value": str(v)} for k, v in data.items()]
-    stmt = insert(Setting).values(insert_values)
-    update_stmt = stmt.on_duplicate_key_update(value=stmt.inserted.value)
-
-    db.execute(update_stmt)
-    db.commit()
-
-    return {"message": "SMTP settings saved"}
-
-
-@EMAIL_ROUTER.post("/send_test_email")
-def send_test_email(
-    current_user: User = Depends(get_admin_user)
-):
+@EMAIL_CONTROLLER.post("/send_test_email")
+def send_test_email(current_user: User = Depends(get_admin_user)):
     try:
         send_email(current_user.user_email, "Test Email", "This is a test email.")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
     return {"message": f"Test mail sent successfully to {current_user.user_email}"}
-
-
-@EMAIL_ROUTER.get("/settings")
-def get_smtp_settings():
-    return {
-        "smtp_host": get_setting("smtp_host"),
-        "smtp_port": get_setting("smtp_port"),
-        "email_sender": get_setting("email_sender"),
-        "email_password": get_setting("email_password"),
-    }

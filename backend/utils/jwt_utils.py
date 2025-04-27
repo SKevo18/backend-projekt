@@ -1,15 +1,15 @@
-import jwt
-from datetime import datetime, timedelta, timezone
-from fastapi import HTTPException
 import os
-from dotenv import load_dotenv
+from datetime import datetime, timedelta, timezone
 
+import jwt
+from dotenv import load_dotenv
+from fastapi import HTTPException
 
 load_dotenv()
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 if not SECRET_KEY:
-    raise RuntimeError("SECRET_KEY not found in environment variables.") #potom delete
+    raise RuntimeError("SECRET_KEY not found in environment variables.")  # potom delete
 
 
 def create_access_token(data: dict, expires_delta: timedelta = timedelta(hours=12)):

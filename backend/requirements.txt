@@ -12,6 +12,7 @@ uvicorn
 
 # utils
 PyJWT
+requests
 pathvalidate
 python-slugify
 passlib[bcrypt]

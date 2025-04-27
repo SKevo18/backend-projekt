@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from slugify import slugify
 from sqlalchemy.orm import Session
 
-PAGE_CRUD_ROUTER = APIRouter(prefix="/page")
+PAGE_CONTROLLER = APIRouter(prefix="/page")
 
 
 class PageBase(BaseModel):
@@ -37,7 +37,7 @@ class PageOut(PageBase):
         from_attributes = True
 
 
-@PAGE_CRUD_ROUTER.post("/", response_model=PageOut)
+@PAGE_CONTROLLER.post("/", response_model=PageOut)
 def create_page(page: PageCreate, db: Session = Depends(get_db)):
     category = db.query(Category).filter(Category.id == page.category_id).first()
     if not category:
@@ -55,7 +55,7 @@ def create_page(page: PageCreate, db: Session = Depends(get_db)):
     return db_page
 
 
-@PAGE_CRUD_ROUTER.get("/", response_model=list[PageOut])
+@PAGE_CONTROLLER.get("/", response_model=list[PageOut])
 def list_pages(
     category_id: int = Query(),
     db: Session = Depends(get_db),
@@ -67,7 +67,7 @@ def list_pages(
     return db_page
 
 
-@PAGE_CRUD_ROUTER.get("/{page_id}", response_model=PageOut)
+@PAGE_CONTROLLER.get("/{page_id}", response_model=PageOut)
 def read_page(
     page_id: int,
     db: Session = Depends(get_db),
@@ -78,7 +78,7 @@ def read_page(
     return db_page
 
 
-@PAGE_CRUD_ROUTER.put("/{page_id}", response_model=PageOut)
+@PAGE_CONTROLLER.put("/{page_id}", response_model=PageOut)
 def update_page(
     page_id: int,
     page: PageUpdate,
@@ -109,7 +109,7 @@ def update_page(
     return db_page
 
 
-@PAGE_CRUD_ROUTER.delete("/{page_id}", status_code=204)
+@PAGE_CONTROLLER.delete("/{page_id}", status_code=204)
 def delete_page(
     page_id: int,
     db: Session = Depends(get_db),
@@ -123,6 +123,6 @@ def delete_page(
     return None
 
 
-@PAGE_CRUD_ROUTER.get("/", response_model=list[PageOut])
+@PAGE_CONTROLLER.get("/", response_model=list[PageOut])
 def read_all_pages(db: Session = Depends(get_db)):
     return db.query(Page).all()

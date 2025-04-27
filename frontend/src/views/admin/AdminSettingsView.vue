@@ -2,79 +2,91 @@
 import { ref, onMounted } from "vue";
 import api from "@/services/api";
 
-interface SmtpSettings {
+interface Settings {
   smtp_host: string;
   smtp_port: number;
   email_sender: string | null;
   email_password: string | null;
+  turnstile_site_key: string | null;
+  turnstile_secret_key: string | null;
 }
 
 const smtpHost = ref("");
 const smtpPort = ref(587);
 const smtpUsername = ref("");
 const smtpPassword = ref("");
+const turnstileSiteKey = ref("");
+const turnstileSecretKey = ref("");
 
-const testEmailStatus = ref("");
+const infoText = ref("");
 
 const registrationEnabled = ref(false);
 
-const saveSmtpSettings = async () => {
+const saveSettings = async () => {
+  infoText.value = "";
   const payload = {
     smtp_host: smtpHost.value,
     smtp_port: smtpPort.value,
     email_sender: smtpUsername.value,
     email_password: smtpPassword.value,
+    turnstile_site_key: turnstileSiteKey.value,
+    turnstile_secret_key: turnstileSecretKey.value,
   };
 
   try {
-    console.log("Payload:", payload);
+    const response = await api.post("/settings/save", payload);
 
-    const response = await api.post("/email/save_smtp", payload);
-
-    if (response.status == 200) {
-      alert("SMTP settings have been saved.");
+    if (response.status === 200) {
+      infoText.value = "Nastavenia boli úspešne uložené.";
     } else {
-      alert("Error when saving the SMTP settings.");
+      infoText.value = "Chyba pri ukladaní nastavení.";
     }
   } catch (error: any) {
     if (error.response) {
       console.error("Server error:", error.response.data);
-      alert("Error when saving the SMTP settings: " + error.response.data.detail);
+      infoText.value =
+        "Chyba pri ukladaní nastavení: " + error.response.data.detail;
     } else {
       console.error("Network error:", error);
-      alert("Server connection error.");
+      infoText.value = "Chyba pripojenia k serveru.";
     }
   }
 };
 
 const sendTestEmail = async () => {
-  testEmailStatus.value = "";
+  infoText.value = "";
   try {
     const response = await api.post("/email/send_test_email");
 
     if (response.status == 200) {
-      testEmailStatus.value = response.data.message;
+      infoText.value = response.data.message;
     } else {
-      testEmailStatus.value = `Error sending test email: ${response?.data?.detail || "Unknown error"}`;
+      infoText.value = `Error sending test email: ${
+        response?.data?.detail || "Unknown error"
+      }`;
     }
   } catch (error: any) {
-    testEmailStatus.value = `Error sending test email: ${error.response?.data?.detail || "Unknown error"}`;
+    infoText.value = `Error sending test email: ${
+      error.response?.data?.detail || "Unknown error"
+    }`;
     console.error(error);
   }
 };
 
 onMounted(async () => {
   try {
-    const response = await api.get("/email/settings");
-    const data = response.data as SmtpSettings | null;
+    const response = await api.get("/settings");
+    const data = response.data as Settings | null;
 
     smtpHost.value = data?.smtp_host ?? "";
-    smtpPort.value = data?.smtp_port && data.smtp_port !== 0 ? data.smtp_port : 587;
+    smtpPort.value =
+      data?.smtp_port && data.smtp_port !== 0 ? data.smtp_port : 587;
     smtpUsername.value = data?.email_sender ?? "";
     smtpPassword.value = data?.email_password ?? "";
-
+    turnstileSiteKey.value = data?.turnstile_site_key ?? "";
+    turnstileSecretKey.value = data?.turnstile_secret_key ?? "";
   } catch (error) {
-    console.error("Error loading SMTP settings:", error);
+    console.error("Error loading settings:", error);
   }
 });
 </script>
@@ -134,6 +146,30 @@ onMounted(async () => {
       </fieldset>
 
       <fieldset class="form-container">
+        <legend>Cloudflare Turnstile</legend>
+
+        <div class="form-group">
+          <label for="turnstile-site-key">Site Key</label>
+          <input
+            v-model="turnstileSiteKey"
+            type="text"
+            id="turnstile-site-key"
+            placeholder="1x00000000000000000000AA"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="turnstile-secret-key">Secret Key</label>
+          <input
+            v-model="turnstileSecretKey"
+            type="password"
+            id="turnstile-secret-key"
+            placeholder="1x00000000000000000000AA"
+          />
+        </div>
+      </fieldset>
+
+      <fieldset class="form-container">
         <legend>Ostatné</legend>
 
         <div class="form-checkbox">
@@ -148,19 +184,19 @@ onMounted(async () => {
     </div>
 
     <div class="flex justify-between items-end mt-4">
-      <button class="button button-green" @click="saveSmtpSettings">
-        Uložiť
-      </button>
+      <button class="button button-green" @click="saveSettings">Uložiť</button>
     </div>
 
     <p
-      v-if="testEmailStatus"
+      v-if="infoText"
       class="mt-2 text-sm font-medium"
       :class="
-        testEmailStatus.startsWith('T') ? 'text-green-600' : 'text-red-600'
+        infoText.startsWith('T') || infoText.startsWith('Nastavenia boli')
+          ? 'text-green-600'
+          : 'text-red-600'
       "
     >
-      {{ testEmailStatus }}
+      {{ infoText }}
     </p>
   </div>
 </template>

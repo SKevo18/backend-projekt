@@ -87,7 +87,10 @@ export default defineComponent({
         >
           <li v-for="page in categoryPagesMap[category.id]" :key="page.id">
             <RouterLink
-              :to="{ name: 'page', params: { idSlug: page.id + '-' + page.slug } }"
+              :to="{
+                name: 'page',
+                params: { idSlug: page.id + '-' + page.slug },
+              }"
               class="sidebar-link"
               active-class="sidebar-link-active"
             >
