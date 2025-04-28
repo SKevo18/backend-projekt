@@ -19,7 +19,7 @@ export default {
       allPages: [] as { id: number; title: string; category_id: number }[],
       userPermissions: {
         pages: {} as Record<number, number[]>,
-        categories: {} as Record<number, number[]>
+        categories: {} as Record<number, number[]>,
       },
       selectedUser: null as {
         id: number | null;
@@ -28,8 +28,8 @@ export default {
       } | null,
       showPermissionsModal: false,
       categories: [] as { id: number; title: string }[],
-      activeTab: 'pages' as 'pages' | 'categories',
-      isLoading: false
+      activeTab: "pages" as "pages" | "categories",
+      isLoading: false,
     };
   },
   methods: {
@@ -139,7 +139,7 @@ export default {
       try {
         const [pagesRes, categoriesRes] = await Promise.all([
           api.get(`/permissions/${userId}/pages`),
-          api.get(`/permissions/${userId}/categories`)
+          api.get(`/permissions/${userId}/categories`),
         ]);
 
         this.userPermissions.pages[userId] = pagesRes.data;
@@ -151,7 +151,8 @@ export default {
 
     async togglePermission(userId: number, pageId: number) {
       const authStore = useAuthStore();
-      const hasPermission = this.userPermissions.pages[userId]?.includes(pageId);
+      const hasPermission =
+        this.userPermissions.pages[userId]?.includes(pageId);
 
       try {
         if (hasPermission) {
@@ -178,7 +179,8 @@ export default {
 
     async toggleCategoryPermission(userId: number, categoryId: number) {
       const authStore = useAuthStore();
-      const hasPermission = this.userPermissions.categories[userId]?.includes(categoryId);
+      const hasPermission =
+        this.userPermissions.categories[userId]?.includes(categoryId);
 
       try {
         if (hasPermission) {
@@ -204,12 +206,12 @@ export default {
     },
 
     openPermissionsModal(userId: number) {
-      const user = this.users.find(u => u.id === userId);
+      const user = this.users.find((u) => u.id === userId);
       if (user) {
         this.selectedUser = {
           id: userId,
           first_name: user.first_name,
-          last_name: user.last_name
+          last_name: user.last_name,
         };
         this.showPermissionsModal = true;
         this.getUserPermissions(userId);
@@ -222,12 +224,12 @@ export default {
     },
 
     getPagesByCategory(categoryId: number) {
-      return this.allPages.filter(page => page.category_id === categoryId);
+      return this.allPages.filter((page) => page.category_id === categoryId);
     },
 
-    switchTab(tab: 'pages' | 'categories') {
+    switchTab(tab: "pages" | "categories") {
       this.activeTab = tab;
-    }
+    },
   },
   async mounted() {
     const authStore = useAuthStore();
@@ -241,7 +243,7 @@ export default {
       await Promise.all([
         this.getUsers(),
         this.getAllPages(),
-        this.getCategories()
+        this.getCategories(),
       ]);
     } finally {
       this.isLoading = false;
@@ -277,7 +279,11 @@ export default {
             <td>{{ user.last_name }}</td>
             <td class="break-words">{{ user.user_email }}</td>
             <td>
-              <select class="role-select" @change="changeUserRole(user.id, $event)" :value="user.role">
+              <select
+                class="role-select"
+                @change="changeUserRole(user.id, $event)"
+                :value="user.role"
+              >
                 <option :value="2">Admin</option>
                 <option :value="1">Editor</option>
                 <option :value="0">User</option>
@@ -289,10 +295,18 @@ export default {
               <button class="delete-btn" @click="deleteUser(user.id)">
                 Delete
               </button>
-              <button v-if="editedRoles[user.id]" class="confirm-btn" @click="confirmRoleChange(user.id)">
+              <button
+                v-if="editedRoles[user.id]"
+                class="confirm-btn"
+                @click="confirmRoleChange(user.id)"
+              >
                 Confirm
               </button>
-              <button v-if="user.role === 1" class="permissions-btn" @click="openPermissionsModal(user.id)">
+              <button
+                v-if="user.role === 1"
+                class="permissions-btn"
+                @click="openPermissionsModal(user.id)"
+              >
                 Manage Permissions
               </button>
             </td>
@@ -318,7 +332,11 @@ export default {
         </div>
         <div class="user-field">
           <span class="field-label">Role:</span>
-          <select class="role-select" @change="changeUserRole(user.id, $event)" :value="user.role">
+          <select
+            class="role-select"
+            @change="changeUserRole(user.id, $event)"
+            :value="user.role"
+          >
             <option :value="2">Admin</option>
             <option :value="1">Editor</option>
             <option :value="0">User</option>
@@ -337,10 +355,18 @@ export default {
           <button class="delete-btn" @click="deleteUser(user.id)">
             Delete
           </button>
-          <button v-if="editedRoles[user.id]" class="confirm-btn" @click="confirmRoleChange(user.id)">
+          <button
+            v-if="editedRoles[user.id]"
+            class="confirm-btn"
+            @click="confirmRoleChange(user.id)"
+          >
             Confirm
           </button>
-          <button v-if="user.role === 1" class="permissions-btn" @click="openPermissionsModal(user.id)">
+          <button
+            v-if="user.role === 1"
+            class="permissions-btn"
+            @click="openPermissionsModal(user.id)"
+          >
             Permissions
           </button>
         </div>
@@ -348,18 +374,30 @@ export default {
     </div>
 
     <!-- Permissions Modal -->
-    <div v-if="showPermissionsModal" class="permissions-modal-overlay" @click.self="closePermissionsModal">
+    <div
+      v-if="showPermissionsModal"
+      class="permissions-modal-overlay"
+      @click.self="closePermissionsModal"
+    >
       <div class="permissions-modal">
         <h3 class="modal-title">
-          Manage Permissions for: {{ selectedUser?.first_name }} {{ selectedUser?.last_name }}
+          Manage Permissions for: {{ selectedUser?.first_name }}
+          {{ selectedUser?.last_name }}
         </h3>
 
         <div class="tabs">
-          <button class="tab-btn" :class="{ 'active-tab': activeTab === 'pages' }" @click="switchTab('pages')">
+          <button
+            class="tab-btn"
+            :class="{ 'active-tab': activeTab === 'pages' }"
+            @click="switchTab('pages')"
+          >
             Page Permissions
           </button>
-          <button class="tab-btn" :class="{ 'active-tab': activeTab === 'categories' }"
-            @click="switchTab('categories')">
+          <button
+            class="tab-btn"
+            :class="{ 'active-tab': activeTab === 'categories' }"
+            @click="switchTab('categories')"
+          >
             Category Permissions
           </button>
         </div>
@@ -367,13 +405,27 @@ export default {
         <div class="permissions-content">
           <!-- Page Permissions Tab -->
           <div v-if="activeTab === 'pages'" class="page-permissions">
-            <div v-for="category in categories" :key="category.id" class="category-section">
+            <div
+              v-for="category in categories"
+              :key="category.id"
+              class="category-section"
+            >
               <h4 class="category-title">{{ category.title }}</h4>
               <div class="pages-grid">
-                <div v-for="page in getPagesByCategory(category.id)" :key="page.id" class="page-item">
-                  <input type="checkbox" :id="`page-${page.id}`"
-                    :checked="selectedUser && userPermissions.pages[selectedUser.id]?.includes(page.id)"
-                    @change="togglePermission(selectedUser?.id || 0, page.id)" />
+                <div
+                  v-for="page in getPagesByCategory(category.id)"
+                  :key="page.id"
+                  class="page-item"
+                >
+                  <input
+                    type="checkbox"
+                    :id="`page-${page.id}`"
+                    :checked="
+                      selectedUser &&
+                      userPermissions.pages[selectedUser.id]?.includes(page.id)
+                    "
+                    @change="togglePermission(selectedUser?.id || 0, page.id)"
+                  />
                   <label :for="`page-${page.id}`">
                     {{ page.title }}
                   </label>
@@ -385,10 +437,24 @@ export default {
           <!-- Category Permissions Tab -->
           <div v-if="activeTab === 'categories'" class="category-permissions">
             <div class="categories-grid">
-              <div v-for="category in categories" :key="category.id" class="category-item">
-                <input type="checkbox" :id="`category-${category.id}`"
-                  :checked="selectedUser && userPermissions.categories[selectedUser.id]?.includes(category.id)"
-                  @change="toggleCategoryPermission(selectedUser?.id || 0, category.id)" />
+              <div
+                v-for="category in categories"
+                :key="category.id"
+                class="category-item"
+              >
+                <input
+                  type="checkbox"
+                  :id="`category-${category.id}`"
+                  :checked="
+                    selectedUser &&
+                    userPermissions.categories[selectedUser.id]?.includes(
+                      category.id
+                    )
+                  "
+                  @change="
+                    toggleCategoryPermission(selectedUser?.id || 0, category.id)
+                  "
+                />
                 <label :for="`category-${category.id}`">
                   {{ category.title }}
                 </label>
