@@ -1,6 +1,7 @@
 <script lang="ts">
 import { defineComponent, onMounted } from "vue";
 import { usePagesStore } from "@/store/pageStore";
+import { useAuthStore } from "@/store/authStore";
 import PageSidebarComponent from "@/components/page/PageSidebarComponent.vue";
 import {
   RouterLink,
@@ -41,6 +42,7 @@ export default defineComponent({
   data() {
     return {
       pagesStore: usePagesStore(),
+      authStore: useAuthStore(),
       slug: "",
       categoryId: null as number | null,
       pageHtml: "<i>Page not found.</i>",
@@ -49,6 +51,8 @@ export default defineComponent({
       pageFound: false,
       pageId: null as number | null,
       apiUrl: api.defaults.baseURL,
+      canEdit: false,
+      isLoading: true,
     };
   },
   created() {
@@ -56,6 +60,7 @@ export default defineComponent({
   },
   methods: {
     async loadPage(idSlug: string) {
+      this.isLoading = true;
       try {
         const id = parseInt(idSlug.split("-")[0]);
         if (isNaN(id)) {
@@ -72,13 +77,34 @@ export default defineComponent({
         this.pageHtml = page?.html_content || "<i>The page has no content.</i>";
         this.title = page?.title || "";
         this.categoryId = page?.category_id || null;
+
+        
+        if (this.authStore.isAuthenticated) {
+          this.canEdit = await this.checkEditPermission();
+        }
       } catch (error) {
         this.pageFound = false;
         this.pageHtml = "<i>Page not found.</i>";
         this.categoryId = null;
+        this.canEdit = false;
+      } finally {
+        this.isLoading = false;
       }
 
       await this.loadExistingFiles();
+    },
+
+    async checkEditPermission(): Promise<boolean> {
+      if (this.authStore.user?.role === 2) return true; 
+      if (!this.authStore.user || this.authStore.user.role !== 1 || !this.pageId) return false; 
+
+      try {
+        const response = await api.get(`/permissions/${this.authStore.user.id}/pages/${this.pageId}`);
+        return response.data.has_permission;
+      } catch (error) {
+        console.error("Error checking permissions:", error);
+        return false;
+      }
     },
 
     async loadExistingFiles() {
@@ -100,8 +126,12 @@ export default defineComponent({
   <div id="page-read-view" class="flex flex-col sm:flex-row">
     <PageSidebarComponent :activeCategoryId="categoryId" />
 
-    <article>
-      <div class="top-container">
+    <article v-if="!isLoading">
+      <div v-if="!pageFound" class="error-message">
+        Page not found
+      </div>
+
+      <div v-else class="top-container">
         <header>
           <h1 class="uppercase">{{ title }}</h1>
           <hr />
@@ -112,13 +142,10 @@ export default defineComponent({
 
       <footer>
         <div v-if="files.length > 0" class="files-container">
-          <h2 class="big mb-2">Priložené súbory</h2>
+          <h2 class="big mb-2">Attached files</h2>
           <div class="files-list">
             <div class="file-item" v-for="file in files" :key="file.name">
-              <a
-                :href="`${apiUrl}/page/${pageId}/upload/${file.name}`"
-                target="_blank"
-              >
+              <a :href="`${apiUrl}/page/${pageId}/upload/${file.name}`" target="_blank">
                 {{ file.name }}
               </a>
               <span class="text-sm text-gray-500">{{ file.size }} B</span>
@@ -126,13 +153,14 @@ export default defineComponent({
           </div>
         </div>
 
+        <div v-if="authStore.isAuthenticated && !canEdit" class="read-only-message">
+          You have read-only access to this page.
+        </div>
+
         <nav>
-          <RouterLink
-            class="button button-green"
-            :to="{ name: 'page-edit', params: { idSlug: `${pageId}-${slug}` } }"
-            v-if="pageFound"
-          >
-            Upraviť stránku
+          <RouterLink class="button button-green" :to="{ name: 'page-edit', params: { idSlug: `${pageId}-${slug}` } }"
+            v-if="pageFound && canEdit">
+            Edit Page
           </RouterLink>
         </nav>
       </footer>
@@ -177,6 +205,14 @@ article {
 
 .files-list .file-item a {
   @apply text-blue-500 hover:underline;
+}
+
+.read-only-message {
+  @apply bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4;
+}
+
+.error-message {
+  @apply text-red-500 text-lg p-4;
 }
 </style>
 

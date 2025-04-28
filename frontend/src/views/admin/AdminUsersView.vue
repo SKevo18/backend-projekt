@@ -16,6 +16,11 @@ export default {
         edited_at: string | null;
       }[],
       editedRoles: {} as Record<number, string>,
+      allPages: [] as { id: number; title: string; category_id: number }[],
+      userPermissions: {} as Record<number, number[]>,
+      selectedUser: null as number | null,
+      showPermissionsModal: false,
+      categories: [] as { id: number; title: string }[],
     };
   },
   methods: {
@@ -27,7 +32,7 @@ export default {
       }
 
       try {
-        const response = await api.get<User[]>("http://localhost:8000/user/", {
+        const response = await api.get("http://localhost:8000/user/", {
           headers: {
             Authorization: `Bearer ${authStore.token}`,
           },
@@ -83,21 +88,103 @@ export default {
         );
 
         delete this.editedRoles[userId];
-        this.getUsers();
+        await this.getUsers();
       } catch (error) {
         console.error("Error updating role:", error);
         alert("Failed to update role.");
       }
     },
+    async getAllPages() {
+      const authStore = useAuthStore();
+      try {
+        const response = await api.get("http://localhost:8000/page/", {
+          headers: {
+            Authorization: `Bearer ${authStore.token}`,
+          },
+        });
+        this.allPages = response.data;
+      } catch (error) {
+        console.error("Error fetching pages:", error);
+      }
+    },
+    async getCategories() {
+      const authStore = useAuthStore();
+      try {
+        const response = await api.get("http://localhost:8000/category/", {
+          headers: {
+            Authorization: `Bearer ${authStore.token}`,
+          },
+        });
+        this.categories = response.data;
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    },
+    async getUserPermissions(userId: number) {
+      const authStore = useAuthStore();
+      try {
+        const response = await api.get(
+          `http://localhost:8000/permissions/${userId}/pages`,
+          {
+            headers: {
+              Authorization: `Bearer ${authStore.token}`,
+            },
+          }
+        );
+        this.userPermissions[userId] = response.data;
+      } catch (error) {
+        console.error("Error fetching permissions:", error);
+      }
+    },
+    async togglePermission(userId: number, pageId: number) {
+      const authStore = useAuthStore();
+      const hasPermission = this.userPermissions[userId]?.includes(pageId);
+
+      try {
+        if (hasPermission) {
+          await api.delete("http://localhost:8000/permissions/", {
+            params: { user_id: userId, page_id: pageId },
+            headers: {
+              Authorization: `Bearer ${authStore.token}`,
+            },
+          });
+        } else {
+          await api.post("http://localhost:8000/permissions/", null, {
+            params: { user_id: userId, page_id: pageId },
+            headers: {
+              Authorization: `Bearer ${authStore.token}`,
+            },
+          });
+        }
+        await this.getUserPermissions(userId);
+      } catch (error) {
+        console.error("Error updating permission:", error);
+        alert("Failed to update permission.");
+      }
+    },
+    openPermissionsModal(userId: number) {
+      this.selectedUser = userId;
+      this.showPermissionsModal = true;
+      this.getUserPermissions(userId);
+    },
+    closePermissionsModal() {
+      this.selectedUser = null;
+      this.showPermissionsModal = false;
+    },
+    getPagesByCategory(categoryId: number) {
+      return this.allPages.filter(page => page.category_id === categoryId);
+    },
   },
-  mounted() {
+  async mounted() {
     const authStore = useAuthStore();
     if (!authStore.isAuthenticated || authStore.user?.role !== 2) {
       alert("Admin access required");
       this.$router.push("/");
       return;
     }
-    this.getUsers();
+    await this.getUsers();
+    await this.getAllPages();
+    await this.getCategories();
   },
 };
 </script>
@@ -131,7 +218,7 @@ export default {
             </select>
           </td>
           <td>{{ user.registered_at }}</td>
-          <td>{{ user.edited_at ? user.edited_at : 'Not Edited' }}</td>
+          <td>{{ user.edited_at ? user.edited_at : "Not Edited" }}</td>
           <td>
             <button class="cursor-pointer rounded-lg text-sm text-white button-red px-2 py-1"
               @click="deleteUser(user.id)">
@@ -141,6 +228,11 @@ export default {
               class="cursor-pointer rounded-lg text-sm text-white button-green px-2 py-1"
               @click="confirmRoleChange(user.id)">
               Confirm
+            </button>
+            <button v-if="user.role === 1"
+              class="cursor-pointer rounded-lg text-sm text-white button-blue px-2 py-1 ml-2"
+              @click="openPermissionsModal(user.id)">
+              Manage Pages
             </button>
           </td>
         </tr>
@@ -178,16 +270,53 @@ export default {
       </div>
       <div class="user-field">
         <span class="field-label">Edited:</span>
-        <span>{{ user.edited_at ? user.edited_at : 'Not Edited' }}</span>
+        <span>{{ user.edited_at ? user.edited_at : "Not Edited" }}</span>
       </div>
       <div class="user-field">
         <span class="field-label">Actions:</span>
         <button class="cursor-pointer rounded-lg text-sm text-white button-red px-2 py-1" @click="deleteUser(user.id)">
           Delete
         </button>
-        <button v-if="editedRoles[user.id]" class="cursor-pointer rounded-lg text-sm text-white button-green px-2 py-1"
+        <button v-if="editedRoles[user.id]"
+          class="cursor-pointer rounded-lg text-sm text-white button-green px-2 py-1 ml-2"
           @click="confirmRoleChange(user.id)">
           Confirm
+        </button>
+        <button v-if="user.role === 1" class="cursor-pointer rounded-lg text-sm text-white button-blue px-2 py-1 ml-2"
+          @click="openPermissionsModal(user.id)">
+          Manage Pages
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Permissions Modal -->
+  <div v-if="showPermissionsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    @click.self="closePermissionsModal">
+    <div class="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+      <h3 class="text-xl font-bold mb-4">
+        Manage Page Permissions for User #{{
+          selectedUser
+        }}
+      </h3>
+
+      <div v-for="category in categories" :key="category.id" class="mb-6">
+        <h4 class="font-semibold text-lg mb-2">{{ category.title }}</h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+          <div v-for="page in getPagesByCategory(category.id)" :key="page.id"
+            class="flex items-center p-2 border rounded">
+            <input type="checkbox" :id="`page-${page.id}`" :checked="userPermissions[selectedUser!]?.includes(page.id) || false
+              " @change="togglePermission(selectedUser!, page.id)" class="mr-2" />
+            <label :for="`page-${page.id}`" class="cursor-pointer">
+              {{ page.title }}
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end mt-4">
+        <button @click="closePermissionsModal" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">
+          Close
         </button>
       </div>
     </div>
@@ -235,5 +364,17 @@ export default {
 
 .field-label {
   @apply font-semibold text-green-700;
+}
+
+.button-blue {
+  @apply bg-blue-600 hover:bg-blue-700;
+}
+
+.button-green {
+  @apply bg-green-600 hover:bg-green-700;
+}
+
+.button-red {
+  @apply bg-red-600 hover:bg-red-700;
 }
 </style>
