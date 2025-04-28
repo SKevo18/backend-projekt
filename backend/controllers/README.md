@@ -13,7 +13,7 @@ USER_ROUTER = APIRouter(
 ...tak potom tento router musí byť pridaný do zoznamu `ALL_ROUTERS` v súbore `main.py`:
 
 ```python
-from router.user_router import USER_ROUTER
+from controllers.user_router import USER_ROUTER
 
 ALL_ROUTERS = [
     USER_ROUTER,

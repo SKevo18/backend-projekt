@@ -57,7 +57,7 @@ export default {
     },
     async changeUserRole(id: number, event: Event) {
       const role = (event.target as HTMLSelectElement).value;
-      if (this.users.find(user => user.id === id)?.role !== parseInt(role)) {
+      if (this.users.find((user) => user.id === id)?.role !== parseInt(role)) {
         this.editedRoles[id] = role;
       } else {
         delete this.editedRoles[id];
@@ -123,23 +123,30 @@ export default {
           <td>{{ user.last_name }}</td>
           <td class="break-words">{{ user.user_email }}</td>
           <td>
-            <select class="cursor-pointer rounded-lg text-sm text-white button-green px-2 py-1"
-              @change="changeUserRole(user.id, $event)" :value="user.role">
+            <select
+              class="cursor-pointer rounded-lg text-sm text-white button-green px-2 py-1"
+              @change="changeUserRole(user.id, $event)"
+              :value="user.role"
+            >
               <option :value="2">Admin</option>
               <option :value="1">Editor</option>
               <option :value="0">User</option>
             </select>
           </td>
           <td>{{ user.registered_at }}</td>
-          <td>{{ user.edited_at ? user.edited_at : 'Not Edited' }}</td>
+          <td>{{ user.edited_at ? user.edited_at : "Not Edited" }}</td>
           <td>
-            <button class="cursor-pointer rounded-lg text-sm text-white button-red px-2 py-1"
-              @click="deleteUser(user.id)">
+            <button
+              class="cursor-pointer rounded-lg text-sm text-white button-red px-2 py-1"
+              @click="deleteUser(user.id)"
+            >
               Delete
             </button>
-            <button v-if="editedRoles[user.id]"
+            <button
+              v-if="editedRoles[user.id]"
               class="cursor-pointer rounded-lg text-sm text-white button-green px-2 py-1"
-              @click="confirmRoleChange(user.id)">
+              @click="confirmRoleChange(user.id)"
+            >
               Confirm
             </button>
           </td>
@@ -165,8 +172,11 @@ export default {
       </div>
       <div class="user-field">
         <span class="field-label">Role:</span>
-        <select class="cursor-pointer rounded-lg text-sm text-white button-green px-2 py-1"
-          @change="changeUserRole(user.id, $event)" :value="user.role">
+        <select
+          class="cursor-pointer rounded-lg text-sm text-white button-green px-2 py-1"
+          @change="changeUserRole(user.id, $event)"
+          :value="user.role"
+        >
           <option :value="2">Admin</option>
           <option :value="1">Editor</option>
           <option :value="0">User</option>
@@ -178,15 +188,21 @@ export default {
       </div>
       <div class="user-field">
         <span class="field-label">Edited:</span>
-        <span>{{ user.edited_at ? user.edited_at : 'Not Edited' }}</span>
+        <span>{{ user.edited_at ? user.edited_at : "Not Edited" }}</span>
       </div>
       <div class="user-field">
         <span class="field-label">Actions:</span>
-        <button class="cursor-pointer rounded-lg text-sm text-white button-red px-2 py-1" @click="deleteUser(user.id)">
+        <button
+          class="cursor-pointer rounded-lg text-sm text-white button-red px-2 py-1"
+          @click="deleteUser(user.id)"
+        >
           Delete
         </button>
-        <button v-if="editedRoles[user.id]" class="cursor-pointer rounded-lg text-sm text-white button-green px-2 py-1"
-          @click="confirmRoleChange(user.id)">
+        <button
+          v-if="editedRoles[user.id]"
+          class="cursor-pointer rounded-lg text-sm text-white button-green px-2 py-1"
+          @click="confirmRoleChange(user.id)"
+        >
           Confirm
         </button>
       </div>

@@ -1,26 +1,31 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+import logging
+from datetime import datetime
+
 from db import get_db
 from db.orm import User
-from datetime import datetime
-import logging
-from router.dependencies import get_admin_user
-from router.authentication import UserRole
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from controllers.authentication_controller import UserRole
+from controllers.dependencies import get_admin_user
 
 logger = logging.getLogger(__name__)
-USER_ROUTER = APIRouter(prefix="/user")
+USER_CONTROLLER = APIRouter(prefix="/user")
 
 
-@USER_ROUTER.get("/")
+@USER_CONTROLLER.get("/")
 def get_all_users(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_admin_user),
+    _=Depends(get_admin_user),
 ):
     users = db.query(User).all()
     return [
         {
             "id": user.id,
+            "title_before_name": user.title_before_name,
+            "title_after_name": user.title_after_name,
             "first_name": user.first_name,
+            "middle_name": user.middle_name,
             "last_name": user.last_name,
             "user_email": user.user_email,
             "role": user.role,
@@ -31,12 +36,12 @@ def get_all_users(
     ]
 
 
-@USER_ROUTER.patch("/{user_id}/role")
+@USER_CONTROLLER.patch("/{user_id}/role")
 def update_user_role(
     user_id: int,
     role_data: dict,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_admin_user),
+    _=Depends(get_admin_user),
 ):
     user_to_update = db.query(User).filter_by(id=user_id).first()
     if user_to_update is None:
@@ -60,11 +65,11 @@ def update_user_role(
     return {"msg": "User role updated successfully"}
 
 
-@USER_ROUTER.delete("/{user_id}")
+@USER_CONTROLLER.delete("/{user_id}")
 def delete_user(
     user_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_admin_user),
+    _=Depends(get_admin_user),
 ):
     user_to_delete = db.query(User).filter_by(id=user_id).first()
     if user_to_delete is None:
