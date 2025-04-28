@@ -474,12 +474,14 @@ export default {
 </template>
 
 <style scoped>
+@import "tailwindcss";
+
 .admin-users-view {
   @apply relative;
 }
 
 .loading-overlay {
-  @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50;
+  @apply fixed inset-0 bg-black flex items-center justify-center z-50;
 }
 
 .loading-spinner {
@@ -540,7 +542,7 @@ export default {
 }
 
 .permissions-modal-overlay {
-  @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50;
+  @apply fixed inset-0 bg-black flex items-center justify-center z-50;
 }
 
 .permissions-modal {

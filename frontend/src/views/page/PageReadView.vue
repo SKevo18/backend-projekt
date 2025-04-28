@@ -1,6 +1,5 @@
 <script lang="ts">
-import { defineComponent, ref, onBeforeRouteUpdate } from "vue";
-import { useRoute } from "vue-router";
+import { defineComponent, ref, watch } from "vue";
 import { useAuthStore } from "@/store/authStore";
 import { usePagesStore } from "@/store/pageStore";
 import PageSidebarComponent from "@/components/page/PageSidebarComponent.vue";
@@ -20,7 +19,6 @@ export default defineComponent({
   setup(props) {
     const pagesStore = usePagesStore();
     const authStore = useAuthStore();
-    const route = useRoute();
 
     // Состояния компонента
     const slug = ref("");
@@ -116,14 +114,15 @@ export default defineComponent({
       }
     };
 
-    // Обновление данных при изменении маршрута
-    onBeforeRouteUpdate((to) => {
-      const idSlug = to.params.idSlug as string;
-      loadPage(idSlug); // Загружаем новую страницу при изменении маршрута
-    });
-
     // Инициализация компонента при первом рендере
     loadPage(props.idSlug);
+
+    watch(
+      () => props.idSlug,
+      (newIdSlug) => {
+        loadPage(newIdSlug);
+      }
+    );
 
     return {
       slug,
@@ -136,13 +135,14 @@ export default defineComponent({
       apiUrl,
       canEdit,
       isLoading,
+      authStore,
     };
   },
 });
 </script>
 
 <template>
-  <div>
+  <div class="page-read-view">
     <PageSidebarComponent :activeCategoryId="categoryId" />
 
     <div class="page-content">
@@ -206,7 +206,7 @@ export default defineComponent({
 @import "tailwindcss";
 
 .page-read-view {
-  @apply flex flex-col md:flex-row min-h-screen;
+  @apply flex min-h-screen;
 }
 
 .page-content {
@@ -234,7 +234,7 @@ export default defineComponent({
 }
 
 .page-html-content {
-  @apply prose max-w-none;
+  @apply max-w-none;
 }
 
 .page-footer {
