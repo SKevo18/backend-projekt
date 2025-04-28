@@ -10,6 +10,7 @@ import sqlalchemy as sa
 from alembic import op
 
 from orm import User
+from utils.password import hash_password
 
 # revision identifiers, used by Alembic.
 revision = "56fa62a328fa"
@@ -26,7 +27,7 @@ def upgrade() -> None:
             first_name="admin",
             last_name="admin",
             user_email="admin@nieco.sk",
-            user_password="admin",  # FIXME: hashovanie (bcrypt)
+            user_password=hash_password("admin"),
         )
     )
 
