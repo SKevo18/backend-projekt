@@ -2,8 +2,7 @@
 import api from "@/services/api";
 import PageEditorComponent from "@/components/page/PageEditorComponent.vue";
 import { usePagesStore } from "@/store/pageStore";
-
-// TODO: redirect to login if not editor or admin (via guard)
+import { useAuthStore } from "@/store/authStore";
 
 export default {
   name: "PageEditView",
@@ -19,6 +18,7 @@ export default {
   data() {
     return {
       pagesStore: usePagesStore(),
+      authStore: useAuthStore(),
       id: null as number | null,
       title: "",
       slug: "",
@@ -41,6 +41,18 @@ export default {
     this.slug = slug;
     this.htmlContent = page.html_content;
     await this.loadExistingFiles();
+  },
+  async beforeRouteEnter(to, from, next) {
+    const authStore = useAuthStore();
+    if (!authStore.user && authStore.hasToken) {
+      await authStore.fetchUserData();
+    }
+
+    if (!authStore.user || !(authStore.user.role === 1 || authStore.user.role === 2)) {
+      next({ name: "login" });
+    } else {
+      next();
+    }
   },
   methods: {
     async loadExistingFiles() {
@@ -132,12 +144,12 @@ export default {
 <template>
   <nav class="top-nav">
     <h1 class="nav-inner">
-      <span class="title whitespace-nowrap">Upravuje sa:</span>
+      <span class="title whitespace-nowrap">Editing:</span>
       <span class="nav-label uppercase">{{ title }}</span>
     </h1>
     <div class="nav-inner">
-      <button class="button button-red">Odstrániť</button>
-      <button class="button button-green" @click="savePage">Uložiť</button>
+      <button class="button button-red">Delete</button> 
+      <button class="button button-green" @click="savePage">Save</button> 
     </div>
   </nav>
 
@@ -145,7 +157,7 @@ export default {
     <PageEditorComponent v-model="htmlContent" />
 
     <div class="file-upload-container">
-      <h2 class="big mb-2">Priložené súbory</h2>
+      <h2 class="big mb-2">Attached Files</h2> 
 
       <div class="file-upload-list">
         <input
@@ -159,7 +171,7 @@ export default {
           class="button button-green w-32"
           @click="() => ($refs.fileInput as HTMLInputElement).click()"
         >
-          Priložiť súbor
+          Attach File 
         </button>
 
         <div class="file-upload-item" v-for="file in files" :key="file.name">
@@ -167,13 +179,14 @@ export default {
             >{{ file.name }}, {{ file.size }} B</span
           >
           <button class="button button-red" @click="removeFile(file)">
-            Odstrániť
+            Delete 
           </button>
         </div>
       </div>
     </div>
   </div>
 </template>
+
 
 <style scoped>
 @import "tailwindcss";
