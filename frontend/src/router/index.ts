@@ -2,6 +2,7 @@ import { usePagesStore } from "@/store/pageStore";
 import NotFoundView from "@/views/NotFoundView.vue";
 import PageReadView from "@/views/page/PageReadView.vue";
 import { createRouter, createWebHistory } from "vue-router";
+import { useAuthStore } from "@/store/authStore";
 
 const router = createRouter({
   history: createWebHistory(),
@@ -45,6 +46,7 @@ const router = createRouter({
       name: "page-edit",
       component: () => import("@/views/page/PageEditView.vue"),
       props: true,
+      meta: { requiresEditorOrAdmin: true},
     },
     {
       path: "/login",
@@ -101,5 +103,23 @@ const router = createRouter({
     },
   ],
 });
+
+
+router.beforeEach(async (to, from, next) => {
+  const authStore = useAuthStore();
+
+  if (to.meta.requiresEditorOrAdmin) {
+    if (!authStore.user && authStore.hasToken) {
+      await authStore.fetchUserData();
+    }
+
+    if (!authStore.user || !(authStore.user.role === 1 || authStore.user.role === 2)) {
+      return next({ name: "login" });
+    }
+  }
+
+  next();
+});
+
 
 export default router;

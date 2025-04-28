@@ -159,43 +159,45 @@ export default defineComponent({
             </header>
 
             <div class="page-html-content" v-html="pageHtml"></div>
+
+            <footer class="page-footer">
+              <div v-if="files.length > 0" class="files-container">
+                <h2 class="big mb-2">Attached Files</h2>
+                <div class="files-list">
+                  <div class="file-item" v-for="file in files" :key="file.name">
+                    <a
+                      :href="`${apiUrl}/page/${pageId}/upload/${file.name}`"
+                      target="_blank"
+                      class="file-link"
+                    >
+                      {{ file.name }}
+                    </a>
+                    <span class="text-sm text-gray-500">{{ file.size }} B</span>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                v-if="authStore.isAuthenticated && !canEdit"
+                class="read-only-notice"
+              >
+                You have read-only access to this page
+              </div>
+
+              <nav>
+                <RouterLink
+                  class="button button-green"
+                  :to="{
+                    name: 'page-edit',
+                    params: { idSlug: `${pageId}-${slug}` },
+                  }"
+                  v-if="pageFound && canEdit"
+                >
+                  Edit Page
+                </RouterLink>
+              </nav>
+            </footer>
           </article>
-
-          <footer class="page-footer">
-            <div v-if="files.length > 0" class="attached-files">
-              <h2>Attached Files</h2>
-              <ul class="files-list">
-                <li v-for="file in files" :key="file.name" class="file-item">
-                  <a
-                    :href="`${apiUrl}/page/${pageId}/upload/${file.name}`"
-                    target="_blank"
-                    class="file-link"
-                  >
-                    {{ file.name }}
-                  </a>
-                  <span class="file-size">{{ file.size }} B</span>
-                </li>
-              </ul>
-            </div>
-
-            <div
-              v-if="authStore.isAuthenticated && !canEdit"
-              class="read-only-notice"
-            >
-              You have read-only access to this page
-            </div>
-
-            <router-link
-              v-if="pageFound && canEdit"
-              :to="{
-                name: 'page-edit',
-                params: { idSlug: `${pageId}-${slug}` },
-              }"
-              class="edit-button"
-            >
-              Edit Page
-            </router-link>
-          </footer>
         </template>
       </template>
     </div>
@@ -241,12 +243,8 @@ export default defineComponent({
   @apply mt-8;
 }
 
-.attached-files {
+.files-container {
   @apply mb-6 border border-gray-200 rounded-lg p-4;
-}
-
-.attached-files h2 {
-  @apply text-lg font-semibold mb-3;
 }
 
 .files-list {
@@ -261,15 +259,11 @@ export default defineComponent({
   @apply text-blue-600 hover:underline;
 }
 
-.file-size {
-  @apply text-sm text-gray-500;
-}
-
 .read-only-notice {
   @apply bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4;
 }
 
-.edit-button {
+.button-green {
   @apply inline-block bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg;
 }
 
