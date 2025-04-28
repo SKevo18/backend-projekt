@@ -1,13 +1,14 @@
+from db import get_db
+from db.orm import Category, Page, User, UserCategoryPermission, UserPagePermission
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from db import get_db
-from db.orm import UserPagePermission, UserCategoryPermission, User, Page, Category
+
 from controllers.dependencies import get_admin_user, get_current_user
 
-PERMISSION_ROUTER = APIRouter(prefix="/permissions")
+PERMISSION_CONTROLLER = APIRouter(prefix="/permissions")
 
 
-@PERMISSION_ROUTER.post("/")
+@PERMISSION_CONTROLLER.post("/")
 def add_permission(
     user_id: int,
     page_id: int,
@@ -35,7 +36,7 @@ def add_permission(
     return {"message": "Permission added"}
 
 
-@PERMISSION_ROUTER.delete("/")
+@PERMISSION_CONTROLLER.delete("/")
 def remove_permission(
     user_id: int,
     page_id: int,
@@ -54,7 +55,7 @@ def remove_permission(
     return {"message": "Permission removed"}
 
 
-@PERMISSION_ROUTER.get("/{user_id}/pages")
+@PERMISSION_CONTROLLER.get("/{user_id}/pages")
 def get_user_permissions(
     user_id: int,
     db: Session = Depends(get_db),
@@ -68,7 +69,7 @@ def get_user_permissions(
     return [p.page_id for p in permissions]
 
 
-@PERMISSION_ROUTER.get("/{user_id}/pages/{page_id}")
+@PERMISSION_CONTROLLER.get("/{user_id}/pages/{page_id}")
 def check_user_permission(
     user_id: int,
     page_id: int,
@@ -87,7 +88,7 @@ def check_user_permission(
     return {"has_permission": permission is not None}
 
 
-@PERMISSION_ROUTER.post("/category")
+@PERMISSION_CONTROLLER.post("/category")
 def add_category_permission(
     user_id: int,
     category_id: int,
@@ -117,7 +118,7 @@ def add_category_permission(
     return {"message": "Category permission added"}
 
 
-@PERMISSION_ROUTER.delete("/category")
+@PERMISSION_CONTROLLER.delete("/category")
 def remove_category_permission(
     user_id: int,
     category_id: int,
@@ -138,7 +139,7 @@ def remove_category_permission(
     return {"message": "Category permission removed"}
 
 
-@PERMISSION_ROUTER.get("/{user_id}/categories")
+@PERMISSION_CONTROLLER.get("/{user_id}/categories")
 def get_user_category_permissions(
     user_id: int,
     db: Session = Depends(get_db),
@@ -154,7 +155,7 @@ def get_user_category_permissions(
     return [p.category_id for p in permissions]
 
 
-@PERMISSION_ROUTER.get("/{user_id}/categories/{category_id}")
+@PERMISSION_CONTROLLER.get("/{user_id}/categories/{category_id}")
 def check_user_category_permission(
     user_id: int,
     category_id: int,
