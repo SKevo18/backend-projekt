@@ -88,3 +88,11 @@ class UserPagePermission(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     page_id: Mapped[int] = mapped_column(ForeignKey("pages.id"))
     created_at: Mapped[datetime] = mapped_column(default=datetime.now)
+
+class UserCategoryPermission(Base):
+    __tablename__ = "user_category_permissions"
+    
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"))
+    created_at: Mapped[datetime] = mapped_column(default=datetime.now)

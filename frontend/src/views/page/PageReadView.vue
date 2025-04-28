@@ -1,21 +1,15 @@
 <script lang="ts">
-import { defineComponent, onMounted } from "vue";
-import { usePagesStore } from "@/store/pageStore";
+import { defineComponent, ref, onBeforeRouteUpdate } from "vue";
+import { useRoute } from "vue-router";
 import { useAuthStore } from "@/store/authStore";
+import { usePagesStore } from "@/store/pageStore";
 import PageSidebarComponent from "@/components/page/PageSidebarComponent.vue";
-import {
-  RouterLink,
-  useRoute,
-  useRouter,
-  onBeforeRouteUpdate,
-} from "vue-router";
 import api from "@/services/api";
 
 export default defineComponent({
   name: "PageReadView",
   components: {
     PageSidebarComponent,
-    RouterLink,
   },
   props: {
     idSlug: {
@@ -24,207 +18,263 @@ export default defineComponent({
     },
   },
   setup(props) {
+    const pagesStore = usePagesStore();
+    const authStore = useAuthStore();
     const route = useRoute();
-    const router = useRouter();
+    
+    // Состояния компонента
+    const slug = ref("");
+    const categoryId = ref<number | null>(null);
+    const pageHtml = ref("<i>Loading page...</i>");
+    const files = ref<any[]>([]);
+    const title = ref("");
+    const pageFound = ref(false);
+    const pageId = ref<number | null>(null);
+    const apiUrl = api.defaults.baseURL;
+    const canEdit = ref(false);
+    const isLoading = ref(true);
 
-    onBeforeRouteUpdate((to, from) => {
-      if (to.params.idSlug !== from.params.idSlug) {
-        const pageReadView =
-          document.querySelector("#page-read-view")?.__vueParentComponent?.ctx;
-        if (pageReadView) {
-          pageReadView.loadPage(to.params.idSlug.toString());
-        }
-      }
-    });
+    // Загрузка страницы
+    const loadPage = async (idSlug: string) => {
+      isLoading.value = true;
+      pageFound.value = false;
+      canEdit.value = false;
 
-    return {};
-  },
-  data() {
-    return {
-      pagesStore: usePagesStore(),
-      authStore: useAuthStore(),
-      slug: "",
-      categoryId: null as number | null,
-      pageHtml: "<i>Page not found.</i>",
-      files: [] as any[],
-      title: "",
-      pageFound: false,
-      pageId: null as number | null,
-      apiUrl: api.defaults.baseURL,
-      canEdit: false,
-      isLoading: true,
-    };
-  },
-  created() {
-    this.loadPage(this.idSlug);
-  },
-  methods: {
-    async loadPage(idSlug: string) {
-      this.isLoading = true;
       try {
         const id = parseInt(idSlug.split("-")[0]);
         if (isNaN(id)) {
-          this.pageFound = false;
-          this.pageHtml = "<i>Invalid page ID.</i>";
+          pageHtml.value = "<i>Invalid page ID.</i>";
           return;
         }
 
-        this.pageId = id;
-        const page = await this.pagesStore.fetchPageById(this.pageId);
+        pageId.value = id;
+        const page = await pagesStore.fetchPageById(pageId.value);
 
-        this.pageFound = true;
-        this.slug = page.slug;
-        this.pageHtml = page?.html_content || "<i>The page has no content.</i>";
-        this.title = page?.title || "";
-        this.categoryId = page?.category_id || null;
+        pageFound.value = true;
+        slug.value = page.slug;
+        pageHtml.value = page?.html_content || "<i>The page has no content.</i>";
+        title.value = page?.title || "";
+        categoryId.value = page?.category_id || null;
 
-        
-        if (this.authStore.isAuthenticated) {
-          this.canEdit = await this.checkEditPermission();
+        if (authStore.isAuthenticated) {
+          canEdit.value = await checkEditPermission();
         }
       } catch (error) {
-        this.pageFound = false;
-        this.pageHtml = "<i>Page not found.</i>";
-        this.categoryId = null;
-        this.canEdit = false;
+        console.error("Error loading page:", error);
+        pageHtml.value = "<i>Page not found.</i>";
+        categoryId.value = null;
       } finally {
-        this.isLoading = false;
+        isLoading.value = false;
       }
 
-      await this.loadExistingFiles();
-    },
+      await loadExistingFiles();
+    };
 
-    async checkEditPermission(): Promise<boolean> {
-      if (this.authStore.user?.role === 2) return true; 
-      if (!this.authStore.user || this.authStore.user.role !== 1 || !this.pageId) return false; 
+    // Проверка прав на редактирование
+    const checkEditPermission = async (): Promise<boolean> => {
+      if (!authStore.user || !pageId.value || !categoryId.value) {
+        return false;
+      }
+
+      if (authStore.user.role === 2) {
+        return true;
+      }
+
+      if (authStore.user.role === 0) {
+        return false;
+      }
 
       try {
-        const response = await api.get(`/permissions/${this.authStore.user.id}/pages/${this.pageId}`);
-        return response.data.has_permission;
+        const pageResponse = await api.get(
+          `/permissions/${authStore.user.id}/pages/${pageId.value}`
+        );
+        if (pageResponse.data.has_permission) {
+          return true;
+        }
+
+        const categoryResponse = await api.get(
+          `/permissions/${authStore.user.id}/categories/${categoryId.value}`
+        );
+        return categoryResponse.data.has_permission;
       } catch (error) {
         console.error("Error checking permissions:", error);
         return false;
       }
-    },
+    };
 
-    async loadExistingFiles() {
-      if (!this.pageId) return;
+    // Загрузка существующих файлов
+    const loadExistingFiles = async () => {
+      if (!pageId.value) return;
 
       try {
-        const response = await api.get(`/page/${this.pageId}/upload/`);
-        this.files = response.data;
+        const response = await api.get(`/page/${pageId.value}/upload/`);
+        files.value = response.data;
       } catch (error) {
         console.error("Error loading files:", error);
-        this.files = [];
+        files.value = [];
       }
-    },
+    };
+
+    // Обновление данных при изменении маршрута
+    onBeforeRouteUpdate((to) => {
+      const idSlug = to.params.idSlug as string;
+      loadPage(idSlug); // Загружаем новую страницу при изменении маршрута
+    });
+
+    // Инициализация компонента при первом рендере
+    loadPage(props.idSlug);
+
+    return {
+      slug,
+      categoryId,
+      pageHtml,
+      files,
+      title,
+      pageFound,
+      pageId,
+      apiUrl,
+      canEdit,
+      isLoading,
+    };
   },
 });
 </script>
 
 <template>
-  <div id="page-read-view" class="flex flex-col sm:flex-row">
+  <div >
     <PageSidebarComponent :activeCategoryId="categoryId" />
 
-    <article v-if="!isLoading">
-      <div v-if="!pageFound" class="error-message">
-        Page not found
+    <div class="page-content">
+      <div v-if="isLoading" class="loading-indicator">
+        Loading...
       </div>
 
-      <div v-else class="top-container">
-        <header>
-          <h1 class="uppercase">{{ title }}</h1>
-          <hr />
-        </header>
+      <template v-else>
+        <div v-if="!pageFound" class="error-message">
+          Page not found
+        </div>
 
-        <div id="page-html" v-html="pageHtml"></div>
-      </div>
+        <template v-else>
+          <article class="page-article">
+            <header>
+              <h1>{{ title }}</h1>
+              <hr />
+            </header>
 
-      <footer>
-        <div v-if="files.length > 0" class="files-container">
-          <h2 class="big mb-2">Attached files</h2>
-          <div class="files-list">
-            <div class="file-item" v-for="file in files" :key="file.name">
-              <a :href="`${apiUrl}/page/${pageId}/upload/${file.name}`" target="_blank">
-                {{ file.name }}
-              </a>
-              <span class="text-sm text-gray-500">{{ file.size }} B</span>
+            <div class="page-html-content" v-html="pageHtml"></div>
+          </article>
+
+          <footer class="page-footer">
+            <div v-if="files.length > 0" class="attached-files">
+              <h2>Attached Files</h2>
+              <ul class="files-list">
+                <li v-for="file in files" :key="file.name" class="file-item">
+                  <a :href="`${apiUrl}/page/${pageId}/upload/${file.name}`" target="_blank" class="file-link">
+                    {{ file.name }}
+                  </a>
+                  <span class="file-size">{{ file.size }} B</span>
+                </li>
+              </ul>
             </div>
-          </div>
-        </div>
 
-        <div v-if="authStore.isAuthenticated && !canEdit" class="read-only-message">
-          You have read-only access to this page.
-        </div>
+            <div v-if="authStore.isAuthenticated && !canEdit" class="read-only-notice">
+              You have read-only access to this page
+            </div>
 
-        <nav>
-          <RouterLink class="button button-green" :to="{ name: 'page-edit', params: { idSlug: `${pageId}-${slug}` } }"
-            v-if="pageFound && canEdit">
-            Edit Page
-          </RouterLink>
-        </nav>
-      </footer>
-    </article>
+            <router-link v-if="pageFound && canEdit"
+              :to="{ name: 'page-edit', params: { idSlug: `${pageId}-${slug}` } }" class="edit-button">
+              Edit Page
+            </router-link>
+          </footer>
+        </template>
+      </template>
+    </div>
   </div>
 </template>
 
-<style scoped>
-@import "tailwindcss";
-
-#page-html {
-  @apply h-full;
+<style scoped lang="postcss">
+.page-read-view {
+  @apply flex flex-col md:flex-row min-h-screen;
 }
 
-article nav {
-  @apply flex justify-end mb-4 items-center;
+.page-content {
+  @apply flex-1 p-6;
 }
 
-article header {
-  @apply mb-4;
-}
-
-article header h1 {
-  @apply text-2xl font-bold uppercase;
-}
-
-article {
-  @apply w-full p-8 flex flex-col justify-between;
-}
-
-.files-container {
-  @apply my-6 border border-gray-300 rounded-md p-4;
-}
-
-.files-list {
-  @apply flex flex-col gap-2;
-}
-
-.files-list .file-item {
-  @apply flex justify-between items-center;
-}
-
-.files-list .file-item a {
-  @apply text-blue-500 hover:underline;
-}
-
-.read-only-message {
-  @apply bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4;
+.loading-indicator {
+  @apply text-center py-8 text-gray-500;
 }
 
 .error-message {
   @apply text-red-500 text-lg p-4;
 }
-</style>
 
-<style>
-@import "tailwindcss";
-
-.ck-table-resized {
-  @apply table-fixed my-2;
+.page-article {
+  @apply mb-8;
 }
 
-.ck-table-resized td,
-.ck-table-resized th {
-  @apply border-black border-1 p-1;
+.page-article header {
+  @apply mb-6;
+}
+
+.page-article header h1 {
+  @apply text-2xl font-bold;
+}
+
+.page-html-content {
+  @apply prose max-w-none;
+}
+
+.page-footer {
+  @apply mt-8;
+}
+
+.attached-files {
+  @apply mb-6 border border-gray-200 rounded-lg p-4;
+}
+
+.attached-files h2 {
+  @apply text-lg font-semibold mb-3;
+}
+
+.files-list {
+  @apply space-y-2;
+}
+
+.file-item {
+  @apply flex justify-between items-center py-2;
+}
+
+.file-link {
+  @apply text-blue-600 hover:underline;
+}
+
+.file-size {
+  @apply text-sm text-gray-500;
+}
+
+.read-only-notice {
+  @apply bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4;
+}
+
+.edit-button {
+  @apply inline-block bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg;
+}
+
+.page-html-content table {
+  @apply w-full my-4 border-collapse;
+}
+
+.page-html-content table td,
+.page-html-content table th {
+  @apply border border-gray-300 p-2;
+}
+
+.page-html-content table th {
+  @apply bg-gray-100;
+}
+
+.page-html-content img {
+  @apply max-w-full h-auto my-2;
 }
 </style>
