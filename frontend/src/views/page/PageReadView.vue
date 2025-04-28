@@ -107,7 +107,7 @@ export default defineComponent({
 
       <footer>
         <div v-if="files.length > 0" class="files-container">
-          <h2 class="big mb-2">Priložené súbory</h2>
+          <h2 class="big mb-2">Attached Files</h2>
           <div class="files-list">
             <div class="file-item" v-for="file in files" :key="file.name">
               <a
@@ -127,7 +127,7 @@ export default defineComponent({
             :to="{ name: 'page-edit', params: { idSlug: `${pageId}-${slug}` } }"
             v-if="pageFound && authStore.user && (authStore.user.role === 1 || authStore.user.role === 2)"
           >
-            Upraviť stránku
+            Edit Page 
           </RouterLink>
         </nav>
       </footer>
