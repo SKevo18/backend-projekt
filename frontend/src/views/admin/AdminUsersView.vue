@@ -73,7 +73,7 @@ export default {
 
     async changeUserRole(id: number, event: Event) {
       const role = (event.target as HTMLSelectElement).value;
-      if (this.users.find(user => user.id === id)?.role !== parseInt(role)) {
+      if (this.users.find((user) => user.id === id)?.role !== parseInt(role)) {
         this.editedRoles[id] = role;
       } else {
         delete this.editedRoles[id];

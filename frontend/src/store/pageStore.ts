@@ -71,8 +71,7 @@ export const usePagesStore = defineStore("pages", {
     async updateCategory(category_id: number, updatedData: Partial<Category>) {
       try {
         await api.put(`/category/${category_id}`, updatedData);
-      }
-      catch (error) {
+      } catch (error) {
         this.error = `Failed to update category ${category_id}.`;
         throw error;
       }
@@ -80,9 +79,13 @@ export const usePagesStore = defineStore("pages", {
     async deleteCategory(category: Category) {
       try {
         await api.delete(`/category/${category.id}`);
-        this.categories = this.categories.filter((cat) => cat.id !== category.id);
+        this.categories = this.categories.filter(
+          (cat) => cat.id !== category.id
+        );
         delete this.pagesByCategory[category.id];
-        this.pages = this.pages.filter((page) => page.category_id !== category.id);
+        this.pages = this.pages.filter(
+          (page) => page.category_id !== category.id
+        );
       } catch (error) {
         this.error = `Failed to remove category ${category.id}.`;
         throw error;

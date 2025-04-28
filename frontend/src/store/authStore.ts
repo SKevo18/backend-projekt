@@ -34,7 +34,8 @@ export const useAuthStore = defineStore("auth", {
       last_name: string,
       email: string,
       password: string,
-      confirmPassword: string
+      confirmPassword: string,
+      turnstile_token: string
     ) {
       if (password !== confirmPassword) {
         return {
@@ -43,15 +44,13 @@ export const useAuthStore = defineStore("auth", {
         };
       }
 
-      const response = await api.post(
-        "/authentication/register",
-        {
-          first_name,
-          last_name,
-          user_email: email,
-          user_password: password,
-        }
-      );
+      const response = await api.post("/authentication/register", {
+        first_name,
+        last_name,
+        user_email: email,
+        user_password: password,
+        turnstile_token,
+      });
       this.token = response.data.access_token;
       localStorage.setItem("token", this.token);
       api.defaults.headers.common["Authorization"] = `Bearer ${this.token}`;
@@ -60,13 +59,10 @@ export const useAuthStore = defineStore("auth", {
     },
 
     async login(email: string, password: string) {
-      const response = await api.post(
-        "/authentication/login",
-        {
-          user_email: email,
-          user_password: password,
-        }
-      );
+      const response = await api.post("/authentication/login", {
+        user_email: email,
+        user_password: password,
+      });
       this.token = response.data.access_token;
       localStorage.setItem("token", this.token);
       api.defaults.headers.common["Authorization"] = `Bearer ${this.token}`;
@@ -77,14 +73,11 @@ export const useAuthStore = defineStore("auth", {
     async fetchUserData() {
       if (!this.token) return;
       try {
-        const response = await api.get(
-          "/authentication/me",
-          {
-            headers: {
-              Authorization: `Bearer ${this.token}`,
-            },
-          }
-        );
+        const response = await api.get("/authentication/me", {
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+          },
+        });
         this.user = response.data;
       } catch (error) {
         console.error("Error while retrieving user data:", error);

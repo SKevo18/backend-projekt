@@ -1,9 +1,14 @@
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, ref } from "vue";
 import { useAuthStore } from "@/store/authStore";
+import api from "@/services/api";
+import TurnstileComponent from "@/components/TurnstileComponent.vue";
 
 export default defineComponent({
   name: "RegisterView",
+  components: {
+    TurnstileComponent,
+  },
   data() {
     return {
       first_name: "",
@@ -19,12 +24,22 @@ export default defineComponent({
   methods: {
     async handleRegister() {
       try {
+        const turnstileRef = this.$refs.turnstileRef as any;
+        if (!turnstileRef?.hasToken?.value && turnstileRef?.siteKey?.value) {
+          this.errorInfo = "Please complete the CAPTCHA verification";
+          this.registeredSuccessfully = false;
+          return;
+        }
+
+        const turnstileToken = turnstileRef?.getToken() || "";
+
         let response = await this.authStore.register(
           this.first_name,
           this.last_name,
           this.email,
           this.password,
-          this.confirmPassword
+          this.confirmPassword,
+          turnstileToken
         );
         this.registeredSuccessfully = response.status === 200;
       } catch (error) {
@@ -87,6 +102,8 @@ export default defineComponent({
             required
           />
         </div>
+
+        <TurnstileComponent ref="turnstileRef" />
 
         <button class="button button-green" type="submit">Register</button>
       </fieldset>

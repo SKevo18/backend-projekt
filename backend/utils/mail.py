@@ -2,17 +2,7 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-from db import DB
-from db.orm import Setting
-from dotenv import load_dotenv
-
-load_dotenv()
-
-
-def get_setting(key: str) -> str | None:
-    with DB.get_session() as session:
-        setting = session.query(Setting).filter_by(key=key).first()
-        return setting.value if setting else None
+from utils.settings import get_setting
 
 
 def send_email(recipient: str, subject: str, body: str):

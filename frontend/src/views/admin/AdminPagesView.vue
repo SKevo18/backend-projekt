@@ -135,7 +135,7 @@ export default defineComponent({
         }
       }
     },
-      startEditingCategory(category: any) {
+    startEditingCategory(category: any) {
       this.editingCategoryId = category.id;
       this.editCategoryTitle = category.title;
     },
@@ -155,7 +155,9 @@ export default defineComponent({
 
     async deleteCategory(category: any) {
       if (
-        confirm(`Do you really want to delete the category "${category.title}"? This will also remove all the pages in it.`)
+        confirm(
+          `Do you really want to delete the category "${category.title}"? This will also remove all the pages in it.`
+        )
       ) {
         try {
           await this.pagesStore.deleteCategory(category);
@@ -198,7 +200,9 @@ export default defineComponent({
         <fieldset>
           <div class="flex items-center justify-between mb-2">
             <legend class="font-semibold text-xl text-gray-700">
-              <span v-if="editingCategoryId !== category.id">{{ category.title }}</span>
+              <span v-if="editingCategoryId !== category.id">{{
+                category.title
+              }}</span>
               <input
                 v-else
                 v-model="editCategoryTitle"
@@ -371,11 +375,7 @@ export default defineComponent({
           @click="showAddCategoryForm = !showAddCategoryForm"
           class="bg-green-500 text-white w-full py-2 rounded-md hover:bg-green-600 transition"
         >
-          {{
-            showAddCategoryForm
-              ? "Hide category form"
-              : "Add new category"
-          }}
+          {{ showAddCategoryForm ? "Hide category form" : "Add new category" }}
         </button>
       </div>
 

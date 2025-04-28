@@ -66,13 +66,15 @@ export default defineComponent({
         </div>
 
         <div class="flex justify-between items-center w-full">
-          <button type="button" @click="goToForgotPassword" class="text-blue-600 hover:underline text-sm font-medium">
+          <button
+            type="button"
+            @click="goToForgotPassword"
+            class="text-blue-600 hover:underline text-sm font-medium"
+          >
             Forgot your password?
           </button>
 
-          <button type="submit" class="button button-green">
-            Login
-          </button>
+          <button type="submit" class="button button-green">Login</button>
         </div>
       </fieldset>
     </form>

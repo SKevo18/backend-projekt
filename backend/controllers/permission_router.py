@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from db import get_db
 from db.orm import UserPagePermission, UserCategoryPermission, User, Page, Category
-from router.dependencies import get_admin_user, get_current_user
+from controllers.dependencies import get_admin_user, get_current_user
 
 PERMISSION_ROUTER = APIRouter(prefix="/permissions")
 

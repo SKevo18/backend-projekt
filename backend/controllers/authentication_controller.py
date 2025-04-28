@@ -4,7 +4,7 @@ from enum import Enum
 
 from db import get_db
 from db.orm import User
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
 from pydantic import BaseModel, EmailStr, field_validator
@@ -18,13 +18,13 @@ class UserRole(Enum):
     ADMIN = 2
 
 
-AUTH_ROUTER = APIRouter(prefix="/authentication")
+AUTH_CONTROLLER = APIRouter(prefix="/authentication")
 OAUTH2_SCHEME = OAuth2PasswordBearer(tokenUrl="authentication/login")
 logger = logging.getLogger(__name__)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # circular
-from router.dependencies import get_current_user  # noqa: E402
+from controllers.dependencies import validate_turnstile_token, get_current_user  # noqa: E402
 
 
 class UserBaseModel(BaseModel):
@@ -39,6 +39,7 @@ class UserBaseModel(BaseModel):
 class UserRegisterModel(UserBaseModel):
     user_email: EmailStr
     user_password: str
+    turnstile_token: str
 
     @field_validator("user_password")
     def validate_password(cls, v):
@@ -60,8 +61,14 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
 
-@AUTH_ROUTER.post("/register")
-def register(user: UserRegisterModel, db: Session = Depends(get_db)):
+@AUTH_CONTROLLER.post("/register")
+async def register(
+    user: UserRegisterModel,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    validate_turnstile_token(request, user.turnstile_token)
+
     try:
         existing_user = db.query(User).filter_by(user_email=user.user_email).first()
         if existing_user:
@@ -90,7 +97,7 @@ def register(user: UserRegisterModel, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@AUTH_ROUTER.post("/login")
+@AUTH_CONTROLLER.post("/login")
 def login(user: LoginModel, db: Session = Depends(get_db)):
     db_user = db.query(User).filter_by(user_email=user.user_email).first()
     if not db_user or not verify_password(user.user_password, db_user.user_password):
@@ -102,7 +109,7 @@ def login(user: LoginModel, db: Session = Depends(get_db)):
     return {"access_token": token, "token_type": "bearer"}
 
 
-@AUTH_ROUTER.get("/me")
+@AUTH_CONTROLLER.get("/me")
 def get_me(
     current_user: User = Depends(get_current_user),
 ):
@@ -118,7 +125,7 @@ def get_me(
     }
 
 
-@AUTH_ROUTER.post("/update_profile")
+@AUTH_CONTROLLER.post("/update_profile")
 def update_profile(
     profile: UserBaseModel,
     current_user: User = Depends(get_current_user),

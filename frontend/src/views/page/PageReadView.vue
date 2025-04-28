@@ -21,7 +21,7 @@ export default defineComponent({
     const pagesStore = usePagesStore();
     const authStore = useAuthStore();
     const route = useRoute();
-    
+
     // Состояния компонента
     const slug = ref("");
     const categoryId = ref<number | null>(null);
@@ -52,7 +52,8 @@ export default defineComponent({
 
         pageFound.value = true;
         slug.value = page.slug;
-        pageHtml.value = page?.html_content || "<i>The page has no content.</i>";
+        pageHtml.value =
+          page?.html_content || "<i>The page has no content.</i>";
         title.value = page?.title || "";
         categoryId.value = page?.category_id || null;
 
@@ -141,18 +142,14 @@ export default defineComponent({
 </script>
 
 <template>
-  <div >
+  <div>
     <PageSidebarComponent :activeCategoryId="categoryId" />
 
     <div class="page-content">
-      <div v-if="isLoading" class="loading-indicator">
-        Loading...
-      </div>
+      <div v-if="isLoading" class="loading-indicator">Loading...</div>
 
       <template v-else>
-        <div v-if="!pageFound" class="error-message">
-          Page not found
-        </div>
+        <div v-if="!pageFound" class="error-message">Page not found</div>
 
         <template v-else>
           <article class="page-article">
@@ -169,7 +166,11 @@ export default defineComponent({
               <h2>Attached Files</h2>
               <ul class="files-list">
                 <li v-for="file in files" :key="file.name" class="file-item">
-                  <a :href="`${apiUrl}/page/${pageId}/upload/${file.name}`" target="_blank" class="file-link">
+                  <a
+                    :href="`${apiUrl}/page/${pageId}/upload/${file.name}`"
+                    target="_blank"
+                    class="file-link"
+                  >
                     {{ file.name }}
                   </a>
                   <span class="file-size">{{ file.size }} B</span>
@@ -177,12 +178,21 @@ export default defineComponent({
               </ul>
             </div>
 
-            <div v-if="authStore.isAuthenticated && !canEdit" class="read-only-notice">
+            <div
+              v-if="authStore.isAuthenticated && !canEdit"
+              class="read-only-notice"
+            >
               You have read-only access to this page
             </div>
 
-            <router-link v-if="pageFound && canEdit"
-              :to="{ name: 'page-edit', params: { idSlug: `${pageId}-${slug}` } }" class="edit-button">
+            <router-link
+              v-if="pageFound && canEdit"
+              :to="{
+                name: 'page-edit',
+                params: { idSlug: `${pageId}-${slug}` },
+              }"
+              class="edit-button"
+            >
               Edit Page
             </router-link>
           </footer>
@@ -192,7 +202,9 @@ export default defineComponent({
   </div>
 </template>
 
-<style scoped lang="postcss">
+<style scoped>
+@import "tailwindcss";
+
 .page-read-view {
   @apply flex flex-col md:flex-row min-h-screen;
 }
@@ -276,5 +288,18 @@ export default defineComponent({
 
 .page-html-content img {
   @apply max-w-full h-auto my-2;
+}
+</style>
+
+<style>
+@import "tailwindcss";
+
+.ck-table-resized {
+  @apply table-fixed my-2;
+}
+
+.ck-table-resized td,
+.ck-table-resized th {
+  @apply border-black border-1 p-1;
 }
 </style>
