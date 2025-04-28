@@ -2,8 +2,7 @@
 import api from "@/services/api";
 import PageEditorComponent from "@/components/page/PageEditorComponent.vue";
 import { usePagesStore } from "@/store/pageStore";
-
-// TODO: redirect to login if not editor or admin (via guard)
+import { useAuthStore } from "@/store/authStore";
 
 export default {
   name: "PageEditView",
@@ -19,6 +18,7 @@ export default {
   data() {
     return {
       pagesStore: usePagesStore(),
+      authStore: useAuthStore(),
       id: null as number | null,
       title: "",
       slug: "",
@@ -41,6 +41,18 @@ export default {
     this.slug = slug;
     this.htmlContent = page.html_content;
     await this.loadExistingFiles();
+  },
+  async beforeRouteEnter(to, from, next) {
+    const authStore = useAuthStore();
+    if (!authStore.user && authStore.hasToken) {
+      await authStore.fetchUserData();
+    }
+
+    if (!authStore.user || !(authStore.user.role === 1 || authStore.user.role === 2)) {
+      next({ name: "login" });
+    } else {
+      next();
+    }
   },
   methods: {
     async loadExistingFiles() {

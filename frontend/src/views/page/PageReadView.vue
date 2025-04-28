@@ -1,6 +1,7 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { usePagesStore } from "@/store/pageStore";
+import { useAuthStore } from "@/store/authStore"
 import PageSidebarComponent from "@/components/page/PageSidebarComponent.vue";
 import { RouterLink, onBeforeRouteUpdate } from "vue-router";
 import api from "@/services/api";
@@ -34,6 +35,7 @@ export default defineComponent({
   data() {
     return {
       pagesStore: usePagesStore(),
+      authStore: useAuthStore(),
       slug: "",
       categoryId: null as number | null,
       pageHtml: "<i>Page not found.</i>",
@@ -123,7 +125,7 @@ export default defineComponent({
           <RouterLink
             class="button button-green"
             :to="{ name: 'page-edit', params: { idSlug: `${pageId}-${slug}` } }"
-            v-if="pageFound"
+            v-if="pageFound && authStore.user && (authStore.user.role === 1 || authStore.user.role === 2)"
           >
             Upraviť stránku
           </RouterLink>
