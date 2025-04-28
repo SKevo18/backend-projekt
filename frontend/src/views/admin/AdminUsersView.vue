@@ -18,7 +18,11 @@ export default {
       editedRoles: {} as Record<number, string>,
       allPages: [] as { id: number; title: string; category_id: number }[],
       userPermissions: {} as Record<number, number[]>,
-      selectedUser: null as number | null,
+      selectedUser: null as {
+        id: number | null;
+        first_name: string;
+        last_name: string;
+      } | null,
       showPermissionsModal: false,
       categories: [] as { id: number; title: string }[],
     };
@@ -163,9 +167,16 @@ export default {
       }
     },
     openPermissionsModal(userId: number) {
-      this.selectedUser = userId;
-      this.showPermissionsModal = true;
-      this.getUserPermissions(userId);
+      const user = this.users.find(u => u.id === userId);
+      if (user) {
+        this.selectedUser = {
+          id: userId,
+          first_name: user.first_name,
+          last_name: user.last_name
+        };
+        this.showPermissionsModal = true;
+        this.getUserPermissions(userId);
+      }
     },
     closePermissionsModal() {
       this.selectedUser = null;
@@ -225,7 +236,7 @@ export default {
               Delete
             </button>
             <button v-if="editedRoles[user.id]"
-              class="cursor-pointer rounded-lg text-sm text-white button-green px-2 py-1"
+              class="cursor-pointer rounded-lg text-sm text-white button-green px-2 py-1 ml-2"
               @click="confirmRoleChange(user.id)">
               Confirm
             </button>
@@ -295,9 +306,8 @@ export default {
     @click.self="closePermissionsModal">
     <div class="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
       <h3 class="text-xl font-bold mb-4">
-        Manage Page Permissions for User #{{
-          selectedUser
-        }}
+        Manage Page Permissions for Editor:
+        {{ selectedUser?.first_name }} {{ selectedUser?.last_name }}
       </h3>
 
       <div v-for="category in categories" :key="category.id" class="mb-6">
@@ -305,8 +315,9 @@ export default {
         <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
           <div v-for="page in getPagesByCategory(category.id)" :key="page.id"
             class="flex items-center p-2 border rounded">
-            <input type="checkbox" :id="`page-${page.id}`" :checked="userPermissions[selectedUser!]?.includes(page.id) || false
-              " @change="togglePermission(selectedUser!, page.id)" class="mr-2" />
+            <input type="checkbox" :id="`page-${page.id}`"
+              :checked="selectedUser && userPermissions[selectedUser.id]?.includes(page.id) || false"
+              @change="togglePermission(selectedUser?.id || 0, page.id)" class="mr-2" />
             <label :for="`page-${page.id}`" class="cursor-pointer">
               {{ page.title }}
             </label>
