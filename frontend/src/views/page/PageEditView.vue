@@ -48,7 +48,10 @@ export default {
       await authStore.fetchUserData();
     }
 
-    if (!authStore.user || !(authStore.user.role === 1 || authStore.user.role === 2)) {
+    if (
+      !authStore.user ||
+      !(authStore.user.role === 1 || authStore.user.role === 2)
+    ) {
       next({ name: "login" });
     } else {
       next();
@@ -70,6 +73,15 @@ export default {
       await this.saveContent();
       await this.uploadFiles();
       this.$router.push(`/page/${this.id}-${this.slug}`);
+    },
+    async deletePage() {
+      const page = await this.pagesStore.fetchPageById(this.id);
+      if (!confirm(`Do you really want to delete the page ${page.title}?`)) {
+        return;
+      }
+
+      await this.pagesStore.deletePage(page);
+      this.$router.push(`/`);
     },
     async saveContent() {
       await this.pagesStore.updatePage(this.id, {
@@ -148,8 +160,8 @@ export default {
       <span class="nav-label uppercase">{{ title }}</span>
     </h1>
     <div class="nav-inner">
-      <button class="button button-red">Delete</button> 
-      <button class="button button-green" @click="savePage">Save</button> 
+      <button class="button button-red" @click="deletePage">Delete</button>
+      <button class="button button-green" @click="savePage">Save</button>
     </div>
   </nav>
 
@@ -157,7 +169,7 @@ export default {
     <PageEditorComponent v-model="htmlContent" />
 
     <div class="file-upload-container">
-      <h2 class="big mb-2">Attached Files</h2> 
+      <h2 class="big mb-2">Attached Files</h2>
 
       <div class="file-upload-list">
         <input
@@ -171,7 +183,7 @@ export default {
           class="button button-green w-32"
           @click="() => ($refs.fileInput as HTMLInputElement).click()"
         >
-          Attach File 
+          Attach File
         </button>
 
         <div class="file-upload-item" v-for="file in files" :key="file.name">
@@ -179,14 +191,13 @@ export default {
             >{{ file.name }}, {{ file.size }} B</span
           >
           <button class="button button-red" @click="removeFile(file)">
-            Delete 
+            Delete
           </button>
         </div>
       </div>
     </div>
   </div>
 </template>
-
 
 <style scoped>
 @import "tailwindcss";
