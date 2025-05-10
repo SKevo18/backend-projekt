@@ -55,11 +55,9 @@ def create_page(page: PageCreate, db: Session = Depends(get_db)):
     return db_page
 
 
-@PAGE_CONTROLLER.get("/", response_model=list[PageOut])
-def list_pages(
-    category_id: int = Query(),
-    db: Session = Depends(get_db),
-):
+@PAGE_CONTROLLER.get("/all", response_model=list[PageOut])
+def read_all_pages(db: Session = Depends(get_db)):
+    return db.query(Page).all()
     if not category_id:
         raise HTTPException(status_code=400, detail="Category ID is mandatory")
 

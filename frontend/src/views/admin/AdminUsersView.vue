@@ -21,11 +21,7 @@ export default {
         pages: {} as Record<number, number[]>,
         categories: {} as Record<number, number[]>,
       },
-      selectedUser: null as {
-        id: number | null;
-        first_name: string;
-        last_name: string;
-      } | null,
+      selectedUser: null as { id: number | null; first_name: string; last_name: string } | null,
       showPermissionsModal: false,
       categories: [] as { id: number; title: string }[],
       activeTab: "pages" as "pages" | "categories",
@@ -42,9 +38,7 @@ export default {
 
       try {
         const response = await api.get("/user/", {
-          headers: {
-            Authorization: `Bearer ${authStore.token}`,
-          },
+          headers: { Authorization: `Bearer ${authStore.token}` },
         });
         this.users = response.data;
       } catch (error) {
@@ -54,16 +48,9 @@ export default {
 
     async deleteUser(id: number) {
       const authStore = useAuthStore();
-      if (!authStore.isAuthenticated) {
-        alert("Please log in to access this page.");
-        return;
-      }
-
       try {
         await api.delete(`/user/${id}`, {
-          headers: {
-            Authorization: `Bearer ${authStore.token}`,
-          },
+          headers: { Authorization: `Bearer ${authStore.token}` },
         });
         this.users = this.users.filter((user) => user.id !== id);
       } catch (error) {
@@ -83,22 +70,12 @@ export default {
     async confirmRoleChange(userId: number) {
       const authStore = useAuthStore();
       const newRole = this.editedRoles[userId];
-      if (!authStore.isAuthenticated) {
-        alert("Please log in to access this page.");
-        return;
-      }
-
       try {
         await api.patch(
           `/user/${userId}/role`,
           { role: newRole },
-          {
-            headers: {
-              Authorization: `Bearer ${authStore.token}`,
-            },
-          }
+          { headers: { Authorization: `Bearer ${authStore.token}` } }
         );
-
         delete this.editedRoles[userId];
         await this.getUsers();
       } catch (error) {
@@ -110,10 +87,8 @@ export default {
     async getAllPages() {
       const authStore = useAuthStore();
       try {
-        const response = await api.get("/page/", {
-          headers: {
-            Authorization: `Bearer ${authStore.token}`,
-          },
+        const response = await api.get("/page/all", {
+          headers: { Authorization: `Bearer ${authStore.token}` },
         });
         this.allPages = response.data;
       } catch (error) {
@@ -125,9 +100,7 @@ export default {
       const authStore = useAuthStore();
       try {
         const response = await api.get("/category/", {
-          headers: {
-            Authorization: `Bearer ${authStore.token}`,
-          },
+          headers: { Authorization: `Bearer ${authStore.token}` },
         });
         this.categories = response.data;
       } catch (error) {
@@ -141,7 +114,6 @@ export default {
           api.get(`/permissions/${userId}/pages`),
           api.get(`/permissions/${userId}/categories`),
         ]);
-
         this.userPermissions.pages[userId] = pagesRes.data;
         this.userPermissions.categories[userId] = categoriesRes.data;
       } catch (error) {
@@ -151,23 +123,18 @@ export default {
 
     async togglePermission(userId: number, pageId: number) {
       const authStore = useAuthStore();
-      const hasPermission =
-        this.userPermissions.pages[userId]?.includes(pageId);
+      const hasPermission = this.userPermissions.pages[userId]?.includes(pageId);
 
       try {
         if (hasPermission) {
           await api.delete("/permissions/", {
             params: { user_id: userId, page_id: pageId },
-            headers: {
-              Authorization: `Bearer ${authStore.token}`,
-            },
+            headers: { Authorization: `Bearer ${authStore.token}` },
           });
         } else {
           await api.post("/permissions/", null, {
             params: { user_id: userId, page_id: pageId },
-            headers: {
-              Authorization: `Bearer ${authStore.token}`,
-            },
+            headers: { Authorization: `Bearer ${authStore.token}` },
           });
         }
         await this.getUserPermissions(userId);
@@ -179,23 +146,18 @@ export default {
 
     async toggleCategoryPermission(userId: number, categoryId: number) {
       const authStore = useAuthStore();
-      const hasPermission =
-        this.userPermissions.categories[userId]?.includes(categoryId);
+      const hasPermission = this.userPermissions.categories[userId]?.includes(categoryId);
 
       try {
         if (hasPermission) {
           await api.delete("/permissions/category", {
             params: { user_id: userId, category_id: categoryId },
-            headers: {
-              Authorization: `Bearer ${authStore.token}`,
-            },
+            headers: { Authorization: `Bearer ${authStore.token}` },
           });
         } else {
           await api.post("/permissions/category", null, {
             params: { user_id: userId, category_id: categoryId },
-            headers: {
-              Authorization: `Bearer ${authStore.token}`,
-            },
+            headers: { Authorization: `Bearer ${authStore.token}` },
           });
         }
         await this.getUserPermissions(userId);
@@ -231,6 +193,7 @@ export default {
       this.activeTab = tab;
     },
   },
+
   async mounted() {
     const authStore = useAuthStore();
     if (!authStore.isAuthenticated || authStore.user?.role !== 2) {
@@ -240,11 +203,7 @@ export default {
     }
     this.isLoading = true;
     try {
-      await Promise.all([
-        this.getUsers(),
-        this.getAllPages(),
-        this.getCategories(),
-      ]);
+      await Promise.all([this.getUsers(), this.getAllPages(), this.getCategories()]);
     } finally {
       this.isLoading = false;
     }
@@ -254,12 +213,10 @@ export default {
 
 <template>
   <div class="admin-users-view">
-    <!-- Loading indicator -->
     <div v-if="isLoading" class="loading-overlay">
       <div class="loading-spinner"></div>
     </div>
 
-    <!-- desktop -->
     <div class="hidden md:block">
       <table class="users-table table-fixed">
         <thead>
@@ -279,34 +236,20 @@ export default {
             <td>{{ user.last_name }}</td>
             <td class="break-words">{{ user.user_email }}</td>
             <td>
-              <select
-                class="role-select"
-                @change="changeUserRole(user.id, $event)"
-                :value="user.role"
-              >
+              <select class="role-select" @change="changeUserRole(user.id, $event)" :value="user.role">
                 <option :value="2">Admin</option>
                 <option :value="1">Editor</option>
                 <option :value="0">User</option>
               </select>
             </td>
             <td>{{ user.registered_at }}</td>
-            <td>{{ user.edited_at ? user.edited_at : "Not Edited" }}</td>
+            <td>{{ user.edited_at ? user.edited_at : 'Not Edited' }}</td>
             <td>
-              <button class="delete-btn" @click="deleteUser(user.id)">
-                Delete
-              </button>
-              <button
-                v-if="editedRoles[user.id]"
-                class="confirm-btn"
-                @click="confirmRoleChange(user.id)"
-              >
+              <button class="delete-btn" @click="deleteUser(user.id)">Delete</button>
+              <button v-if="editedRoles[user.id]" class="confirm-btn" @click="confirmRoleChange(user.id)">
                 Confirm
               </button>
-              <button
-                v-if="user.role === 1"
-                class="permissions-btn"
-                @click="openPermissionsModal(user.id)"
-              >
+              <button v-if="user.role === 1" class="permissions-btn" @click="openPermissionsModal(user.id)">
                 Manage Permissions
               </button>
             </td>
@@ -315,7 +258,6 @@ export default {
       </table>
     </div>
 
-    <!-- mobile -->
     <div class="md:hidden">
       <div v-for="user in users" :key="user.id" class="mobile-user-card">
         <div class="user-field">
@@ -332,11 +274,7 @@ export default {
         </div>
         <div class="user-field">
           <span class="field-label">Role:</span>
-          <select
-            class="role-select"
-            @change="changeUserRole(user.id, $event)"
-            :value="user.role"
-          >
+          <select class="role-select" @change="changeUserRole(user.id, $event)" :value="user.role">
             <option :value="2">Admin</option>
             <option :value="1">Editor</option>
             <option :value="0">User</option>
@@ -348,84 +286,46 @@ export default {
         </div>
         <div class="user-field">
           <span class="field-label">Edited:</span>
-          <span>{{ user.edited_at ? user.edited_at : "Not Edited" }}</span>
+          <span>{{ user.edited_at ? user.edited_at : 'Not Edited' }}</span>
         </div>
         <div class="user-field">
           <span class="field-label">Actions:</span>
-          <button class="delete-btn" @click="deleteUser(user.id)">
-            Delete
-          </button>
-          <button
-            v-if="editedRoles[user.id]"
-            class="confirm-btn"
-            @click="confirmRoleChange(user.id)"
-          >
+          <button class="delete-btn" @click="deleteUser(user.id)">Delete</button>
+          <button v-if="editedRoles[user.id]" class="confirm-btn" @click="confirmRoleChange(user.id)">
             Confirm
           </button>
-          <button
-            v-if="user.role === 1"
-            class="permissions-btn"
-            @click="openPermissionsModal(user.id)"
-          >
+          <button v-if="user.role === 1" class="permissions-btn" @click="openPermissionsModal(user.id)">
             Permissions
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Permissions Modal -->
-    <div
-      v-if="showPermissionsModal"
-      class="permissions-modal-overlay"
-      @click.self="closePermissionsModal"
-    >
+    <div v-if="showPermissionsModal" class="permissions-modal-overlay" @click.self="closePermissionsModal">
       <div class="permissions-modal">
         <h3 class="modal-title">
-          Manage Permissions for: {{ selectedUser?.first_name }}
-          {{ selectedUser?.last_name }}
+          Manage Permissions for: {{ selectedUser?.first_name }} {{ selectedUser?.last_name }}
         </h3>
 
         <div class="tabs">
-          <button
-            class="tab-btn"
-            :class="{ 'active-tab': activeTab === 'pages' }"
-            @click="switchTab('pages')"
-          >
+          <button class="tab-btn" :class="{ 'active-tab': activeTab === 'pages' }" @click="switchTab('pages')">
             Page Permissions
           </button>
-          <button
-            class="tab-btn"
-            :class="{ 'active-tab': activeTab === 'categories' }"
-            @click="switchTab('categories')"
-          >
+          <button class="tab-btn" :class="{ 'active-tab': activeTab === 'categories' }"
+            @click="switchTab('categories')">
             Category Permissions
           </button>
         </div>
 
         <div class="permissions-content">
-          <!-- Page Permissions Tab -->
           <div v-if="activeTab === 'pages'" class="page-permissions">
-            <div
-              v-for="category in categories"
-              :key="category.id"
-              class="category-section"
-            >
+            <div v-for="category in categories" :key="category.id" class="category-section">
               <h4 class="category-title">{{ category.title }}</h4>
               <div class="pages-grid">
-                <div
-                  v-for="page in getPagesByCategory(category.id)"
-                  :key="page.id"
-                  class="page-item"
-                >
-                  <input
-                    type="checkbox"
-                    :id="`page-${page.id}`"
-                    :checked="
-                      selectedUser &&
-                      userPermissions.pages[selectedUser.id]?.includes(page.id)
-                    "
-                    @change="togglePermission(selectedUser?.id || 0, page.id)"
-                  />
+                <div v-for="page in getPagesByCategory(category.id)" :key="page.id" class="page-item">
+                  <input type="checkbox" :id="`page-${page.id}`"
+                    :checked="selectedUser && userPermissions.pages[selectedUser.id]?.includes(page.id)"
+                    @change="togglePermission(selectedUser?.id || 0, page.id)" />
                   <label :for="`page-${page.id}`">
                     {{ page.title }}
                   </label>
@@ -434,27 +334,12 @@ export default {
             </div>
           </div>
 
-          <!-- Category Permissions Tab -->
           <div v-if="activeTab === 'categories'" class="category-permissions">
             <div class="categories-grid">
-              <div
-                v-for="category in categories"
-                :key="category.id"
-                class="category-item"
-              >
-                <input
-                  type="checkbox"
-                  :id="`category-${category.id}`"
-                  :checked="
-                    selectedUser &&
-                    userPermissions.categories[selectedUser.id]?.includes(
-                      category.id
-                    )
-                  "
-                  @change="
-                    toggleCategoryPermission(selectedUser?.id || 0, category.id)
-                  "
-                />
+              <div v-for="category in categories" :key="category.id" class="category-item">
+                <input type="checkbox" :id="`category-${category.id}`"
+                  :checked="selectedUser && userPermissions.categories[selectedUser.id]?.includes(category.id)"
+                  @change="toggleCategoryPermission(selectedUser?.id || 0, category.id)" />
                 <label :for="`category-${category.id}`">
                   {{ category.title }}
                 </label>
@@ -464,9 +349,7 @@ export default {
         </div>
 
         <div class="modal-actions">
-          <button @click="closePermissionsModal" class="close-btn">
-            Close
-          </button>
+          <button @click="closePermissionsModal" class="close-btn">Close</button>
         </div>
       </div>
     </div>
