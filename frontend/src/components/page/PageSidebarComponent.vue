@@ -102,7 +102,7 @@ export default defineComponent({
           v-else-if="isLoading && category.id === activeCategoryId"
           class="p-2 text-center text-xs text-gray-400"
         >
-          Načítavam...
+          Loading...
         </div>
         <div
           v-else-if="category.id === activeCategoryId"
@@ -118,7 +118,7 @@ export default defineComponent({
       class="text-center my-4 block px-4 py-2 text-sm text-gray-400 hover:text-white"
       :to="{ name: 'admin-pages' }"
     >
-      Upraviť
+      Edit
     </RouterLink>
   </aside>
 </template>
