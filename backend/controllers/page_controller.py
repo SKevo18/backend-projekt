@@ -55,14 +55,15 @@ def create_page(page: PageCreate, db: Session = Depends(get_db)):
     return db_page
 
 
-@PAGE_CONTROLLER.get("/all", response_model=list[PageOut])
-def read_all_pages(db: Session = Depends(get_db)):
-    return db.query(Page).all()
-    if not category_id:
-        raise HTTPException(status_code=400, detail="Category ID is mandatory")
+@PAGE_CONTROLLER.get("/", response_model=list[PageOut])
+def read_all_pages(category_id: Optional[int] = Query(None), db: Session = Depends(get_db)):
+    query = db.query(Page)
 
-    db_page = db.query(Page).filter(Page.category_id == category_id).all()
-    return db_page
+    if category_id:
+        query = query.filter(Page.category_id == category_id)
+
+    return query.order_by((Page.id)).all()
+
 
 
 @PAGE_CONTROLLER.get("/{page_id}", response_model=PageOut)
@@ -120,7 +121,3 @@ def delete_page(
     db.commit()
     return None
 
-
-@PAGE_CONTROLLER.get("/", response_model=list[PageOut])
-def read_all_pages(db: Session = Depends(get_db)):
-    return db.query(Page).all()
