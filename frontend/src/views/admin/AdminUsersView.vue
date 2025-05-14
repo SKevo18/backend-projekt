@@ -87,7 +87,7 @@ export default {
     async getAllPages() {
       const authStore = useAuthStore();
       try {
-        const response = await api.get("/page/all", {
+        const response = await api.get("/page/", {
           headers: { Authorization: `Bearer ${authStore.token}` },
         });
         this.allPages = response.data;
