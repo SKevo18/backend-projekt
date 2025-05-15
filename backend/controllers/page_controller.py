@@ -126,3 +126,4 @@ def delete_page(
 @PAGE_CONTROLLER.get("/", response_model=list[PageOut])
 def read_all_pages(db: Session = Depends(get_db)):
     return db.query(Page).all()
+    
