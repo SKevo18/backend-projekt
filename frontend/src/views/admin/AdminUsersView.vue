@@ -47,6 +47,10 @@ export default {
     },
 
     async deleteUser(id: number) {
+      if (!confirm("Are you sure you want to delete this user?")) {
+        return;
+      }
+
       const authStore = useAuthStore();
       try {
         await api.delete(`/user/${id}`, {

@@ -32,6 +32,16 @@ class User(Base):
     registered_at: Mapped[datetime] = mapped_column(default=datetime.now)
     edited_at: Mapped[datetime] = mapped_column(onupdate=datetime.now, nullable=True)
 
+    page_permissions: Mapped[list["UserPagePermission"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
+    category_permissions: Mapped[list["UserCategoryPermission"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
+    password_resets: Mapped[list["PasswordReset"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
+
 
 class Category(Base):
     __tablename__ = "categories"
@@ -80,19 +90,27 @@ class PasswordReset(Base):
     created_at: Mapped[datetime] = mapped_column(default=datetime.now)
     used: Mapped[bool] = mapped_column(default=False)
     edited_at: Mapped[datetime] = mapped_column(onupdate=datetime.now, nullable=True)
-    
+
+    user: Mapped["User"] = relationship(back_populates="password_resets")
+
+
 class UserPagePermission(Base):
     __tablename__ = "user_page_permissions"
-    
+
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     page_id: Mapped[int] = mapped_column(ForeignKey("pages.id"))
     created_at: Mapped[datetime] = mapped_column(default=datetime.now)
 
+    user: Mapped["User"] = relationship(back_populates="page_permissions")
+
+
 class UserCategoryPermission(Base):
     __tablename__ = "user_category_permissions"
-    
+
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"))
     created_at: Mapped[datetime] = mapped_column(default=datetime.now)
+
+    user: Mapped["User"] = relationship(back_populates="category_permissions")
