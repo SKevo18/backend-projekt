@@ -55,14 +55,20 @@ def create_page(page: PageCreate, db: Session = Depends(get_db)):
     return db_page
 
 
-@PAGE_CONTROLLER.get("/", response_model=list[PageOut])
-def read_all_pages(category_id: Optional[int] = Query(None), db: Session = Depends(get_db)):
+@PAGE_CONTROLLER.get("/", response_model=list[PageOut]) #TODO add pagination on the frontend
+def read_all_pages(
+    category_id: Optional[int] = Query(None),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(10, gt=0),
+    db: Session = Depends(get_db),
+):
     query = db.query(Page)
 
-    if category_id:
+    if category_id is not None:
         query = query.filter(Page.category_id == category_id)
 
-    return query.order_by((Page.id)).all()
+    pages = query.order_by(Page.id).offset(skip).limit(limit).all()
+    return pages
 
 
 
@@ -120,4 +126,3 @@ def delete_page(
     db.delete(db_page)
     db.commit()
     return None
-
