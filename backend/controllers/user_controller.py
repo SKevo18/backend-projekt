@@ -2,7 +2,7 @@ import logging
 from datetime import datetime
 
 from db import get_db
-from db.orm import User, UserPagePermission
+from db.orm import User
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -74,7 +74,7 @@ def delete_user(
     user_to_delete = db.query(User).filter_by(id=user_id).first()
     if user_to_delete is None:
         raise HTTPException(status_code=404, detail="User not found")
-    db.query(UserPagePermission).filter_by(user_id=user_id).delete()
+
     db.delete(user_to_delete)
     db.commit()
 
