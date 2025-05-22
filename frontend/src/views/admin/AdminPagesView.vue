@@ -22,6 +22,7 @@ export default defineComponent({
       slugManuallyEdited: false,
       editingCategoryId: null as number | null,
       editCategoryTitle: "",
+      activePageDropdownId: null as number | null,
     };
   },
   computed: {
@@ -83,21 +84,32 @@ export default defineComponent({
     },
     async updatePage(page: any) {
       if (!page?.id) return alert("Page ID is missing!");
+      const oldCategoryId = page.category_id;
+      const newCategoryId = this.editCategoryId!;
+
       try {
         await this.pagesStore.updatePage(page.id, {
           title: this.editTitle,
-          category_id: this.editCategoryId!,
+          category_id: newCategoryId,
           slug: this.editSlug,
         });
+
         this.editingPageId = null;
         this.editCategoryId = null;
+        this.activePageDropdownId = null; 
 
-        if (page.category_id !== this.editCategoryId) {
-          await this.loadCategoryPages(page.category_id);
-          await this.loadCategoryPages(this.editCategoryId!);
+        if (oldCategoryId !== newCategoryId) {
+          await Promise.all([
+            this.pagesStore.fetchPages(oldCategoryId),
+            this.pagesStore.fetchPages(newCategoryId)
+          ]);
+          this.pagesStore.pagesByCategory = { ...this.pagesStore.pagesByCategory };
+
         } else {
-          await this.loadCategoryPages(page.category_id);
+          await this.pagesStore.fetchPages(oldCategoryId);
+          this.pagesStore.pagesByCategory = { ...this.pagesStore.pagesByCategory };
         }
+
       } catch {
         alert("Error when updating the page.");
       }
@@ -107,6 +119,7 @@ export default defineComponent({
       this.editTitle = page.title;
       this.editSlug = page.slug;
       this.editCategoryId = page.category_id;
+      this.activePageDropdownId = null;
     },
     async addCategory() {
       const title = this.newCategory.trim();
@@ -130,6 +143,7 @@ export default defineComponent({
           const categoryId = page.category_id;
           await this.pagesStore.deletePage(page);
           await this.loadCategoryPages(categoryId);
+          this.activePageDropdownId = null;
         } catch {
           alert("Error when deleting the page.");
         }
@@ -171,6 +185,10 @@ export default defineComponent({
       this.activeCategoryForm =
         this.activeCategoryForm === categoryId ? null : categoryId;
     },
+    togglePageDropdown(pageId: number) {
+      this.activePageDropdownId =
+        this.activePageDropdownId === pageId ? null : pageId;
+    },
     async loadCategoryPages(categoryId: number) {
       await this.pagesStore.fetchPages(categoryId);
     },
@@ -178,6 +196,13 @@ export default defineComponent({
       for (const category of this.sortedCategories) {
         await this.loadCategoryPages(category.id);
       }
+    },
+    cancelEditingPage() {
+      this.editingPageId = null;
+      this.editTitle = "";
+      this.editSlug = "";
+      this.editCategoryId = null;
+      this.activePageDropdownId = null;
     },
   },
   async mounted() {
@@ -252,40 +277,77 @@ export default defineComponent({
               <p class="text-gray-700 break-words font-medium">
                 {{ page.title }}
               </p>
-              <div class="flex flex-wrap gap-2">
+              <div class="relative inline-block text-left">
                 <button
-                  @click="startEditingPage(page)"
-                  class="bg-yellow-500 text-white py-1 px-3 rounded-md hover:bg-yellow-600 transition"
+                  @click="togglePageDropdown(page.id)"
+                  type="button"
+                  class="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-blue-500"
                 >
-                  Update
+                  Actions
+                  <svg
+                    class="-mr-1 ml-2 h-5 w-5"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
                 </button>
 
-                <RouterLink
-                  :to="{
-                    name: 'page-edit',
-                    params: { idSlug: `${page.id}-${page.slug}` },
-                  }"
-                  class="inline-block bg-blue-600 hover:bg-blue-700 !text-white text-sm font-medium py-1.5 px-4 rounded-md transition"
+                <div
+                  v-if="activePageDropdownId === page.id"
+                  class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-10"
+                  role="menu"
+                  aria-orientation="vertical"
+                  aria-labelledby="menu-button"
+                  tabindex="-1"
                 >
-                  Edit content
-                </RouterLink>
-
-                <RouterLink
-                  :to="{
-                    name: 'page',
-                    params: { idSlug: `${page.id}-${page.slug}` },
-                  }"
-                  class="inline-block bg-green-600 hover:bg-green-700 !text-white text-sm font-medium py-1.5 px-4 rounded-md transition"
-                >
-                  View
-                </RouterLink>
-
-                <button
-                  @click="deletePage(page)"
-                  class="bg-red-500 text-white py-1 px-3 rounded-md hover:bg-red-600 transition"
-                >
-                  Delete
-                </button>
+                  <div class="py-1" role="none">
+                    <a
+                      href="#"
+                      @click.prevent="startEditingPage(page)"
+                      class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100"
+                      role="menuitem"
+                      tabindex="-1"
+                      id="menu-item-0"
+                      >Edit Metadata</a
+                    >
+                    <RouterLink
+                      :to="{
+                        name: 'page-edit',
+                        params: { idSlug: `${page.id}-${page.slug}` },
+                      }"
+                      class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100"
+                      role="menuitem"
+                      tabindex="-1"
+                      >Edit Content</RouterLink
+                    >
+                    <RouterLink
+                      :to="{
+                        name: 'page',
+                        params: { idSlug: `${page.id}-${page.slug}` },
+                      }"
+                      class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100"
+                      role="menuitem"
+                      tabindex="-1"
+                      >View Page</RouterLink
+                    >
+                    <button
+                      @click="deletePage(page)"
+                      type="button"
+                      class="text-gray-700 block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                      role="menuitem"
+                      tabindex="-1"
+                    >
+                      Delete Page
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -313,12 +375,20 @@ export default defineComponent({
                   {{ cat.title }}
                 </option>
               </select>
-              <button
-                @click="updatePage(page)"
-                class="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition"
-              >
-                Save changes
-              </button>
+              <div class="flex gap-2">
+                <button
+                  @click="updatePage(page)"
+                  class="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition"
+                >
+                  Save changes
+                </button>
+                <button
+                  @click="cancelEditingPage()"
+                  class="bg-gray-300 text-gray-800 py-2 px-4 rounded-md hover:bg-gray-400 transition"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
 
