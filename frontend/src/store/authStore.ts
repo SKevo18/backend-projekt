@@ -90,7 +90,6 @@ export const useAuthStore = defineStore("auth", {
       this.token = null;
       localStorage.removeItem("token");
       api.defaults.headers.common["Authorization"] = "";
-      // TODO: also send request to invalidate token on backend
     },
   },
 });

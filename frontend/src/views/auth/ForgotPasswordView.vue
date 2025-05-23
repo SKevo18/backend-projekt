@@ -26,13 +26,13 @@ const sendEmail = async () => {
       turnstile_token: turnstileRef.value?.getToken() || "",
     });
 
-    if (response.status === 200) {
-      message.value = `A password reset link has been sent to your email.`;
+    message.value = `A password reset link has been sent to your email.`;
+  } catch (err: any) {
+    if (err.response.status === 404) {
+      error.value = "User with this email does not exist.";
     } else {
       error.value = "There was an error when sending the email.";
     }
-  } catch (err: any) {
-    error.value = "There was an error when sending the email.";
     console.error(err);
   }
 };

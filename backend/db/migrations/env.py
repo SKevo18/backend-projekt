@@ -5,12 +5,10 @@
 import os
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
-
 from alembic import context
-
 from dotenv import load_dotenv
+from sqlalchemy import engine_from_config, pool
+
 load_dotenv(override=True)
 
 config = context.config
@@ -21,7 +19,7 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 try:
-    from orm import Base  # noqa: E402
+    from db.orm import Base  # noqa: E402
 except ImportError:
     raise RuntimeError(
         "`orm.py` sa nenašlo – si v správnom priečinku (`cd backend/db`)?",
