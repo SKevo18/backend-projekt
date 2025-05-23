@@ -72,7 +72,7 @@ export default defineComponent({
         return;
       }
       try {
-        await this.pagesStore.addPage(categoryId, this.title, this.slug);
+        await this.pagesStore.addPage(categoryId, this.title, '', this.slug);
         this.title = "";
         this.slug = "";
         this.slugManuallyEdited = false;
@@ -311,18 +311,18 @@ export default defineComponent({
                     <a
                       href="#"
                       @click.prevent="startEditingPage(page)"
-                      class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100"
+                      class="text-yellow-600 block px-4 py-2 text-sm hover:bg-gray-100 hover:underline cursor-pointer"
                       role="menuitem"
                       tabindex="-1"
                       id="menu-item-0"
-                      >Edit Metadata</a
+                      >Update Page</a
                     >
                     <RouterLink
                       :to="{
                         name: 'page-edit',
                         params: { idSlug: `${page.id}-${page.slug}` },
                       }"
-                      class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100"
+                      class="text-green-600 block px-4 py-2 text-sm hover:bg-gray-100 hover:underline cursor-pointer"
                       role="menuitem"
                       tabindex="-1"
                       >Edit Content</RouterLink
@@ -332,7 +332,7 @@ export default defineComponent({
                         name: 'page',
                         params: { idSlug: `${page.id}-${page.slug}` },
                       }"
-                      class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100"
+                      class="text-blue-600 block px-4 py-2 text-sm hover:bg-gray-100 hover:underline cursor-pointer"
                       role="menuitem"
                       tabindex="-1"
                       >View Page</RouterLink
@@ -340,7 +340,7 @@ export default defineComponent({
                     <button
                       @click="deletePage(page)"
                       type="button"
-                      class="text-gray-700 block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                      class="text-red-600 block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 hover:underline cursor-pointer"
                       role="menuitem"
                       tabindex="-1"
                     >
