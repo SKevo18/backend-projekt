@@ -1,6 +1,16 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import api from "@/services/api";
+import { useAuthStore } from "@/store/authStore";
+
+interface UserProfile {
+  title_before_name: string;
+  title_after_name: string;
+  first_name: string;
+  middle_name: string;
+  last_name: string;
+  user_email: string;
+}
 
 export default defineComponent({
   data() {
@@ -12,11 +22,12 @@ export default defineComponent({
         middle_name: "",
         last_name: "",
         user_email: "",
-      },
+      } as UserProfile,
       isEditing: false,
       message: "",
       error: "",
       passwordResetMessage: "",
+      authStore: useAuthStore(),
     };
   },
   methods: {
@@ -29,7 +40,7 @@ export default defineComponent({
 
     async loadUserProfile() {
       try {
-        const response = await api.get("/authentication/me");
+        const response = await api.get<UserProfile>("/authentication/me");
         this.profileData = {
           title_before_name: response.data.title_before_name || "",
           title_after_name: response.data.title_after_name || "",
@@ -80,8 +91,49 @@ export default defineComponent({
         }, 3000);
       }
     },
+
+    async deleteAccount() {
+      if (
+        !confirm(
+          "Are you sure you want to delete your account? This action cannot be undone."
+        )
+      ) {
+        return;
+      }
+
+      try {
+        if (!this.authStore.token) {
+          this.error = "Failed to get authentication token";
+          return;
+        }
+
+        await api.delete("/user/me", {
+          headers: {
+            Authorization: `Bearer ${this.authStore.token}`,
+          },
+        });
+
+        this.authStore.logout();
+        this.message = "Your account has been successfully deleted";
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 2000);
+      } catch (err: any) {
+        console.error("Delete account error details:", {
+          status: err.response?.status,
+          data: err.response?.data,
+          headers: err.response?.headers,
+          config: err.config,
+        });
+        this.error = err.response?.data?.detail || "Error deleting account";
+        setTimeout(() => {
+          this.error = "";
+        }, 3000);
+      }
+    },
   },
   mounted() {
+    this.authStore.loadSavedToken();
     this.loadUserProfile();
   },
 });
@@ -185,6 +237,18 @@ export default defineComponent({
           {{ passwordResetMessage }}
         </div>
       </div>
+
+      <div class="account-deletion-section">
+        <h2>Account Management</h2>
+        <p class="mb-4 text-red-600">
+          Warning: Account deletion is an irreversible process.
+        </p>
+        <div class="flex justify-center">
+          <button @click="deleteAccount" class="button button-red">
+            Delete My Account
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -262,5 +326,13 @@ export default defineComponent({
 
 .password-reset-section h2 {
   @apply text-xl font-bold text-green-800 mb-2;
+}
+
+.account-deletion-section {
+  @apply mt-8 pt-4 border-t;
+}
+
+.account-deletion-section h2 {
+  @apply text-xl font-bold text-red-800 mb-2;
 }
 </style>

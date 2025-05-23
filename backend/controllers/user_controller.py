@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from controllers.authentication_controller import UserRole
-from controllers.dependencies import get_admin_user
+from controllers.dependencies import get_admin_user, get_current_user
 
 logger = logging.getLogger(__name__)
 USER_CONTROLLER = APIRouter(prefix="/user")
@@ -65,18 +65,53 @@ def update_user_role(
     return {"msg": "User role updated successfully"}
 
 
+@USER_CONTROLLER.delete("/me")
+def delete_self(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    user = db.query(User).filter_by(id=current_user.id).first()
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    db.delete(user)
+    db.commit()
+
+    logger.info(f"User deleted their account, ID: {current_user.id}")
+    return {"msg": "Your account has been successfully deleted"}
+
+
 @USER_CONTROLLER.delete("/{user_id}")
 def delete_user(
     user_id: int,
     db: Session = Depends(get_db),
-    _=Depends(get_admin_user),
+    current_user: User = Depends(get_admin_user),
 ):
+    if user_id == current_user.id:
+        raise HTTPException(
+            status_code=400,
+            detail="Admins cannot delete their own account through this interface. Please use the profile page instead.",
+        )
+
     user_to_delete = db.query(User).filter_by(id=user_id).first()
     if user_to_delete is None:
         raise HTTPException(status_code=404, detail="User not found")
 
-    db.delete(user_to_delete)
-    db.commit()
+    if user_to_delete.role == UserRole.ADMIN.value:
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot delete admin users. Please change their role first.",
+        )
 
-    logger.info(f"User deleted with ID: {user_id}")
-    return {"msg": "User deleted successfully"}
+    try:
+        db.delete(user_to_delete)
+        db.commit()
+        logger.info(f"User deleted with ID: {user_id}")
+        return {"msg": "User deleted successfully"}
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error deleting user {user_id}: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail="An error occurred while deleting the user. Please try again later.",
+        )
