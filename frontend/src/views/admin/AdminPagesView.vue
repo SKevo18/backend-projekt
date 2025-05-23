@@ -72,7 +72,7 @@ export default defineComponent({
         return;
       }
       try {
-        await this.pagesStore.addPage(categoryId, this.title, '', this.slug);
+        await this.pagesStore.addPage(categoryId, this.title, "", this.slug);
         this.title = "";
         this.slug = "";
         this.slugManuallyEdited = false;
@@ -96,20 +96,22 @@ export default defineComponent({
 
         this.editingPageId = null;
         this.editCategoryId = null;
-        this.activePageDropdownId = null; 
+        this.activePageDropdownId = null;
 
         if (oldCategoryId !== newCategoryId) {
           await Promise.all([
             this.pagesStore.fetchPages(oldCategoryId),
-            this.pagesStore.fetchPages(newCategoryId)
+            this.pagesStore.fetchPages(newCategoryId),
           ]);
-          this.pagesStore.pagesByCategory = { ...this.pagesStore.pagesByCategory };
-
+          this.pagesStore.pagesByCategory = {
+            ...this.pagesStore.pagesByCategory,
+          };
         } else {
           await this.pagesStore.fetchPages(oldCategoryId);
-          this.pagesStore.pagesByCategory = { ...this.pagesStore.pagesByCategory };
+          this.pagesStore.pagesByCategory = {
+            ...this.pagesStore.pagesByCategory,
+          };
         }
-
       } catch {
         alert("Error when updating the page.");
       }
@@ -281,7 +283,7 @@ export default defineComponent({
                 <button
                   @click="togglePageDropdown(page.id)"
                   type="button"
-                  class="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-blue-500"
+                  class="dropdown-button"
                 >
                   Actions
                   <svg
@@ -301,7 +303,7 @@ export default defineComponent({
 
                 <div
                   v-if="activePageDropdownId === page.id"
-                  class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-10"
+                  class="dropdown"
                   role="menu"
                   aria-orientation="vertical"
                   aria-labelledby="menu-button"
@@ -311,7 +313,7 @@ export default defineComponent({
                     <a
                       href="#"
                       @click.prevent="startEditingPage(page)"
-                      class="text-yellow-600 block px-4 py-2 text-sm hover:bg-gray-100 hover:underline cursor-pointer"
+                      class="dropdown-item"
                       role="menuitem"
                       tabindex="-1"
                       id="menu-item-0"
@@ -322,7 +324,7 @@ export default defineComponent({
                         name: 'page-edit',
                         params: { idSlug: `${page.id}-${page.slug}` },
                       }"
-                      class="text-green-600 block px-4 py-2 text-sm hover:bg-gray-100 hover:underline cursor-pointer"
+                      class="dropdown-item"
                       role="menuitem"
                       tabindex="-1"
                       >Edit Content</RouterLink
@@ -332,7 +334,7 @@ export default defineComponent({
                         name: 'page',
                         params: { idSlug: `${page.id}-${page.slug}` },
                       }"
-                      class="text-blue-600 block px-4 py-2 text-sm hover:bg-gray-100 hover:underline cursor-pointer"
+                      class="dropdown-item"
                       role="menuitem"
                       tabindex="-1"
                       >View Page</RouterLink
@@ -340,7 +342,7 @@ export default defineComponent({
                     <button
                       @click="deletePage(page)"
                       type="button"
-                      class="text-red-600 block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 hover:underline cursor-pointer"
+                      class="dropdown-item-danger"
                       role="menuitem"
                       tabindex="-1"
                     >
@@ -471,3 +473,23 @@ export default defineComponent({
     </div>
   </div>
 </template>
+
+<style>
+@import "tailwindcss";
+
+.dropdown {
+  @apply origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black focus:outline-none z-10;
+}
+
+.dropdown-button {
+  @apply inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none;
+}
+
+.dropdown .dropdown-item {
+  @apply text-black hover:text-gray-500 block px-4 py-2 text-sm hover:bg-gray-100 hover:underline cursor-pointer;
+}
+
+.dropdown .dropdown-item-danger {
+  @apply text-red-500 hover:text-red-600 block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 hover:underline cursor-pointer;
+}
+</style>
