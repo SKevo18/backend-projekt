@@ -13,6 +13,7 @@ API.add_middleware(
     allow_headers=["*"],
 )
 
+
 for router in ALL_CONTROLLERS:
     API.include_router(router)
 

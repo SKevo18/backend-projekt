@@ -35,23 +35,25 @@ export default defineComponent({
       <RouterLink :to="{ name: 'login' }" active-class="nav-link-active"
         >Login</RouterLink
       >
-      <span> | </span>
+      <span class="mx-2">|</span>
       <RouterLink :to="{ name: 'register' }" active-class="nav-link-active"
         >Register</RouterLink
       >
     </div>
 
     <div class="header-topnav" v-else>
-      <RouterLink
-        :to="{ name: 'admin-settings' }"
-        active-class="nav-link-active"
-        >Administration</RouterLink
-      >
-      <span> | </span>
+      <div class="inline-block" v-if="$authStore.isAdmin">
+        <RouterLink
+          :to="{ name: 'admin-settings' }"
+          active-class="nav-link-active"
+          >Administration</RouterLink
+        >
+        <span class="mx-2">|</span>
+      </div>
       <RouterLink :to="{ name: 'profile' }" active-class="nav-link-active"
         >Profile</RouterLink
       >
-      <span> | </span>
+      <span class="mx-2">|</span>
       <a class="logout-link" @click="logout">Logout</a>
     </div>
 
@@ -76,7 +78,7 @@ export default defineComponent({
 @import "tailwindcss";
 
 .header-topnav {
-  @apply text-right text-sm text-white bg-green-900 py-1 pr-4 space-x-2;
+  @apply text-right text-sm text-white bg-green-900 py-1 pr-4;
 }
 
 .header-topnav a {

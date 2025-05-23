@@ -8,7 +8,7 @@ Create Date: 2025-04-12 18:27:52.115874
 
 import sqlalchemy as sa
 from alembic import op
-from orm import Category
+from db.orm import Category
 
 # revision identifiers, used by Alembic.
 revision = '40c4336daf2d'

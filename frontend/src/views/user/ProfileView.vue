@@ -1,6 +1,7 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import api from "@/services/api";
+
 import { useAuthStore } from "@/store/authStore";
 
 interface UserProfile {
@@ -12,7 +13,12 @@ interface UserProfile {
   user_email: string;
 }
 
+import TurnstileComponent from "@/components/TurnstileComponent.vue";
+
 export default defineComponent({
+  components: {
+    TurnstileComponent,
+  },
   data() {
     return {
       profileData: {
@@ -28,6 +34,7 @@ export default defineComponent({
       error: "",
       passwordResetMessage: "",
       authStore: useAuthStore(),
+      turnstileRef: null,
     };
   },
   methods: {
@@ -76,8 +83,18 @@ export default defineComponent({
 
     async requestPasswordReset() {
       try {
+        const turnstileComponent = this.$refs.turnstileRef;
+        if (!turnstileComponent?.hasToken && turnstileComponent?.siteKey) {
+          this.error = "Please complete the CAPTCHA verification.";
+          setTimeout(() => {
+            this.error = "";
+          }, 3000);
+          return;
+        }
+
         await api.post("/email/password_reset", {
           email: this.profileData.user_email,
+          turnstile_token: turnstileComponent?.getToken() || "",
         });
         this.passwordResetMessage = "Password reset link sent to your email";
         setTimeout(() => {
@@ -230,7 +247,8 @@ export default defineComponent({
       <div class="password-reset-section">
         <h2>Password Management</h2>
         <p class="mb-4">Want to change your password?</p>
-        <button @click="requestPasswordReset" class="button button-yellow">
+        <TurnstileComponent ref="turnstileRef" />
+        <button @click="requestPasswordReset" class="button button-yellow mt-4">
           Send Password Reset Link
         </button>
         <div v-if="passwordResetMessage" class="message success mt-4">

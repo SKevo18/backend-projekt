@@ -41,12 +41,12 @@ class PageOut(PageBase):
 def create_page(page: PageCreate, db: Session = Depends(get_db)):
     category = db.query(Category).filter(Category.id == page.category_id).first()
     if not category:
-        raise HTTPException(status_code=400, detail="Neplatná kategória")
+        raise HTTPException(status_code=400, detail="Invalid category")
 
     slug = slugify(page.slug) if page.slug else slugify(page.title)
 
     if db.query(Page).filter(Page.slug == slug).first():
-        raise HTTPException(status_code=400, detail="Slug už existuje")
+        raise HTTPException(status_code=400, detail="Slug already exists")
 
     db_page = Page(**page.model_dump(exclude={"slug"}), slug=slug)
     db.add(db_page)
@@ -55,16 +55,21 @@ def create_page(page: PageCreate, db: Session = Depends(get_db)):
     return db_page
 
 
-@PAGE_CONTROLLER.get("/", response_model=list[PageOut])
-def list_pages(
-    category_id: int = Query(),
+@PAGE_CONTROLLER.get("/", response_model=list[PageOut]) # TODO: add pagination on the frontend
+def read_all_pages(
+    category_id: Optional[int] = Query(None),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(10, gt=0),
     db: Session = Depends(get_db),
 ):
-    if not category_id:
-        raise HTTPException(status_code=400, detail="ID kategórie je povinné")
+    query = db.query(Page)
 
-    db_page = db.query(Page).filter(Page.category_id == category_id).all()
-    return db_page
+    if category_id is not None:
+        query = query.filter(Page.category_id == category_id)
+
+    pages = query.order_by(Page.id).offset(skip).limit(limit).all()
+    return pages
+
 
 
 @PAGE_CONTROLLER.get("/{page_id}", response_model=PageOut)
@@ -74,7 +79,7 @@ def read_page(
 ):
     db_page = db.query(Page).filter(Page.id == page_id).first()
     if db_page is None:
-        raise HTTPException(status_code=404, detail="Stránka neexistuje")
+        raise HTTPException(status_code=404, detail="The page does not exist")
     return db_page
 
 
@@ -86,14 +91,14 @@ def update_page(
 ):
     db_page = db.query(Page).filter(Page.id == page_id).first()
     if not db_page:
-        raise HTTPException(status_code=404, detail="Stránka neexistuje")
+        raise HTTPException(status_code=404, detail="The page does not exist")
 
     if page.title is not None:
         db_page.title = page.title
 
     if page.slug is not None and page.slug != db_page.slug:
         if db.query(Page).filter(Page.slug == page.slug).first():
-            raise HTTPException(status_code=400, detail="Slug už existuje")
+            raise HTTPException(status_code=400, detail="Slug already exists")
         db_page.slug = slugify(page.slug)
 
     elif page.title is not None:
@@ -116,14 +121,8 @@ def delete_page(
 ):
     db_page = db.query(Page).filter(Page.id == page_id).first()
     if db_page is None:
-        raise HTTPException(status_code=404, detail="Stránka neexistuje")
+        raise HTTPException(status_code=404, detail="The page does not exist")
 
     db.delete(db_page)
     db.commit()
     return None
-
-
-@PAGE_CONTROLLER.get("/", response_model=list[PageOut])
-def read_all_pages(db: Session = Depends(get_db)):
-    return db.query(Page).all()
-    
