@@ -27,7 +27,8 @@ def upgrade() -> None:
             first_name="admin",
             last_name="admin",
             user_email="admin@nieco.sk",
-            user_password=hash_password("admin"),
+            user_password=hash_password("12345678"),
+            role=2,
         )
     )
 
