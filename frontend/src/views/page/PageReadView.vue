@@ -87,6 +87,7 @@ export default defineComponent({
         const pageResponse = await api.get(
           `/permissions/${authStore.user.id}/pages/${pageId.value}`
         );
+        // @ts-ignore
         if (pageResponse.data.has_permission) {
           return true;
         }
@@ -94,6 +95,7 @@ export default defineComponent({
         const categoryResponse = await api.get(
           `/permissions/${authStore.user.id}/categories/${categoryId.value}`
         );
+        // @ts-ignore
         return categoryResponse.data.has_permission;
       } catch (error) {
         console.error("Error checking permissions:", error);
@@ -107,12 +109,28 @@ export default defineComponent({
 
       try {
         const response = await api.get(`/page/${pageId.value}/upload/`);
+        // @ts-ignore
         files.value = response.data;
       } catch (error) {
         console.error("Error loading files:", error);
         files.value = [];
       }
     };
+
+    function getFileTypeInfo(file: any) {
+      const name = file.name || '';
+      const ext = name.split('.').pop()?.toLowerCase() || '';
+      const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
+      if (imageExts.includes(ext)) {
+        return { type: 'image' };
+      }
+      if (["pdf"].includes(ext)) return { type: 'emoji', emoji: '📄' };
+      if (["doc", "docx", "odt", "rtf", "txt"].includes(ext)) return { type: 'emoji', emoji: '📝' };
+      if (["zip", "rar", "7z", "tar", "gz"].includes(ext)) return { type: 'emoji', emoji: '📦' };
+      if (["xls", "xlsx", "ods", "csv"].includes(ext)) return { type: 'emoji', emoji: '📊' };
+      if (["ppt", "pptx", "odp"].includes(ext)) return { type: 'emoji', emoji: '📈' };
+      return { type: 'emoji', emoji: '📁' };
+    }
 
     // Инициализация компонента при первом рендере
     loadPage(props.idSlug);
@@ -136,6 +154,7 @@ export default defineComponent({
       canEdit,
       isLoading,
       authStore,
+      getFileTypeInfo,
     };
   },
 });
@@ -165,11 +184,11 @@ export default defineComponent({
                 <h2 class="big mb-2">Attached Files</h2>
                 <div class="files-list">
                   <div class="file-item" v-for="file in files" :key="file.name">
-                    <a
-                      :href="`${apiUrl}/page/${pageId}/upload/${file.name}`"
-                      target="_blank"
-                      class="file-link"
-                    >
+                    <span v-if="getFileTypeInfo(file).type === 'image'" class="file-thumb">
+                      <img :src="`${apiUrl}/page/${pageId}/upload/${file.name}`" alt="thumb" class="thumb-img" />
+                    </span>
+                    <span v-else class="file-emoji">{{ getFileTypeInfo(file).emoji }}</span>
+                    <a :href="`${apiUrl}/page/${pageId}/upload/${file.name}`" target="_blank" class="file-link">
                       {{ file.name }}
                     </a>
                     <span class="text-sm text-gray-500">{{ file.size }} B</span>
@@ -177,22 +196,15 @@ export default defineComponent({
                 </div>
               </div>
 
-              <div
-                v-if="authStore.isAuthenticated && !canEdit"
-                class="read-only-notice"
-              >
+              <div v-if="authStore.isAuthenticated && !canEdit" class="read-only-notice">
                 You have read-only access to this page
               </div>
 
               <nav>
-                <RouterLink
-                  class="button button-green"
-                  :to="{
-                    name: 'page-edit',
-                    params: { idSlug: `${pageId}-${slug}` },
-                  }"
-                  v-if="pageFound && canEdit"
-                >
+                <RouterLink class="button button-green" :to="{
+                  name: 'page-edit',
+                  params: { idSlug: `${pageId}-${slug}` },
+                }" v-if="pageFound && canEdit">
                   Edit Page
                 </RouterLink>
               </nav>
@@ -282,6 +294,38 @@ export default defineComponent({
 
 .page-html-content img {
   @apply max-w-full h-auto my-2;
+}
+
+.file-thumbnail {
+  @apply w-10 h-10 object-cover rounded-md mr-2;
+}
+
+.file-thumb {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  margin-right: 0.5rem;
+  vertical-align: middle;
+}
+
+.thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
+  opacity: 0.7;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  background: #f3f3f3;
+}
+
+.file-emoji {
+  display: inline-block;
+  width: 28px;
+  text-align: center;
+  margin-right: 0.5rem;
+  font-size: 1.2rem;
+  opacity: 0.7;
+  vertical-align: middle;
 }
 </style>
 

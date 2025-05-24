@@ -36,10 +36,10 @@ export const usePagesStore = defineStore("pages", {
       }
     },
 
-    async fetchPageById(id: number) {
+    async fetchPageById(id: number): Promise<Page> {
       try {
         const response = await api.get(`/page/${id}`);
-        return response.data;
+        return response.data as Page;
       } catch (error) {
         throw error;
       }
@@ -60,6 +60,7 @@ export const usePagesStore = defineStore("pages", {
           const newCategory = { title };
           const response = await api.post("/category/", newCategory);
           this.categories.push(response.data);
+          // @ts-ignore
           await this.fetchPages(response.data.id);
         } catch (error) {
           throw error;

@@ -24,6 +24,7 @@ export default {
       slug: "",
       htmlContent: ``,
       files: [],
+      apiUrl: api.defaults.baseURL,
     };
   },
   async created() {
@@ -58,9 +59,24 @@ export default {
     }
   },
   methods: {
+    getFileTypeInfo(file: any) {
+      const name = file.name || '';
+      const ext = name.split('.').pop()?.toLowerCase() || '';
+      const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
+      if (imageExts.includes(ext)) {
+        return { type: 'image' };
+      }
+      if (["pdf"].includes(ext)) return { type: 'emoji', emoji: '📄' };
+      if (["doc", "docx", "odt", "rtf", "txt"].includes(ext)) return { type: 'emoji', emoji: '📝' };
+      if (["zip", "rar", "7z", "tar", "gz"].includes(ext)) return { type: 'emoji', emoji: '📦' };
+      if (["xls", "xlsx", "ods", "csv"].includes(ext)) return { type: 'emoji', emoji: '📊' };
+      if (["ppt", "pptx", "odp"].includes(ext)) return { type: 'emoji', emoji: '📈' };
+      return { type: 'emoji', emoji: '📁' };
+    },
     async loadExistingFiles() {
       try {
         const response = await api.get(`/page/${this.id}/upload`);
+        // @ts-ignore
         this.files = response.data.map((file: any) => ({
           ...file,
           alreadyUploaded: true,
@@ -149,6 +165,9 @@ export default {
         this.files = this.files.filter((f) => f !== file);
       }
     },
+    getObjectUrl(fileObj: File) {
+      return URL.createObjectURL(fileObj);
+    },
   },
 };
 </script>
@@ -172,24 +191,20 @@ export default {
       <h2 class="big mb-2">Attached Files</h2>
 
       <div class="file-upload-list">
-        <input
-          type="file"
-          multiple
-          @change="addFile"
-          class="file-upload-input"
-          ref="fileInput"
-        />
-        <button
-          class="button button-green w-32"
-          @click="() => ($refs.fileInput as HTMLInputElement).click()"
-        >
+        <input type="file" multiple @change="addFile" class="file-upload-input" ref="fileInput" />
+        <button class="button button-green w-32" @click="() => ($refs.fileInput as HTMLInputElement).click()">
           Attach File
         </button>
 
         <div class="file-upload-item" v-for="file in files" :key="file.name">
-          <span class="file-upload-item-name"
-            >{{ file.name }}, {{ file.size }} B</span
-          >
+          <span v-if="getFileTypeInfo(file).type === 'image'" class="file-thumb">
+            <img v-if="file.alreadyUploaded" :src="`${apiUrl}/page/${id}/upload/${file.name}`" alt="thumb" class="thumb-img" />
+            <img v-else :src="file.fileObj ? getObjectUrl(file.fileObj) : ''" alt="thumb" class="thumb-img" />
+          </span>
+          <span v-else class="file-emoji">{{ getFileTypeInfo(file).emoji }}</span>
+          <span class="file-upload-item-name">
+            {{ file.name }}, {{ file.size }} B
+          </span>
           <button class="button button-red" @click="removeFile(file)">
             Delete
           </button>
@@ -232,5 +247,33 @@ export default {
 
 .file-upload-list .file-upload-item {
   @apply mx-4 flex flex-row items-center justify-between;
+}
+
+.file-thumb {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  margin-right: 0.5rem;
+  vertical-align: middle;
+}
+
+.thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
+  opacity: 0.7;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  background: #f3f3f3;
+}
+
+.file-emoji {
+  display: inline-block;
+  width: 28px;
+  text-align: center;
+  margin-right: 0.5rem;
+  font-size: 1.2rem;
+  opacity: 0.7;
+  vertical-align: middle;
 }
 </style>
