@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, onMounted, defineExpose, computed } from "vue";
+import { ref, onMounted, onUnmounted, defineExpose, computed } from "vue";
 import api from "@/services/api";
 
 declare global {
@@ -37,8 +37,12 @@ const loadTurnstile = () => {
 };
 
 const renderTurnstile = () => {
-  if (window.turnstile && siteKey.value) {
-    window.turnstile.render("#turnstile-container", {
+  const container = document.getElementById("turnstile-container");
+  if (container) {
+    container.innerHTML = "";
+  }
+  if (window.turnstile && siteKey.value && container) {
+    window.turnstile.render(container, {
       sitekey: siteKey.value,
       callback: (token: string) => {
         turnstileToken.value = token;
@@ -48,16 +52,32 @@ const renderTurnstile = () => {
   }
 };
 
+const cleanupTurnstile = () => {
+  turnstileToken.value = "";
+  const container = document.getElementById("turnstile-container");
+  if (container) {
+    container.innerHTML = "";
+  }
+
+  // important to ensure proper cleanup:
+  const script = document.getElementById("cloudflare-turnstile");
+  if (script) script.remove();
+};
+
 onMounted(async () => {
   try {
     const response = await api.get("/settings/turnstile-key");
-    siteKey.value = response.data.turnstile_site_key;
+    siteKey.value = (response.data as { turnstile_site_key: string }).turnstile_site_key;
     if (siteKey.value) {
       loadTurnstile();
     }
   } catch (err) {
     console.error("Failed to load site key:", err);
   }
+});
+
+onUnmounted(() => {
+  cleanupTurnstile();
 });
 
 defineExpose({
