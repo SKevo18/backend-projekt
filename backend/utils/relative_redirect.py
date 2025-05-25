@@ -1,3 +1,10 @@
+"""
+In default config, the FastAPI normalizes forwarding slashes by redirecting them, but includes the base URL in the redirect.
+This is problematic for shared hostings (Namecheap, etc.) with reverse proxy, because then `/api/something` redirects => `http://<localhost base URL>/api/something/`
+And `ProxyPassReverse` etc. doesn't work in Namecheap's shared hosting.
+This middleware patches this by removing the base URL from the redirect, and making all redirects relative, which works for Namecheap
+"""
+
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from urllib.parse import urlparse, urlunparse

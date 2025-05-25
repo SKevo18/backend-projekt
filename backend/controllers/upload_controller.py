@@ -100,7 +100,7 @@ def upload_file(
 
 
 @UPLOAD_CONTROLLER.get("/{filename}")
-async def get_file(page_id: int, filename: str = Depends(validate_file_name)):
+def get_file(page_id: int, filename: str = Depends(validate_file_name)):
     file_path = Path("uploads") / str(page_id) / filename
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="File not found.")
@@ -109,7 +109,7 @@ async def get_file(page_id: int, filename: str = Depends(validate_file_name)):
 
 
 @UPLOAD_CONTROLLER.delete("/{filename}")
-async def delete_file(page_id: int, filename: str = Depends(validate_file_name)):
+def delete_file(page_id: int, filename: str = Depends(validate_file_name)):
     file_path = Path("uploads") / str(page_id) / filename
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="File not found.")

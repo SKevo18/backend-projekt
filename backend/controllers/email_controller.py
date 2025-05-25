@@ -50,7 +50,7 @@ def password_update(req: PasswordUpdateRequest, db: Session = Depends(get_db)):
 
 
 @EMAIL_CONTROLLER.post("/password_reset")
-async def password_reset(
+def password_reset(
     req: EmailResetRequest,
     request: Request,
     db: Session = Depends(get_db),

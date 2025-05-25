@@ -18,8 +18,3 @@ API.add_middleware(RelativeRedirectMiddleware)
 
 for router in ALL_CONTROLLERS:
     API.include_router(router)
-
-
-@API.get("/")
-async def root():
-    return {"message": "API is working"}
