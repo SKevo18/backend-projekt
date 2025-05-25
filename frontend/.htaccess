@@ -1,0 +1,9 @@
+# reverse proxy API
+RewriteEngine On
+RewriteRule ^api/(.*)$ http://127.0.0.1:8000/api/$1 [P,L]
+
+# SPA fallback
+RewriteCond %{REQUEST_URI}   !^/api(/|$)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ /index.html [L]
