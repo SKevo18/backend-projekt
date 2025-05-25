@@ -51,13 +51,19 @@ Zdrojový kód pre FastAPI aplikáciu.
     - Application entry point: teoreticky `API`, ale toto je nepodstatné, pretože `run.py` sa postará o spustenie API serveru
     - Environment variables: nepodstatné, pretože sú načítavané automaticky pri štarte aplikácie cez `python-dotenv` (stačí meniť `backend/.env`, skopírovať šablónu z `backend/.env.template` a zmeniť podľa potreby)
 11. "Create"
-12. Ak sa vytvorila, ideme na stránku tej Python aplikácie a v sekcii "Configuration files":
+12. Ak sa vytvorila, tú stránku **vypneme** (tlačidlo stop, s plným štvorcom) a ideme na stránku tej Python aplikácie a v sekcii "Configuration files":
     - "requirements.txt" -> tlačidlo "Add"
     - "Run Pip install" > "requirements.txt"
     - počkať keď sa nainštalujú packages
 13. V časi "Execute python script" spustiť `migrate.py`, aby sa vytvorili tabuľky v databáze a prebehli migrácie
 14. Ďalej spustiť skript `run.py`, to spustí API server v pozadí (cez "Execute python script")
 15. Teraz by malo byť možné ísť na adresu stránky a prihlásiť sa cez `admin@nieco.sk` a heslo `12345678` (po nastavení serveru ho treba zmeniť!)
+
+### Aktualizovanie aplikácie
+
+1. Ísť do terminálu, `cd app` a `git pull` pre stiahnutie najnovších zmien z repozitára
+2. Spustiť `migrate.py` cez "Execute python script" v cPaneli, pre zmeny DB schémy
+3. Spustiť `run.py` cez "Execute python script" v cPaneli, aby sa spustil API server s najnovšími zmenami
 
 ## Užitočné odkazy
 
