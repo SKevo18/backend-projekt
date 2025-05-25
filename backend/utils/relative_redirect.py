@@ -14,7 +14,6 @@ class RelativeRedirectMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         response = await call_next(request)
 
-        # only care about 3xx redirects…
         if 300 <= response.status_code < 400 and "location" in response.headers:
             loc = response.headers["location"]
             parts = urlparse(loc)
