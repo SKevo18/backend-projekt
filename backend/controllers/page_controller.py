@@ -9,6 +9,7 @@ from slugify import slugify
 from sqlalchemy.orm import Session
 
 PAGE_CONTROLLER = APIRouter(prefix="/page")
+MAX_PER_PAGE = 100
 
 
 class PageBase(BaseModel):
@@ -55,21 +56,28 @@ def create_page(page: PageCreate, db: Session = Depends(get_db)):
     return db_page
 
 
-@PAGE_CONTROLLER.get("/", response_model=list[PageOut]) # TODO: add pagination on the frontend
-def read_all_pages(
-    category_id: Optional[int] = Query(None),
-    skip: int = Query(0, ge=0),
-    limit: int = Query(10, gt=0),
+@PAGE_CONTROLLER.get("/", response_model=list[PageOut])
+def read_pages(
+    category_id: Optional[int] = Query(
+        None, description="Filter results by category ID"
+    ),
+    page: int = Query(1, ge=1, description="Page number (must be ≥ 1)"),
+    per_page: int = Query(
+        10,
+        ge=1,
+        le=MAX_PER_PAGE,
+        description=f"Number of items per page (1–{MAX_PER_PAGE})",
+    ),
     db: Session = Depends(get_db),
 ):
-    query = db.query(Page)
+    skip = (page - 1) * per_page
 
+    query = db.query(Page)
     if category_id is not None:
         query = query.filter(Page.category_id == category_id)
 
-    pages = query.order_by(Page.id).offset(skip).limit(limit).all()
+    pages = query.order_by(Page.id).offset(skip).limit(per_page).all()
     return pages
-
 
 
 @PAGE_CONTROLLER.get("/{page_id}", response_model=PageOut)
