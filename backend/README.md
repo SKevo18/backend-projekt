@@ -62,6 +62,8 @@ Zdrojový kód pre FastAPI aplikáciu.
 ### Aktualizovanie aplikácie
 
 1. Ísť do terminálu, `cd app` a `git pull` pre stiahnutie najnovších zmien z repozitára
+    - ak nastali nejaké zmeny v `backend/` priečinku a boli zahrnuté vo version control a neboli commitnuté, tak to bude problém
+    - ak nemáme čas a chceme jednoducho iba najnovšiu synchronizovanú verziu a zahodniť existujúce zmeny ktoré sme vykonali cez FTP, tak jednoducho vymažeme `~/app/backend/` priečinok cez FTP a znovu ho naklonujeme cez `git clone https://github.com/SKevo18/backend-projekt app`
 2. Spustiť `migrate.py` cez "Execute python script" v cPaneli, pre zmeny DB schémy
 3. Spustiť `run.py` cez "Execute python script" v cPaneli, aby sa spustil API server s najnovšími zmenami
 
