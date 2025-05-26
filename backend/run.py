@@ -1,7 +1,9 @@
 """Script to start the API server on a shared hosting server (Namecheap)"""
+
 import os
+import argparse
 from pathlib import Path
-from backend.kill import kill_api_server
+from backend.kill import kill_api_server, get_api_server_pids
 
 
 def find_and_activate_venv():
@@ -33,12 +35,27 @@ def find_and_activate_venv():
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Start the API server")
+    parser.add_argument(
+        "--cron",
+        action="store_true",
+        help="only start if not already running, don't kill existing processes",
+    )
+    args = parser.parse_args()
+
     if not find_and_activate_venv():
         print("failed to activate venv")
         exit(1)
 
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-    kill_api_server()
-    print("Starting API server...")
+    if args.cron:
+        if get_api_server_pids():
+            print("already running")
+            exit(0)
+        print("starting API server (cron)")
+    else:
+        kill_api_server()
+        print("starting API server")
+
     os.system("nohup uvicorn main:API > api.log 2>&1 &")
