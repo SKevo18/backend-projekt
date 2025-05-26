@@ -67,6 +67,14 @@ Zdrojový kód pre FastAPI aplikáciu.
 2. Spustiť `migrate.py` cez "Execute python script" v cPaneli, pre zmeny DB schémy
 3. Spustiť `run.py` cez "Execute python script" v cPaneli, aby sa spustil API server s najnovšími zmenami
 
+### Automatický reštart
+
+Predvolene, Namecheap kill-ne procesy ktoré sú nečinné. Dá sa to vyriešiť vytvorením cronjobu ktorý bude bežať každých 5 minút a bude reštartovať API server, stačí iba spustiť `run.py`:
+
+```cron
+*/5 * * * * /usr/bin/python3 /home/dbbaoird/app/backend/run.py
+```
+
 ## Užitočné odkazy
 
 - [Swagger dokumentácia (keď beží API server)](http://localhost:8000/docs)
