@@ -26,9 +26,18 @@ export default defineComponent({
   async created() {
     await this.loadCategory();
   },
+  watch: {
+    category: {
+      immediate: true,
+      handler(newCategory) {
+        this.loadCategory();
+      },
+    },
+  },
   methods: {
     async loadCategory() {
       try {
+        this.loading = true;
         this.categoryId = parseInt(this.category);
 
         if (isNaN(this.categoryId)) {

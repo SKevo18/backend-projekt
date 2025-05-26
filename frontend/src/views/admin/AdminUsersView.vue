@@ -57,8 +57,9 @@ export default {
           headers: { Authorization: `Bearer ${authStore.token}` },
         });
         this.users = this.users.filter((user) => user.id !== id);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error deleting user:", error);
+        alert(error.response?.data?.detail || "Error deleting user");
       }
     },
 

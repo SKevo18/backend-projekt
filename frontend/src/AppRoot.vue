@@ -14,11 +14,13 @@ export default {
 </script>
 
 <template>
-  <HeaderComponent />
+  <div class="flex flex-col min-h-screen">
+    <HeaderComponent />
 
-  <main>
-    <RouterView />
-  </main>
+    <main class="flex-1">
+      <RouterView />
+    </main>
 
-  <FooterComponent />
+    <FooterComponent />
+  </div>
 </template>
