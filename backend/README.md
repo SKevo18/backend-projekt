@@ -72,7 +72,7 @@ Zdrojový kód pre FastAPI aplikáciu.
 Predvolene, Namecheap kill-ne procesy ktoré sú nečinné. Dá sa to vyriešiť vytvorením cronjobu ktorý bude bežať každých 5 minút a bude reštartovať API server, stačí iba spustiť `run.py`:
 
 ```cron
-*/5 * * * * /usr/bin/python3 /home/dbbaoird/app/backend/run.py
+*/5 * * * * /usr/bin/python3 /home/dbbaoird/app/backend/run.py --cron
 ```
 
 ## Užitočné odkazy

@@ -3,7 +3,7 @@
 import os
 import argparse
 from pathlib import Path
-from backend.kill import kill_api_server, get_api_server_pids
+from kill import kill_api_server, get_api_server_pids
 
 
 def find_and_activate_venv():
@@ -14,10 +14,7 @@ def find_and_activate_venv():
         print(f"venv dir not found ({venv_base_dir})")
         return False
 
-    activate_scripts = list(venv_base_dir.glob("*/*/bin/activate"))
-    if not activate_scripts:
-        activate_scripts = list(venv_base_dir.glob("*/bin/activate"))
-
+    activate_scripts = list(venv_base_dir.glob("**/*/bin/activate"))
     if not activate_scripts:
         print(f"no venvs found in {venv_base_dir}")
         return False
