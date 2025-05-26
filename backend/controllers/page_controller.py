@@ -1,12 +1,15 @@
-from datetime import datetime
 from typing import Optional
 
-from db import get_db
-from db.orm import Category, Page
+from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from slugify import slugify
 from sqlalchemy.orm import Session
+
+from controllers.dependencies import get_current_user
+from controllers.authentication_controller import UserRole
+from db import get_db
+from db.orm import Category, Page, User, UserPagePermission, UserCategoryPermission
 
 PAGE_CONTROLLER = APIRouter(prefix="/page")
 MAX_PER_PAGE = 100
@@ -38,8 +41,68 @@ class PageOut(PageBase):
         from_attributes = True
 
 
+def check_can_create_page(user: User, category_id: int, db: Session):
+    if user.role == UserRole.ADMIN.value:
+        return True
+
+    if user.role < UserRole.EDITOR.value:
+        raise HTTPException(status_code=403, detail="Editor or admin access required")
+
+    category_permission = (
+        db.query(UserCategoryPermission)
+        .filter_by(user_id=user.id, category_id=category_id)
+        .first()
+    )
+
+    if not category_permission:
+        raise HTTPException(
+            status_code=403,
+            detail="You don't have permission to create pages in this category",
+        )
+
+    return True
+
+
+def check_can_edit_page(user: User, page_id: int, db: Session):
+    if user.role == UserRole.ADMIN.value:
+        return True
+
+    if user.role < UserRole.EDITOR.value:
+        raise HTTPException(status_code=403, detail="Editor or admin access required")
+
+    page = db.query(Page).filter(Page.id == page_id).first()
+    if not page:
+        raise HTTPException(status_code=404, detail="Page not found")
+
+    page_permission = (
+        db.query(UserPagePermission).filter_by(user_id=user.id, page_id=page_id).first()
+    )
+
+    if page_permission:
+        return True
+
+    category_permission = (
+        db.query(UserCategoryPermission)
+        .filter_by(user_id=user.id, category_id=page.category_id)
+        .first()
+    )
+
+    if category_permission:
+        return True
+
+    raise HTTPException(
+        status_code=403, detail="You don't have permission to edit this page"
+    )
+
+
 @PAGE_CONTROLLER.post("/", response_model=PageOut)
-def create_page(page: PageCreate, db: Session = Depends(get_db)):
+def create_page(
+    page: PageCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    check_can_create_page(current_user, page.category_id, db)
+
     category = db.query(Category).filter(Category.id == page.category_id).first()
     if not category:
         raise HTTPException(status_code=400, detail="Invalid category")
@@ -96,10 +159,16 @@ def update_page(
     page_id: int,
     page: PageUpdate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
+    check_can_edit_page(current_user, page_id, db)
+
     db_page = db.query(Page).filter(Page.id == page_id).first()
     if not db_page:
         raise HTTPException(status_code=404, detail="The page does not exist")
+
+    if page.category_id is not None and page.category_id != db_page.category_id:
+        check_can_create_page(current_user, page.category_id, db)
 
     if page.title is not None:
         db_page.title = page.title
@@ -126,7 +195,10 @@ def update_page(
 def delete_page(
     page_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
+    check_can_edit_page(current_user, page_id, db)
+
     db_page = db.query(Page).filter(Page.id == page_id).first()
     if db_page is None:
         raise HTTPException(status_code=404, detail="The page does not exist")

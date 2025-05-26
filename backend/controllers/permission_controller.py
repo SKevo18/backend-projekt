@@ -13,7 +13,7 @@ def add_permission(
     user_id: int,
     page_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_admin_user),
+    _=Depends(get_admin_user),
 ):
     """Add permission for editor to access specific page"""
     user = db.query(User).filter(User.id == user_id, User.role == 1).first()
@@ -41,7 +41,7 @@ def remove_permission(
     user_id: int,
     page_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_admin_user),
+    _=Depends(get_admin_user),
 ):
     """Remove permission from editor for specific page"""
     permission = (
@@ -93,7 +93,7 @@ def add_category_permission(
     user_id: int,
     category_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_admin_user),
+    _=Depends(get_admin_user),
 ):
     """Add permission for editor to access entire category"""
     user = db.query(User).filter(User.id == user_id, User.role == 1).first()
@@ -123,7 +123,7 @@ def remove_category_permission(
     user_id: int,
     category_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_admin_user),
+    _=Depends(get_admin_user),
 ):
     """Remove category permission from editor"""
     permission = (

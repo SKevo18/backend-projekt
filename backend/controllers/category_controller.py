@@ -38,7 +38,11 @@ def create_category(
 
 
 @CATEGORY_CONTROLLER.delete("/{category_id}")
-def delete_category(category_id: int, db: Session = Depends(get_db)):
+def delete_category(
+    category_id: int,
+    db: Session = Depends(get_db),
+    _=Depends(get_admin_user),
+):
     category = db.query(Category).filter(Category.id == category_id).first()
     if not category:
         raise HTTPException(status_code=404, detail="Category not found")
@@ -49,7 +53,10 @@ def delete_category(category_id: int, db: Session = Depends(get_db)):
 
 @CATEGORY_CONTROLLER.put("/{category_id}", response_model=CategoryOut)
 def update_category(
-    category_id: int, data: CategoryCreate, db: Session = Depends(get_db)
+    category_id: int,
+    data: CategoryCreate,
+    db: Session = Depends(get_db),
+    _=Depends(get_admin_user),
 ):
     category = db.query(Category).filter(Category.id == category_id).first()
     if not category:
