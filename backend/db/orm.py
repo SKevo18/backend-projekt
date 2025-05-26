@@ -15,7 +15,7 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    role: Mapped[int] = mapped_column(nullable=False)
+    role: Mapped[int] = mapped_column(nullable=False, default=0)
     title_before_name: Mapped[str] = mapped_column(String(length=10), nullable=True)
     title_after_name: Mapped[str] = mapped_column(String(length=10), nullable=True)
     first_name: Mapped[str] = mapped_column(

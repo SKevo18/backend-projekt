@@ -30,7 +30,6 @@ def upgrade() -> None:
     op.add_column('pages', sa.Column('edited_at', sa.DateTime(), nullable=True))
     op.add_column('pages', sa.Column('category_id', sa.Integer(), nullable=False))
     op.create_foreign_key(None, 'pages', 'categories', ['category_id'], ['id'])
-    op.add_column('users', sa.Column('role', sa.Integer(), nullable=True))
     op.alter_column('users', 'first_name',
                existing_type=mysql.VARCHAR(length=35),
                type_=sa.String(length=15),
@@ -73,6 +72,5 @@ def downgrade() -> None:
                existing_type=sa.String(length=15),
                type_=mysql.VARCHAR(length=35),
                existing_nullable=False)
-    op.drop_column('users', 'role')
     op.drop_table('categories')
     # ### end Alembic commands ###

@@ -2,6 +2,7 @@ import fastapi as fa
 import os
 from controllers import ALL_CONTROLLERS
 from fastapi.middleware.cors import CORSMiddleware
+from utils.relative_redirect import RelativeRedirectMiddleware
 
 API = fa.FastAPI(title="API", version="0.1.0", root_path="/api")
 
@@ -13,11 +14,7 @@ API.add_middleware(
     allow_headers=["*"],
 )
 
+API.add_middleware(RelativeRedirectMiddleware)
 
 for router in ALL_CONTROLLERS:
     API.include_router(router)
-
-
-@API.get("/")
-async def root():
-    return {"message": "API is working"}

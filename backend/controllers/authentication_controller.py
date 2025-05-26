@@ -62,7 +62,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 
 @AUTH_CONTROLLER.post("/register")
-async def register(
+def register(
     user: UserRegisterModel,
     request: Request,
     db: Session = Depends(get_db),

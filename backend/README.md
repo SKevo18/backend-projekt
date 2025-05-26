@@ -30,7 +30,42 @@ Zdrojový kód pre FastAPI aplikáciu.
 6. Spustiť uvicorn server: `uvicorn main:API --reload --env-file .env`
 7. Nezabudajte na XAMPP
 8. Neviem ci je to tak iba u mna ale ak sa nedari zapnut SQL v XAMPP tak treba otvorit "Task manager" -> mysql -> end task -> spustit XAMPP
-9. tak isto moze sa vam stat z uvicorn preto cez "task manager" -> python -> end task -> sputit zas 
+9. tak isto moze sa vam stat z uvicorn preto cez "task manager" -> python -> end task -> sputit zas
+
+## Production (Namecheap shared hosting)
+
+1. [Kúpiť Namecheap shared hosting](https://www.namecheap.com/hosting/purchase/domain-connection/?product=stellar&addons=server-location%3Bserver-location-eu&duration=1&durationtype=month&domainType=NAMECHEAP)
+2. Zmeniť nameservery existujúcej domény na tie od Namecheapu
+3. Pripojiť sa do FTP (napr. Firezilla), viď [dokumentácia Namecheap](https://www.namecheap.com/support/knowledgebase/article.aspx/188/205/how-to-access-an-account-via-ftp/#ftp)
+4. Upraviť `frontend/.env` súbor pre produkčné nastavenia, build cez `npm run build`
+5. Upload obsahu priečinka `frontend/dist` do FTP (do `~/public_html/`), spolu s `.htaccess` pre reverse proxy na backend
+6. Povoliť SSH pripojenie v Namecheap cPaneli
+7. Vyhľadať "Terminal" v cPaneli, potom v home adresári (`~/`) dať `git clone https://github.com/SKevo18/backend-projekt app` (naklonovať repozitár do `~/app`, alebo do ľubovoľného iného adresára)
+8. Vytvoriť databázu v cPaneli, potom podľa toho upraviť engine URL v `backend/.env`
+9. Vyhľadať "Setup Python App" v cPaneli
+10. "Create application":
+    - Python version: 3.13
+    - Application root: `/app/backend` (alebo adresár kde je `backend` priečinok v repozitári)
+    - Application URL: nezáleží, toto vytvárame iba preto aby sme mali Python venv s inštalovanými packages a možnosť spustiť `run.py` cez cPanel
+    - Application startup file: prepisuje existujúce súbory, zvoliť nejaký súbor čo sa môže vytvoriť a nikdy nepoužiť, napr. `abc.py`
+    - Application entry point: teoreticky `API`, ale toto je nepodstatné, pretože `run.py` sa postará o spustenie API serveru
+    - Environment variables: nepodstatné, pretože sú načítavané automaticky pri štarte aplikácie cez `python-dotenv` (stačí meniť `backend/.env`, skopírovať šablónu z `backend/.env.template` a zmeniť podľa potreby)
+11. "Create"
+12. Ak sa vytvorila, tú stránku **vypneme** (tlačidlo stop, s plným štvorcom) a ideme na stránku tej Python aplikácie a v sekcii "Configuration files":
+    - "requirements.txt" -> tlačidlo "Add"
+    - "Run Pip install" > "requirements.txt"
+    - počkať keď sa nainštalujú packages
+13. V časi "Execute python script" spustiť `migrate.py`, aby sa vytvorili tabuľky v databáze a prebehli migrácie
+14. Ďalej spustiť skript `run.py`, to spustí API server v pozadí (cez "Execute python script")
+15. Teraz by malo byť možné ísť na adresu stránky a prihlásiť sa cez `admin@nieco.sk` a heslo `12345678` (po nastavení serveru ho treba zmeniť!)
+
+### Aktualizovanie aplikácie
+
+1. Ísť do terminálu, `cd app` a `git pull` pre stiahnutie najnovších zmien z repozitára
+    - ak nastali nejaké zmeny v `backend/` priečinku a boli zahrnuté vo version control a neboli commitnuté, tak to bude problém
+    - ak nemáme čas a chceme jednoducho iba najnovšiu synchronizovanú verziu a zahodniť existujúce zmeny ktoré sme vykonali cez FTP, tak jednoducho vymažeme `~/app/backend/` priečinok cez FTP a znovu ho naklonujeme cez `git clone https://github.com/SKevo18/backend-projekt app`
+2. Spustiť `migrate.py` cez "Execute python script" v cPaneli, pre zmeny DB schémy
+3. Spustiť `run.py` cez "Execute python script" v cPaneli, aby sa spustil API server s najnovšími zmenami
 
 ## Užitočné odkazy
 
