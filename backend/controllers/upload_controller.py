@@ -1,17 +1,17 @@
 from pathlib import Path
 
 from db import get_db
-from db.orm import Page
+from db.orm import Page, User
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from pathvalidate import sanitize_filename, validate_filename
 from sqlalchemy.orm import Session
 
+from controllers.dependencies import get_current_user
+from controllers.page_controller import check_can_edit_page
+
 UPLOAD_CONTROLLER = APIRouter(prefix="/page/{page_id}/upload")
 FILE_UPLOAD_MAX_MB = 10
-
-# TODO: get current user, only allow him to upload files if he is editor of the page or admin
-# TODO: remove uploaded files for removed pages/categories (tricky when CASCADE is used)
 
 
 def validate_file_name(filename: str):
@@ -86,10 +86,13 @@ def upload_file(
     page_id: int,
     uploaded_file: UploadFile = Depends(validate_file),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     page = db.query(Page).filter(Page.id == page_id).first()
     if page is None:
         raise HTTPException(status_code=404, detail="Page not found.")
+
+    check_can_edit_page(current_user, page_id, db)
 
     file_path = Path("uploads") / str(page_id) / uploaded_file.filename  # type: ignore
     file_path.parent.mkdir(parents=True, exist_ok=True)
@@ -109,7 +112,18 @@ def get_file(page_id: int, filename: str = Depends(validate_file_name)):
 
 
 @UPLOAD_CONTROLLER.delete("/{filename}")
-def delete_file(page_id: int, filename: str = Depends(validate_file_name)):
+def delete_file(
+    page_id: int,
+    filename: str = Depends(validate_file_name),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    page = db.query(Page).filter(Page.id == page_id).first()
+    if page is None:
+        raise HTTPException(status_code=404, detail="Page not found.")
+
+    check_can_edit_page(current_user, page_id, db)
+
     file_path = Path("uploads") / str(page_id) / filename
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="File not found.")
