@@ -23,21 +23,21 @@ export default {
       title: "",
       slug: "",
       htmlContent: ``,
-      files: [],
+      files: [] as any[],
       apiUrl: api.defaults.baseURL,
     };
   },
   async created() {
     let [id, slug] = this.idSlug.split("-");
 
-    id = parseInt(id);
-    if (isNaN(id)) {
+    const parsedId = parseInt(id);
+    if (isNaN(parsedId)) {
       this.$router.push(`/page/${this.idSlug}`);
       return;
     }
 
-    this.id = id;
-    const page = await this.pagesStore.fetchPageById(id);
+    this.id = parsedId;
+    const page = await this.pagesStore.fetchPageById(this.id);
     this.title = page.title;
     this.slug = slug;
     this.htmlContent = page.html_content;
@@ -84,6 +84,10 @@ export default {
         this.files = response.data.map((file: any) => ({
           ...file,
           alreadyUploaded: true,
+          isUploading: false,
+          uploadError: null,
+          fileObj: null,
+          abortController: null,
         }));
       } catch (error) {
         console.error("Failed to load existing files:", error);
@@ -91,7 +95,6 @@ export default {
     },
     async savePage() {
       await this.saveContent();
-      await this.uploadFiles();
       this.$router.push(`/page/${this.id}-${this.slug}`);
     },
     async deletePage() {
@@ -108,48 +111,80 @@ export default {
         html_content: this.htmlContent,
       });
     },
-    async uploadFiles() {
-      const newFiles = this.files.filter(
-        (file: { alreadyUploaded: boolean }) => !file.alreadyUploaded
-      );
-
-      for (const file of newFiles) {
-        if (file.size > 1024 * 1024 * 10) {
-          alert(
-            `The maximum allowed file size is 10 MB  (${file.name} has ${file.size} B)`
-          );
-          return;
-        }
-
-        const formData = new FormData();
-        formData.append("uploaded_file", file.fileObj);
-
-        try {
-          await api.post(`/page/${this.id}/upload`, formData, {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          });
-        } catch (error) {
-          console.error(`Failed to upload file ${file.name}:`, error);
-          alert(`Nepodarilo sa nahrať súbor ${file.name}`);
-        }
-      }
-
-      await this.loadExistingFiles();
-    },
     addFile(event: Event) {
       const fileList = (event.target as HTMLInputElement).files;
       if (fileList) {
-        const newFiles = Array.from(fileList).map((file) => {
+        const startIndex = this.files.length;
+        const newFilesPrepared = Array.from(fileList).map((file) => {
           return {
             name: file.name,
             size: file.size,
             fileObj: file,
             alreadyUploaded: false,
+            isUploading: true,
+            uploadError: null,
+            abortController: null,
           };
         });
-        this.files = [...this.files, ...newFiles];
+
+        this.files = [...this.files, ...newFilesPrepared];
+
+        for (let i = 0; i < newFilesPrepared.length; i++) {
+          const reactiveFileEntry = this.files[startIndex + i];
+          if (reactiveFileEntry) {
+            this.uploadSingleFile(reactiveFileEntry);
+          }
+        }
+
+        if (this.$refs.fileInput) {
+          (this.$refs.fileInput as HTMLInputElement).value = "";
+        }
+      }
+    },
+    async uploadSingleFile(fileEntry: any) {
+      fileEntry.abortController = new AbortController();
+
+      if (fileEntry.size > 1024 * 1024 * 10) {
+        const errorMsg = `File too large (max 10MB). ${fileEntry.name} is ${
+          Math.round((fileEntry.size / (1024 * 1024)) * 100) / 100
+        } MB.`;
+        fileEntry.isUploading = false;
+        fileEntry.uploadError = errorMsg;
+        fileEntry.abortController = null;
+        alert(errorMsg);
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("uploaded_file", fileEntry.fileObj);
+
+      try {
+        await api.post(`/page/${this.id}/upload`, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          signal: fileEntry.abortController.signal,
+        });
+        fileEntry.isUploading = false;
+        fileEntry.alreadyUploaded = true;
+        fileEntry.uploadError = null;
+        fileEntry.abortController = null;
+      } catch (error: any) {
+        const isCancellation =
+          error.name === "AbortError" || (api.isCancel && api.isCancel(error));
+
+        if (isCancellation) {
+          console.log(`Upload of ${fileEntry.name} was cancelled by user.`);
+        } else {
+          const errorMsg = `Failed to upload ${fileEntry.name}. ${
+            error.response?.data?.message || error.message || "Unknown error"
+          }`;
+          fileEntry.isUploading = false;
+          fileEntry.uploadError = errorMsg;
+          fileEntry.abortController = null;
+          console.error(`Upload error for ${fileEntry.name}:`, errorMsg, error);
+          alert(errorMsg);
+        }
       }
     },
     async removeFile(file: any) {
@@ -157,20 +192,83 @@ export default {
         return;
       }
 
-      if (file.alreadyUploaded) {
+      if (file.alreadyUploaded && !file.uploadError) {
         try {
-          await api.delete(`/page/${this.id}/upload/${file.name}`);
-          this.files = this.files.filter((f) => f.name !== file.name);
+          await api.delete(
+            `/page/${this.id}/upload/${encodeURIComponent(file.name)}`
+          );
+          this.files = this.files.filter((f) => f !== file);
         } catch (error) {
-          console.error(`Failed to delete file ${file.name}:`, error);
-          alert(`Failed to delete file ${file.name}`);
+          console.error(
+            `Failed to delete file ${file.name} from server:`,
+            error
+          );
+          alert(
+            `Failed to delete file ${file.name} from server. It will be removed from this list.`
+          );
+          this.files = this.files.filter((f) => f !== file);
         }
       } else {
         this.files = this.files.filter((f) => f !== file);
       }
     },
+    cancelUpload(fileToCancel: any) {
+      if (fileToCancel.abortController) {
+        fileToCancel.abortController.abort();
+      }
+      this.files = this.files.filter((f) => f !== fileToCancel);
+    },
     getObjectUrl(fileObj: File) {
       return URL.createObjectURL(fileObj);
+    },
+    handleFileDragStart(file: any, event: DragEvent) {
+      if (!file.alreadyUploaded || file.isUploading || file.uploadError) {
+        event.preventDefault();
+        return;
+      }
+
+      const encodedFileName = encodeURIComponent(file.name);
+      const fileUrl = `${this.apiUrl}/page/${this.id}/upload/${encodedFileName}`;
+      let dragHtml;
+      let plainText;
+
+      const fileTypeInfo = this.getFileTypeInfo(file);
+
+      if (fileTypeInfo.type === "image") {
+        dragHtml = `<img src="${fileUrl}" alt="${file.name}">`;
+        plainText = `Image: ${file.name} (${fileUrl})`;
+      } else {
+        dragHtml = `<a href="${fileUrl}" target="_blank">${file.name}</a>`;
+        plainText = `Link: ${file.name} (${fileUrl})`;
+      }
+
+      if (event.dataTransfer) {
+        event.dataTransfer.setData("text/html", dragHtml);
+        event.dataTransfer.setData("text/plain", plainText);
+        event.dataTransfer.effectAllowed = "copy";
+      }
+    },
+    insertLinkIntoEditor(file: any) {
+      if (!file.alreadyUploaded) {
+        alert("File must be uploaded before it can be linked.");
+        return;
+      }
+      const fileUrl = `${this.apiUrl}/page/${
+        this.id
+      }/upload/${encodeURIComponent(file.name)}`;
+      const linkHtml = `<a href="${fileUrl}" target="_blank">${file.name}</a>`;
+
+      if (this.htmlContent === null || this.htmlContent === undefined) {
+        this.htmlContent = "";
+      }
+      if (
+        this.htmlContent.length > 0 &&
+        !this.htmlContent.endsWith(" ") &&
+        !this.htmlContent.endsWith(">")
+      ) {
+        this.htmlContent += " ";
+      }
+      this.htmlContent += linkHtml + " ";
     },
   },
 };
@@ -195,6 +293,11 @@ export default {
       <h2 class="big mb-2">Attached Files</h2>
 
       <div class="file-upload-list">
+        <p class="text-sm text-gray-600 mb-3 px-1">
+          Click "Attach File" to select files. They will upload immediately.
+          Drag uploaded files (images as images, others as links) from this list
+          to the editor.
+        </p>
         <input
           type="file"
           multiple
@@ -203,39 +306,124 @@ export default {
           ref="fileInput"
         />
         <button
-          class="button button-green w-32"
+          class="button button-green w-32 mb-2"
           @click="() => ($refs.fileInput as HTMLInputElement).click()"
         >
           Attach File
         </button>
 
-        <div class="file-upload-item" v-for="file in files" :key="file.name">
+        <div
+          class="file-upload-item"
+          :class="{
+            'opacity-60': file.isUploading,
+            'opacity-70 border-red-500 border':
+              file.uploadError && !file.isUploading,
+          }"
+          v-for="(file, index) in files"
+          :key="file.name + '-' + index"
+          :draggable="
+            file.alreadyUploaded && !file.isUploading && !file.uploadError
+          "
+          @dragstart="handleFileDragStart(file, $event)"
+          :title="
+            file.uploadError
+              ? typeof file.uploadError === 'string'
+                ? file.uploadError
+                : 'Upload failed'
+              : file.isUploading
+              ? 'Uploading...'
+              : file.name
+          "
+        >
+          <div class="relative w-7 h-7 mr-2 flex-shrink-0">
+            <div v-if="file.isUploading" class="spinner-overlay">
+              <div class="spinner"></div>
+            </div>
+            <div
+              v-if="file.uploadError && !file.isUploading"
+              class="error-indicator"
+              :title="
+                typeof file.uploadError === 'string'
+                  ? file.uploadError
+                  : 'Upload failed'
+              "
+            >
+              <span class="text-red-500 text-xl">⚠️</span>
+            </div>
+
+            <span
+              v-if="getFileTypeInfo(file).type === 'image'"
+              class="file-thumb"
+            >
+              <img
+                v-if="file.alreadyUploaded && !file.isUploading"
+                :src="`${apiUrl}/page/${id}/upload/${encodeURIComponent(
+                  file.name
+                )}`"
+                alt="thumb"
+                class="thumb-img"
+              />
+              <img
+                v-else-if="file.fileObj"
+                :src="getObjectUrl(file.fileObj)"
+                alt="preview"
+                class="thumb-img"
+              />
+              <div v-else class="thumb-placeholder">IMG</div>
+            </span>
+            <span v-else class="file-emoji">
+              {{ getFileTypeInfo(file).emoji }}
+            </span>
+          </div>
+
           <span
-            v-if="getFileTypeInfo(file).type === 'image'"
-            class="file-thumb"
+            class="file-upload-item-name flex-grow"
+            :class="{ 'text-red-500': file.uploadError && !file.isUploading }"
           >
-            <img
-              v-if="file.alreadyUploaded"
-              :src="`${apiUrl}/page/${id}/upload/${file.name}`"
-              alt="thumb"
-              class="thumb-img"
-            />
-            <img
+            {{ file.name }} ({{ (file.size / 1024).toFixed(1) }} KB)
+            <span
+              v-if="
+                file.uploadError &&
+                !file.isUploading &&
+                typeof file.uploadError === 'string'
+              "
+              class="text-xs block"
+            >
+              - Error: {{ file.uploadError }}</span
+            >
+            <span v-if="file.isUploading" class="text-xs block text-gray-500"
+              >Uploading...</span
+            >
+          </span>
+          <div class="flex items-center ml-2 flex-shrink-0">
+            <button
+              v-if="
+                file.alreadyUploaded && !file.isUploading && !file.uploadError
+              "
+              class="button button-blue mr-2"
+              @click="insertLinkIntoEditor(file)"
+              title="Insert link into editor (appends to content)"
+            >
+              Link
+            </button>
+
+            <button
+              v-if="file.isUploading"
+              class="button button-orange"
+              @click="cancelUpload(file)"
+              title="Cancel upload"
+            >
+              Cancel
+            </button>
+            <button
               v-else
-              :src="file.fileObj ? getObjectUrl(file.fileObj) : ''"
-              alt="thumb"
-              class="thumb-img"
-            />
-          </span>
-          <span v-else class="file-emoji">{{
-            getFileTypeInfo(file).emoji
-          }}</span>
-          <span class="file-upload-item-name">
-            {{ file.name }}, {{ file.size }} B
-          </span>
-          <button class="button button-red" @click="removeFile(file)">
-            Delete
-          </button>
+              class="button button-red"
+              @click="removeFile(file)"
+              title="Delete file"
+            >
+              Delete
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -274,15 +462,15 @@ export default {
 }
 
 .file-upload-list .file-upload-item {
-  @apply mx-4 flex flex-row items-center justify-between;
+  @apply cursor-grab mx-4 flex flex-row items-center justify-between p-1 border-b border-gray-200;
 }
 
 .file-thumb {
   display: inline-block;
-  width: 28px;
-  height: 28px;
-  margin-right: 0.5rem;
+  width: 100%;
+  height: 100%;
   vertical-align: middle;
+  position: relative;
 }
 
 .thumb-img {
@@ -290,18 +478,69 @@ export default {
   height: 100%;
   object-fit: cover;
   border-radius: 4px;
-  opacity: 0.7;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
   background: #f3f3f3;
 }
 
+.thumb-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #e0e0e0;
+  color: #757575;
+  font-size: 0.7rem;
+  border-radius: 4px;
+}
+
 .file-emoji {
-  display: inline-block;
-  width: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
   text-align: center;
-  margin-right: 0.5rem;
   font-size: 1.2rem;
-  opacity: 0.7;
   vertical-align: middle;
+  position: relative;
+}
+
+.spinner-overlay,
+.error-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.6);
+  border-radius: 4px;
+  z-index: 10;
+}
+
+.spinner {
+  border: 3px solid rgba(0, 0, 0, 0.1);
+  border-left-color: #3498db;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.button-blue {
+  @apply bg-blue-500 hover:bg-blue-700 text-white;
+}
+
+.button-orange {
+  @apply bg-orange-500 hover:bg-orange-700 text-white;
 }
 </style>
