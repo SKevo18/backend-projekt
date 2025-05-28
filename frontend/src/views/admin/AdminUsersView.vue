@@ -339,7 +339,7 @@ export default {
             <td>{{ user.edited_at ? user.edited_at : "Not Edited" }}</td>
             <td>
               <button class="delete-btn" @click="deleteUser(user.id)">
-                Delete
+                🗑️
               </button>
               <button
                 v-if="editedRoles[user.id]"
@@ -353,7 +353,7 @@ export default {
                 class="permissions-btn"
                 @click="openPermissionsModal(user.id)"
               >
-                Manage Permissions
+                🔐
               </button>
             </td>
           </tr>
@@ -612,7 +612,7 @@ export default {
 }
 
 .delete-btn {
-  @apply cursor-pointer rounded-lg text-sm text-white bg-red-600 hover:bg-red-700 px-2 py-1;
+  @apply cursor-pointer rounded-lg text-sm text-white bg-red-400 hover:bg-red-500 px-2 py-1;
 }
 
 .confirm-btn {
