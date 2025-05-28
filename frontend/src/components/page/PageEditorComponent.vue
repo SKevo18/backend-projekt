@@ -9,7 +9,6 @@ import {
   AutoLink,
   Autosave,
   BalloonToolbar,
-  Base64UploadAdapter,
   BlockQuote,
   Bold,
   CloudServices,
@@ -33,7 +32,6 @@ import {
   ImageStyle,
   ImageTextAlternative,
   ImageToolbar,
-  ImageUpload,
   Indent,
   IndentBlock,
   Italic,
@@ -93,7 +91,6 @@ export default {
             "underline",
             "|",
             "link",
-            "insertImage",
             "insertTable",
             "highlight",
             "blockQuote",
@@ -112,7 +109,6 @@ export default {
           AutoLink,
           Autosave,
           BalloonToolbar,
-          Base64UploadAdapter,
           BlockQuote,
           Bold,
           CloudServices,
@@ -136,7 +132,6 @@ export default {
           ImageStyle,
           ImageTextAlternative,
           ImageToolbar,
-          ImageUpload,
           Indent,
           IndentBlock,
           Italic,
@@ -247,7 +242,7 @@ export default {
         menuBar: {
           isVisible: true,
         },
-        placeholder: "Začni písať tu...",
+        placeholder: "Start writing here...",
         table: {
           contentToolbar: [
             "tableColumn",
@@ -288,7 +283,7 @@ export default {
       toolbarContainer.appendChild(editorInstance.ui.view.toolbar.element);
       menuBarContainer.appendChild(editorInstance.ui.view.menuBarView.element);
 
-      //  so v-model works:
+      // so v-model works:
       editorInstance.model.document.on("change:data", () => {
         this.$emit("update:modelValue", editorInstance.getData());
       });
