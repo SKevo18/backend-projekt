@@ -1,472 +1,595 @@
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, ref, computed, onMounted, watch } from "vue";
 import { usePagesStore } from "@/store/pageStore";
 import { RouterLink } from "vue-router";
+
+interface Page {
+  id: number;
+  title: string;
+  slug: string;
+  category_id: number;
+}
+
+interface Category {
+  id: number;
+  title: string;
+}
 
 export default defineComponent({
   name: "AdminPagesView",
   components: { RouterLink },
-  data() {
-    return {
-      pagesStore: usePagesStore(),
-      title: "",
-      slug: "",
-      newCategory: "",
-      showAddCategoryForm: false,
-      activeCategoryForm: null as number | null,
-      editingPageId: null as number | null,
-      editTitle: "",
-      editSlug: "",
-      editCategoryId: null as number | null,
-      slugConflict: false,
-      slugManuallyEdited: false,
-      editingCategoryId: null as number | null,
-      editCategoryTitle: "",
-      activePageDropdownId: null as number | null,
-    };
-  },
-  computed: {
-    sortedCategories() {
-      return [...this.pagesStore.categories].sort((a, b) =>
+  setup() {
+    const pagesStore = usePagesStore();
+
+    const newPageTitle = ref("");
+    const newPageSlug = ref("");
+    const newPageSlugManuallyEdited = ref(false);
+    const newPageCategoryId = ref<number | null>(null);
+    const newPageHtmlContent = ref("");
+
+    const newCategoryTitle = ref("");
+    const showAddCategoryModal = ref(false);
+    const showAddPageModal = ref(false);
+
+    const editingPage = ref<Page | null>(null);
+    const originalEditingPageCategoryId = ref<number | null>(null);
+    const editingCategory = ref<Category | null>(null);
+
+    const activeCategoryAccordion = ref<number | null>(null);
+
+    const sortedCategories = computed(() =>
+      [...pagesStore.categories].sort((a, b) => a.title.localeCompare(b.title))
+    );
+
+    const getPagesForCategory = (categoryId: number) => {
+      const categoryData = pagesStore.pagesByCategory[categoryId];
+      if (!categoryData || !categoryData.pages) return [];
+      return [...categoryData.pages].sort((a, b) =>
         a.title.localeCompare(b.title)
       );
-    },
-    getPagesForCategory() {
-      return (categoryId: number) => {
-        const pages = this.pagesStore.pagesByCategory[categoryId] || [];
-        return [...pages].sort((a, b) => a.title.localeCompare(b.title));
-      };
-    },
-  },
-  watch: {
-    title(newTitle) {
-      if (!this.slugManuallyEdited) {
-        this.slug = this.generateSlug(newTitle);
+    };
+
+    watch(newPageTitle, (title) => {
+      if (!newPageSlugManuallyEdited.value) {
+        newPageSlug.value = generateSlug(title);
       }
-    },
-  },
-  methods: {
-    generateSlug(text: string) {
+    });
+
+    const generateSlug = (text: string) => {
       return text
         .toLowerCase()
         .replace(/\s+/g, "-")
         .replace(/[^\w\-]+/g, "")
         .replace(/\-\-+/g, "-")
         .trim();
-    },
-    async checkSlugConflict() {
-      try {
-        const response = await this.pagesStore.checkSlug(this.slug);
-        this.slugConflict = response.exists;
-      } catch {
-        this.slugConflict = false;
-      }
-    },
-    async addPage(categoryId: number) {
-      if (!this.title.trim()) {
-        alert("Please enter the name of the page.");
-        return;
-      }
-      if (this.slugConflict) {
-        alert("Slug is already taken, choose another.");
-        return;
-      }
-      try {
-        await this.pagesStore.addPage(categoryId, this.title, "", this.slug);
-        this.title = "";
-        this.slug = "";
-        this.slugManuallyEdited = false;
-        this.activeCategoryForm = null;
-        await this.loadCategoryPages(categoryId);
-      } catch {
-        alert("Error when adding the page.");
-      }
-    },
-    async updatePage(page: any) {
-      if (!page?.id) return alert("Page ID is missing!");
-      const oldCategoryId = page.category_id;
-      const newCategoryId = this.editCategoryId!;
+    };
 
+    const handleAddCategory = async () => {
+      if (!newCategoryTitle.value.trim()) {
+        alert("Category title cannot be empty.");
+        return;
+      }
       try {
-        await this.pagesStore.updatePage(page.id, {
-          title: this.editTitle,
-          category_id: newCategoryId,
-          slug: this.editSlug,
+        await pagesStore.addCategory(newCategoryTitle.value);
+        newCategoryTitle.value = "";
+        showAddCategoryModal.value = false;
+      } catch (error) {
+        console.error("Error adding category:", error);
+        alert("Failed to add category. Check console for details.");
+      }
+    };
+
+    const openEditCategoryModal = (category: Category) => {
+      editingCategory.value = { ...category }; // mutable copy
+    };
+
+    const handleUpdateCategory = async () => {
+      if (!editingCategory.value || !editingCategory.value.title.trim()) {
+        alert("Category title cannot be empty.");
+        return;
+      }
+      try {
+        await pagesStore.updateCategory(editingCategory.value.id, {
+          title: editingCategory.value.title,
         });
-
-        this.editingPageId = null;
-        this.editCategoryId = null;
-        this.activePageDropdownId = null;
-
-        if (oldCategoryId !== newCategoryId) {
-          await Promise.all([
-            this.pagesStore.fetchPages(oldCategoryId),
-            this.pagesStore.fetchPages(newCategoryId),
-          ]);
-          this.pagesStore.pagesByCategory = {
-            ...this.pagesStore.pagesByCategory,
-          };
-        } else {
-          await this.pagesStore.fetchPages(oldCategoryId);
-          this.pagesStore.pagesByCategory = {
-            ...this.pagesStore.pagesByCategory,
-          };
-        }
-      } catch {
-        alert("Error when updating the page.");
+        editingCategory.value = null;
+      } catch (error) {
+        console.error("Error updating category:", error);
+        alert("Failed to update category.");
       }
-    },
-    startEditingPage(page: any) {
-      this.editingPageId = page.id;
-      this.editTitle = page.title;
-      this.editSlug = page.slug;
-      this.editCategoryId = page.category_id;
-      this.activePageDropdownId = null;
-    },
-    async addCategory() {
-      const title = this.newCategory.trim();
-      if (!title) {
-        alert("Please enter the name of the category.");
-        return;
-      }
-      try {
-        await this.pagesStore.addCategory(title);
-        await this.pagesStore.fetchCategories();
-        this.newCategory = "";
-        this.showAddCategoryForm = false;
-      } catch {
-        alert("Error when adding the category.");
-      }
-    },
-    async deletePage(page: any) {
-      if (!page?.id) return alert("Page ID error");
-      if (confirm(`Do you really want to delete the page "${page.title}"?`)) {
-        try {
-          const categoryId = page.category_id;
-          await this.pagesStore.deletePage(page);
-          await this.loadCategoryPages(categoryId);
-          this.activePageDropdownId = null;
-        } catch {
-          alert("Error when deleting the page.");
-        }
-      }
-    },
-    startEditingCategory(category: any) {
-      this.editingCategoryId = category.id;
-      this.editCategoryTitle = category.title;
-    },
+    };
 
-    async updateCategory(category: any) {
-      const newTitle = this.editCategoryTitle.trim();
-      if (!newTitle) return alert("The category name cannot be empty.");
-
-      try {
-        await this.pagesStore.updateCategory(category.id, { title: newTitle });
-        this.editingCategoryId = null;
-        await this.pagesStore.fetchCategories();
-      } catch {
-        alert("Category update error.");
-      }
-    },
-
-    async deleteCategory(category: any) {
+    const handleDeleteCategory = async (category: Category) => {
       if (
         confirm(
-          `Do you really want to delete the category "${category.title}"? This will also remove all the pages in it.`
+          `Delete category "${category.title}" and all its pages? This cannot be undone.`
         )
       ) {
         try {
-          await this.pagesStore.deleteCategory(category);
-          await this.pagesStore.fetchCategories();
-        } catch {
-          alert("Error when deleting the category.");
+          await pagesStore.deleteCategory(category);
+        } catch (error) {
+          console.error("Error deleting category:", error);
+          alert("Failed to delete category.");
         }
       }
-    },
-    toggleAddPageForm(categoryId: number) {
-      this.activeCategoryForm =
-        this.activeCategoryForm === categoryId ? null : categoryId;
-    },
-    togglePageDropdown(pageId: number) {
-      this.activePageDropdownId =
-        this.activePageDropdownId === pageId ? null : pageId;
-    },
-    async loadCategoryPages(categoryId: number) {
-      await this.pagesStore.fetchPages(categoryId);
-    },
-    async loadAllCategoryPages() {
-      for (const category of this.sortedCategories) {
-        await this.loadCategoryPages(category.id);
+    };
+
+    const openAddPageModal = (categoryId: number) => {
+      newPageCategoryId.value = categoryId;
+      newPageTitle.value = "";
+      newPageSlug.value = "";
+      newPageHtmlContent.value = "";
+      newPageSlugManuallyEdited.value = false;
+      showAddPageModal.value = true;
+    };
+
+    const handleAddPage = async () => {
+      if (
+        !newPageTitle.value.trim() ||
+        !newPageSlug.value.trim() ||
+        newPageCategoryId.value === null
+      ) {
+        alert("Page title, slug, and category are required.");
+        return;
       }
-    },
-    cancelEditingPage() {
-      this.editingPageId = null;
-      this.editTitle = "";
-      this.editSlug = "";
-      this.editCategoryId = null;
-      this.activePageDropdownId = null;
-    },
-  },
-  async mounted() {
-    if (this.pagesStore.categories.length === 0) {
-      await this.pagesStore.fetchCategories();
-    }
-    await this.loadAllCategoryPages();
+      try {
+        await pagesStore.addPage(
+          newPageCategoryId.value,
+          newPageTitle.value,
+          newPageHtmlContent.value,
+          newPageSlug.value
+        );
+        showAddPageModal.value = false;
+      } catch (error) {
+        console.error("Error adding page:", error);
+        // @ts-ignore
+        if (
+          error.response &&
+          error.response.data &&
+          error.response.data.detail
+        ) {
+          // @ts-ignore
+          alert(`Failed to add page: ${error.response.data.detail}`);
+        } else {
+          alert(
+            "Failed to add page. Slug might already exist or other server error."
+          );
+        }
+      }
+    };
+
+    const openEditPageModal = (page: Page) => {
+      editingPage.value = { ...page }; // mutable copy
+      originalEditingPageCategoryId.value = page.category_id;
+    };
+
+    const handleUpdatePageDetails = async () => {
+      if (
+        !editingPage.value ||
+        !editingPage.value.title.trim() ||
+        !editingPage.value.slug.trim()
+      ) {
+        alert("Page title and slug cannot be empty.");
+        return;
+      }
+      try {
+        const pageDetailsToUpdate = {
+          title: editingPage.value.title,
+          slug: editingPage.value.slug,
+          category_id: editingPage.value.category_id,
+        };
+        const pageIdBeingUpdated = editingPage.value.id;
+        const newCategoryId = editingPage.value.category_id;
+        const oldCategoryId = originalEditingPageCategoryId.value;
+
+        await pagesStore.updatePage(pageIdBeingUpdated, pageDetailsToUpdate);
+
+        editingPage.value = null;
+        originalEditingPageCategoryId.value = null;
+
+        if (oldCategoryId !== null && newCategoryId !== oldCategoryId) {
+          await pagesStore.fetchPages(oldCategoryId, 1);
+        }
+        await pagesStore.fetchPages(newCategoryId, 1);
+      } catch (error) {
+        console.error("Error updating page details:", error);
+        alert(
+          `Failed to update page details: ${error.response.data.detail || error.message || "Unknown error"}`
+        );
+      }
+    };
+
+    const handleDeletePage = async (page: Page) => {
+      if (confirm(`Delete page "${page.title}"? This cannot be undone.`)) {
+        try {
+          await pagesStore.deletePage(page);
+        } catch (error) {
+          console.error("Error deleting page:", error);
+          alert("Failed to delete page.");
+        }
+      }
+    };
+
+    const toggleAccordion = (categoryId: number) => {
+      activeCategoryAccordion.value =
+        activeCategoryAccordion.value === categoryId ? null : categoryId;
+      if (
+        activeCategoryAccordion.value === categoryId &&
+        (!pagesStore.pagesByCategory[categoryId] ||
+          pagesStore.pagesByCategory[categoryId].pages.length === 0) &&
+        !pagesStore.pagesByCategory[categoryId]?.isLoading
+      ) {
+        pagesStore.fetchPages(categoryId, 1);
+      }
+    };
+
+    const loadAllPagesAdmin = async () => {
+      for (const category of sortedCategories.value) {
+        if (
+          !pagesStore.pagesByCategory[category.id] ||
+          pagesStore.pagesByCategory[category.id].pages.length === 0
+        ) {
+          await pagesStore.fetchPages(category.id, 1);
+        }
+      }
+    };
+
+    onMounted(async () => {
+      if (pagesStore.categories.length === 0) {
+        await pagesStore.fetchCategories();
+      }
+      watch(
+        sortedCategories,
+        async (newCats) => {
+          if (newCats.length > 0) {
+            let needsLoad = false;
+            for (const cat of newCats) {
+              if (
+                !pagesStore.pagesByCategory[cat.id] ||
+                pagesStore.pagesByCategory[cat.id].pages.length === 0
+              ) {
+                needsLoad = true;
+                break;
+              }
+            }
+            if (needsLoad) {
+              await loadAllPagesAdmin();
+            }
+          }
+        },
+        { immediate: true }
+      );
+    });
+
+    watch(
+      () => pagesStore.categories.length,
+      async (newLength, oldLength) => {
+        if (newLength > oldLength) {
+          await loadAllPagesAdmin();
+        }
+      }
+    );
+
+    return {
+      pagesStore,
+      newPageTitle,
+      newPageSlug,
+      newPageSlugManuallyEdited,
+      newPageCategoryId,
+      newCategoryTitle,
+      showAddCategoryModal,
+      showAddPageModal,
+      editingPage,
+      editingCategory,
+      activeCategoryAccordion,
+      sortedCategories,
+      getPagesForCategory,
+      generateSlug,
+      handleAddCategory,
+      openEditCategoryModal,
+      handleUpdateCategory,
+      handleDeleteCategory,
+      openAddPageModal,
+      handleAddPage,
+      openEditPageModal,
+      handleUpdatePageDetails,
+      handleDeletePage,
+      toggleAccordion,
+    };
   },
 });
 </script>
 
 <template>
-  <div class="p-4 sm:p-6 bg-gray-50 min-h-screen space-y-6">
-    <div class="space-y-6">
+  <div class="admin-pages-view">
+    <header class="admin-header">
+      <h1 class="text-2xl font-semibold text-gray-800">
+        Manage Pages & Categories
+      </h1>
+      <button @click="showAddCategoryModal = true" class="btn btn-primary">
+        Add New Category
+      </button>
+    </header>
+
+    <div
+      v-if="!sortedCategories.length && !pagesStore.isLoading"
+      class="text-center py-10 text-gray-500"
+    >
+      No categories found. Add a category to get started.
+    </div>
+    <div v-if="pagesStore.isLoading" class="text-center py-10 text-gray-500">
+      Loading categories...
+    </div>
+
+    <div class="categories-accordion space-y-2">
       <div
         v-for="category in sortedCategories"
         :key="category.id"
-        class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm"
+        class="category-item"
       >
-        <fieldset>
-          <div class="flex items-center justify-between mb-2">
-            <legend class="font-semibold text-xl text-gray-700">
-              <span v-if="editingCategoryId !== category.id">{{
-                category.title
-              }}</span>
-              <input
-                v-else
-                v-model="editCategoryTitle"
-                class="border px-2 py-1 rounded-md text-base"
-                @keyup.enter="updateCategory(category)"
-              />
-            </legend>
-            <div class="flex gap-2 ml-4">
-              <button
-                v-if="editingCategoryId !== category.id"
-                @click="startEditingCategory(category)"
-                class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-md text-sm"
-              >
-                Update
-              </button>
-              <button
-                v-else
-                @click="updateCategory(category)"
-                class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md text-sm"
-              >
-                Save
-              </button>
-              <button
-                @click="deleteCategory(category)"
-                class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-
-          <div
-            v-if="!getPagesForCategory(category.id).length"
-            class="text-center text-gray-400 text-sm py-2"
-          >
-            No pages for this category.
-          </div>
-
-          <div
-            v-for="page in getPagesForCategory(category.id)"
-            :key="page.id"
-            class="bg-gray-100 border border-gray-200 rounded-xl p-4 my-3"
-          >
-            <div
-              class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
-            >
-              <p class="text-gray-700 break-words font-medium">
-                {{ page.title }}
-              </p>
-              <div class="relative inline-block text-left">
-                <button
-                  @click="togglePageDropdown(page.id)"
-                  type="button"
-                  class="dropdown-button"
-                >
-                  Actions
-                  <svg
-                    class="-mr-1 ml-2 h-5 w-5"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                    aria-hidden="true"
-                  >
-                    <path
-                      fill-rule="evenodd"
-                      d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                      clip-rule="evenodd"
-                    />
-                  </svg>
-                </button>
-
-                <div
-                  v-if="activePageDropdownId === page.id"
-                  class="dropdown"
-                  role="menu"
-                  aria-orientation="vertical"
-                  aria-labelledby="menu-button"
-                  tabindex="-1"
-                >
-                  <div class="py-1" role="none">
-                    <a
-                      href="#"
-                      @click.prevent="startEditingPage(page)"
-                      class="dropdown-item"
-                      role="menuitem"
-                      tabindex="-1"
-                      id="menu-item-0"
-                      >Update Page</a
-                    >
-                    <RouterLink
-                      :to="{
-                        name: 'page-edit',
-                        params: { idSlug: `${page.id}-${page.slug}` },
-                      }"
-                      class="dropdown-item"
-                      role="menuitem"
-                      tabindex="-1"
-                      >Edit Content</RouterLink
-                    >
-                    <RouterLink
-                      :to="{
-                        name: 'page',
-                        params: { idSlug: `${page.id}-${page.slug}` },
-                      }"
-                      class="dropdown-item"
-                      role="menuitem"
-                      tabindex="-1"
-                      >View Page</RouterLink
-                    >
-                    <button
-                      @click="deletePage(page)"
-                      type="button"
-                      class="dropdown-item-danger"
-                      role="menuitem"
-                      tabindex="-1"
-                    >
-                      Delete Page
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div v-if="editingPageId === page.id" class="mt-4 space-y-3">
-              <input
-                v-model="editTitle"
-                class="w-full p-2 border rounded-md"
-                placeholder="New page title"
-              />
-              <input
-                v-model="editSlug"
-                @input="slugManuallyEdited = true"
-                class="w-full p-2 border rounded-md"
-                placeholder="Slug (e.g. my-url)"
-              />
-              <select
-                v-model.number="editCategoryId"
-                class="w-full p-2 border rounded-md"
-              >
-                <option
-                  v-for="cat in sortedCategories"
-                  :key="cat.id"
-                  :value="cat.id"
-                >
-                  {{ cat.title }}
-                </option>
-              </select>
-              <div class="flex gap-2">
-                <button
-                  @click="updatePage(page)"
-                  class="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition"
-                >
-                  Save changes
-                </button>
-                <button
-                  @click="cancelEditingPage()"
-                  class="bg-gray-300 text-gray-800 py-2 px-4 rounded-md hover:bg-gray-400 transition"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div class="text-center mt-6">
+        <button @click="toggleAccordion(category.id)" class="category-header">
+          <span class="font-medium text-lg">{{ category.title }}</span>
+          <div class="category-actions">
             <button
-              @click="toggleAddPageForm(category.id)"
-              class="bg-green-500 text-white w-full py-2 rounded-md hover:bg-green-600 transition"
+              @click.stop="openEditCategoryModal(category)"
+              class="btn-icon text-blue-600 hover:text-blue-800"
+              title="Edit Category"
             >
-              {{
-                activeCategoryForm === category.id
-                  ? "Hide form"
-                  : "Create new page"
-              }}
+              ⚙️
+            </button>
+            <button
+              @click.stop="handleDeleteCategory(category)"
+              class="btn-icon text-red-600 hover:text-red-800"
+              title="Delete Category"
+            >
+              🗑️
+            </button>
+            <span class="accordion-icon">
+              <svg
+                class="w-6 h-6 transition-transform duration-200"
+                :class="{
+                  'rotate-180': activeCategoryAccordion === category.id,
+                }"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 9l-7 7-7-7"
+                ></path>
+              </svg>
+            </span>
+          </div>
+        </button>
+
+        <div
+          v-if="activeCategoryAccordion === category.id"
+          class="category-content"
+        >
+          <div class="flex justify-end mb-3">
+            <button
+              @click="openAddPageModal(category.id)"
+              class="btn btn-secondary btn-sm"
+            >
+              Add New Page to {{ category.title }}
             </button>
           </div>
-
           <div
-            v-if="activeCategoryForm === category.id"
-            class="bg-white border border-gray-200 rounded-xl p-4 shadow mt-4"
+            v-if="
+              pagesStore.pagesByCategory[category.id]?.isLoading &&
+              (!pagesStore.pagesByCategory[category.id]?.pages ||
+                pagesStore.pagesByCategory[category.id]?.pages.length === 0)
+            "
+            class="text-sm text-gray-500 py-3 text-center"
           >
-            <div class="flex flex-col md:flex-row gap-3">
-              <input
-                v-model="title"
-                placeholder="Page title"
-                type="text"
-                class="flex-1 border border-gray-300 rounded-md p-2 bg-gray-50"
-              />
-              <input
-                v-model="slug"
-                @input="slugManuallyEdited = true"
-                placeholder="Slug (auto-generated from title)"
-                type="text"
-                class="flex-1 border border-gray-300 rounded-md p-2 bg-gray-50"
-                @blur="checkSlugConflict"
-              />
-              <button
-                @click="addPage(category.id)"
-                class="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition w-full md:w-auto"
-              >
-                Add page
-              </button>
-            </div>
-            <p v-if="slugConflict" class="text-red-600 text-sm mt-1">
-              This slug already exists. Please choose another one.
-            </p>
+            Loading pages...
           </div>
-        </fieldset>
+          <ul
+            v-else-if="getPagesForCategory(category.id).length"
+            class="space-y-2"
+          >
+            <li
+              v-for="page in getPagesForCategory(category.id)"
+              :key="page.id"
+              class="page-list-item"
+            >
+              <span
+                >{{ page.title }}
+                <em class="text-xs text-gray-500">(/{{ page.slug }})</em></span
+              >
+              <div class="page-actions">
+                <RouterLink
+                  :to="{
+                    name: 'page-edit',
+                    params: { idSlug: `${page.id}-${page.slug}` },
+                  }"
+                  class="btn-icon text-green-600 hover:text-green-800"
+                  title="Edit Content"
+                >
+                  📝
+                </RouterLink>
+                <button
+                  @click.stop="openEditPageModal(page)"
+                  class="btn-icon text-blue-600 hover:text-blue-800"
+                  title="Edit Details (Title/Slug/Category)"
+                >
+                  ⚙️
+                </button>
+                <RouterLink
+                  :to="{
+                    name: 'page',
+                    params: { idSlug: `${page.id}-${page.slug}` },
+                  }"
+                  target="_blank"
+                  class="btn-icon text-indigo-600 hover:text-indigo-800"
+                  title="View Page"
+                >
+                  👁️
+                </RouterLink>
+                <button
+                  @click="handleDeletePage(page)"
+                  class="btn-icon text-red-600 hover:text-red-800"
+                  title="Delete Page"
+                >
+                  🗑️
+                </button>
+              </div>
+            </li>
+          </ul>
+          <p
+            v-else-if="!pagesStore.pagesByCategory[category.id]?.isLoading"
+            class="text-sm text-gray-500 py-3 text-center"
+          >
+            No pages in this category yet.
+          </p>
+          <div
+            v-if="
+              pagesStore.pagesByCategory[category.id] &&
+              pagesStore.pagesByCategory[category.id].hasMore &&
+              !pagesStore.pagesByCategory[category.id].isLoading
+            "
+            class="text-center mt-2"
+          >
+            <button
+              @click="
+                pagesStore.fetchPages(
+                  category.id,
+                  pagesStore.pagesByCategory[category.id].currentPage + 1
+                )
+              "
+              class="btn btn-link btn-sm"
+            >
+              Load More Pages
+            </button>
+          </div>
+          <div
+            v-if="
+              pagesStore.pagesByCategory[category.id]?.isLoading &&
+              pagesStore.pagesByCategory[category.id]?.pages.length > 0
+            "
+            class="text-sm text-gray-500 py-3 text-center"
+          >
+            Loading more pages...
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="space-y-4 mt-8">
-      <div class="text-center">
-        <button
-          @click="showAddCategoryForm = !showAddCategoryForm"
-          class="bg-green-500 text-white w-full py-2 rounded-md hover:bg-green-600 transition"
-        >
-          {{ showAddCategoryForm ? "Hide category form" : "Add new category" }}
-        </button>
-      </div>
-
-      <div
-        v-if="showAddCategoryForm"
-        class="bg-white border border-gray-300 rounded-2xl p-6 shadow space-y-4"
-      >
-        <div class="flex flex-col md:flex-row gap-4">
-          <input
-            v-model="newCategory"
-            placeholder="Category (e.g. 2025, Information)"
-            type="text"
-            class="flex-1 border border-gray-300 rounded-md p-2 bg-gray-50"
-          />
+    <!-- Add/Edit Category Modal -->
+    <div v-if="showAddCategoryModal || editingCategory" class="modal-overlay">
+      <div class="modal-content">
+        <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">
+          {{ editingCategory ? "Edit Category" : "Add New Category" }}
+        </h3>
+        <input
+          v-if="editingCategory"
+          v-model="editingCategory.title"
+          placeholder="Category Title (e.g., 2024, Announcements)"
+          class="input w-full mb-4"
+          @keyup.enter="handleUpdateCategory()"
+        />
+        <input
+          v-else
+          v-model="newCategoryTitle"
+          placeholder="Category Title (e.g., 2024, Announcements)"
+          class="input w-full mb-4"
+          @keyup.enter="handleAddCategory()"
+        />
+        <div class="modal-actions">
           <button
-            @click="addCategory"
-            class="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition w-full md:w-auto"
+            @click="
+              editingCategory
+                ? (editingCategory = null)
+                : (showAddCategoryModal = false)
+            "
+            class="btn btn-neutral"
           >
-            Add category
+            Cancel
+          </button>
+          <button
+            @click="
+              editingCategory ? handleUpdateCategory() : handleAddCategory()
+            "
+            class="btn btn-primary"
+          >
+            {{ editingCategory ? "Save Changes" : "Add Category" }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add/Edit Page Modal -->
+    <div v-if="showAddPageModal || editingPage" class="modal-overlay">
+      <div class="modal-content">
+        <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">
+          {{ editingPage ? "Edit Page Details" : "Add New Page" }}
+        </h3>
+        <div v-if="editingPage">
+          <label class="label">Title</label>
+          <input
+            v-model="editingPage.title"
+            placeholder="Page Title"
+            class="input w-full"
+          />
+          <div class="mt-2">
+            <label class="label">Slug</label>
+            <input
+              v-model="editingPage.slug"
+              placeholder="page-slug"
+              class="input w-full"
+            />
+          </div>
+          <div class="mt-2">
+            <label class="label">Category</label>
+            <select
+              v-model.number="editingPage.category_id"
+              class="input w-full"
+            >
+              <option
+                v-for="cat in sortedCategories"
+                :key="cat.id"
+                :value="cat.id"
+              >
+                {{ cat.title }}
+              </option>
+            </select>
+          </div>
+        </div>
+        <div v-else>
+          <label class="label">Title</label>
+          <input
+            v-model="newPageTitle"
+            placeholder="Page Title"
+            class="input w-full"
+          />
+          <div class="mt-2">
+            <label class="label">Slug</label>
+            <input
+              v-model="newPageSlug"
+              @input="newPageSlugManuallyEdited = true"
+              placeholder="page-slug (auto-generated or custom)"
+              class="input w-full"
+            />
+          </div>
+        </div>
+        <!-- HTML content editor is not part of this modal, only title/slug/category -->
+        <div class="modal-actions mt-6">
+          <button
+            @click="
+              editingPage ? (editingPage = null) : (showAddPageModal = false)
+            "
+            class="btn btn-neutral"
+          >
+            Cancel
+          </button>
+          <button
+            @click="editingPage ? handleUpdatePageDetails() : handleAddPage()"
+            class="btn btn-primary"
+          >
+            {{ editingPage ? "Save Details" : "Add Page" }}
           </button>
         </div>
       </div>
@@ -474,22 +597,78 @@ export default defineComponent({
   </div>
 </template>
 
-<style>
+<style scoped>
 @import "tailwindcss";
 
-.dropdown {
-  @apply origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black focus:outline-none z-10;
+.admin-pages-view {
+  @apply p-4 sm:p-6 bg-gray-100 min-h-screen;
+}
+.admin-header {
+  @apply flex justify-between items-center mb-6 pb-4 border-b border-gray-300;
 }
 
-.dropdown-button {
-  @apply inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none;
+.btn {
+  @apply px-4 py-2 rounded-md font-medium transition-colors duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2;
+}
+.btn-sm {
+  @apply px-3 py-1 text-sm;
+}
+.btn-primary {
+  @apply bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500;
+}
+.btn-secondary {
+  @apply bg-green-500 text-white hover:bg-green-600 focus:ring-green-500;
+}
+.btn-neutral {
+  @apply bg-gray-200 text-gray-700 hover:bg-gray-300 focus:ring-gray-400;
+}
+.btn-danger {
+  @apply bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
+}
+.btn-link {
+  @apply text-blue-600 hover:text-blue-800 hover:underline;
+}
+.btn-icon {
+  @apply p-1 rounded-full hover:bg-gray-200 focus:outline-none focus:ring-1 focus:ring-gray-400;
 }
 
-.dropdown .dropdown-item {
-  @apply text-black hover:text-gray-500 block px-4 py-2 text-sm hover:bg-gray-100 hover:underline cursor-pointer;
+.category-item {
+  @apply bg-white shadow-sm rounded-lg overflow-hidden border border-gray-200;
+}
+.category-header {
+  @apply flex justify-between items-center w-full p-4 text-left text-gray-700 hover:bg-gray-50 focus:outline-none;
+}
+.category-actions {
+  @apply flex items-center space-x-2;
+}
+.accordion-icon svg {
+  @apply text-gray-500;
+}
+.category-content {
+  @apply p-4 border-t border-gray-200 bg-gray-50;
 }
 
-.dropdown .dropdown-item-danger {
-  @apply text-red-500 hover:text-red-600 block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 hover:underline cursor-pointer;
+.page-list-item {
+  @apply flex justify-between items-center p-3 bg-white rounded-md border border-gray-200 hover:shadow-md transition-shadow;
+}
+.page-actions {
+  @apply flex items-center space-x-2;
+}
+
+.modal-overlay {
+  @apply fixed inset-0 bg-black/75 flex items-center justify-center p-4 z-50;
+}
+.modal-content {
+  @apply bg-white p-6 rounded-lg shadow-xl w-full max-w-md;
+}
+.modal-actions {
+  @apply flex justify-end space-x-3 mt-4;
+}
+
+.input {
+  @apply block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm;
+}
+.label {
+  @apply block text-sm font-medium text-gray-700 mb-1;
 }
 </style>

@@ -168,7 +168,7 @@ onMounted(async () => {
           />
         </div>
       </fieldset>
-
+      <!-- not implemented:
       <fieldset class="form-container">
         <legend>Ostatné</legend>
 
@@ -181,6 +181,7 @@ onMounted(async () => {
           <label for="registration-enabled">Povoliť nové registrácie</label>
         </div>
       </fieldset>
+      -->
     </div>
 
     <div class="flex justify-between items-end mt-4">

@@ -60,18 +60,22 @@ export default {
   },
   methods: {
     getFileTypeInfo(file: any) {
-      const name = file.name || '';
-      const ext = name.split('.').pop()?.toLowerCase() || '';
-      const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
+      const name = file.name || "";
+      const ext = name.split(".").pop()?.toLowerCase() || "";
+      const imageExts = ["jpg", "jpeg", "png", "gif", "webp", "svg"];
       if (imageExts.includes(ext)) {
-        return { type: 'image' };
+        return { type: "image" };
       }
-      if (["pdf"].includes(ext)) return { type: 'emoji', emoji: '📄' };
-      if (["doc", "docx", "odt", "rtf", "txt"].includes(ext)) return { type: 'emoji', emoji: '📝' };
-      if (["zip", "rar", "7z", "tar", "gz"].includes(ext)) return { type: 'emoji', emoji: '📦' };
-      if (["xls", "xlsx", "ods", "csv"].includes(ext)) return { type: 'emoji', emoji: '📊' };
-      if (["ppt", "pptx", "odp"].includes(ext)) return { type: 'emoji', emoji: '📈' };
-      return { type: 'emoji', emoji: '📁' };
+      if (["pdf"].includes(ext)) return { type: "emoji", emoji: "📄" };
+      if (["doc", "docx", "odt", "rtf", "txt"].includes(ext))
+        return { type: "emoji", emoji: "📝" };
+      if (["zip", "rar", "7z", "tar", "gz"].includes(ext))
+        return { type: "emoji", emoji: "📦" };
+      if (["xls", "xlsx", "ods", "csv"].includes(ext))
+        return { type: "emoji", emoji: "📊" };
+      if (["ppt", "pptx", "odp"].includes(ext))
+        return { type: "emoji", emoji: "📈" };
+      return { type: "emoji", emoji: "📁" };
     },
     async loadExistingFiles() {
       try {
@@ -191,17 +195,41 @@ export default {
       <h2 class="big mb-2">Attached Files</h2>
 
       <div class="file-upload-list">
-        <input type="file" multiple @change="addFile" class="file-upload-input" ref="fileInput" />
-        <button class="button button-green w-32" @click="() => ($refs.fileInput as HTMLInputElement).click()">
+        <input
+          type="file"
+          multiple
+          @change="addFile"
+          class="file-upload-input"
+          ref="fileInput"
+        />
+        <button
+          class="button button-green w-32"
+          @click="() => ($refs.fileInput as HTMLInputElement).click()"
+        >
           Attach File
         </button>
 
         <div class="file-upload-item" v-for="file in files" :key="file.name">
-          <span v-if="getFileTypeInfo(file).type === 'image'" class="file-thumb">
-            <img v-if="file.alreadyUploaded" :src="`${apiUrl}/page/${id}/upload/${file.name}`" alt="thumb" class="thumb-img" />
-            <img v-else :src="file.fileObj ? getObjectUrl(file.fileObj) : ''" alt="thumb" class="thumb-img" />
+          <span
+            v-if="getFileTypeInfo(file).type === 'image'"
+            class="file-thumb"
+          >
+            <img
+              v-if="file.alreadyUploaded"
+              :src="`${apiUrl}/page/${id}/upload/${file.name}`"
+              alt="thumb"
+              class="thumb-img"
+            />
+            <img
+              v-else
+              :src="file.fileObj ? getObjectUrl(file.fileObj) : ''"
+              alt="thumb"
+              class="thumb-img"
+            />
           </span>
-          <span v-else class="file-emoji">{{ getFileTypeInfo(file).emoji }}</span>
+          <span v-else class="file-emoji">{{
+            getFileTypeInfo(file).emoji
+          }}</span>
           <span class="file-upload-item-name">
             {{ file.name }}, {{ file.size }} B
           </span>

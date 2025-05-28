@@ -79,3 +79,5 @@ a:hover:not(.button) {
 .form-checkbox {
   @apply flex flex-row items-center gap-2;
 }
+
+@import "./editor.css";

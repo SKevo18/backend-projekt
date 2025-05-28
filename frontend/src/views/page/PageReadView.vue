@@ -1,9 +1,10 @@
 <script lang="ts">
-import { defineComponent, ref, watch } from "vue";
+import { defineComponent, ref, watch, computed, onUnmounted } from "vue";
 import { useAuthStore } from "@/store/authStore";
 import { usePagesStore } from "@/store/pageStore";
 import PageSidebarComponent from "@/components/page/PageSidebarComponent.vue";
 import api from "@/services/api";
+import { useRoute } from "vue-router";
 
 export default defineComponent({
   name: "PageReadView",
@@ -19,10 +20,9 @@ export default defineComponent({
   setup(props) {
     const pagesStore = usePagesStore();
     const authStore = useAuthStore();
+    const route = useRoute();
 
-    // Состояния компонента
     const slug = ref("");
-    const categoryId = ref<number | null>(null);
     const pageHtml = ref("<i>Loading page...</i>");
     const files = ref<any[]>([]);
     const title = ref("");
@@ -31,16 +31,22 @@ export default defineComponent({
     const apiUrl = api.defaults.baseURL;
     const canEdit = ref(false);
     const isLoading = ref(true);
+    const fetchedCategoryId = ref<number | null>(null);
 
-    // Загрузка страницы
+    const showSidebar = computed(
+      () => !route.meta.isAdminView && fetchedCategoryId.value !== null
+    );
+
     const loadPage = async (idSlug: string) => {
       isLoading.value = true;
       pageFound.value = false;
       canEdit.value = false;
+      fetchedCategoryId.value = null;
 
       try {
         const id = parseInt(idSlug.split("-")[0]);
         if (isNaN(id)) {
+          pagesStore.setActivePageCategoryId(null);
           pageHtml.value = "<i>Invalid page ID.</i>";
           return;
         }
@@ -53,7 +59,8 @@ export default defineComponent({
         pageHtml.value =
           page?.html_content || "<i>The page has no content.</i>";
         title.value = page?.title || "";
-        categoryId.value = page?.category_id || null;
+        fetchedCategoryId.value = page?.category_id || null;
+        pagesStore.setActivePageCategoryId(fetchedCategoryId.value);
 
         if (authStore.isAuthenticated) {
           canEdit.value = await checkEditPermission();
@@ -61,7 +68,6 @@ export default defineComponent({
       } catch (error) {
         console.error("Error loading page:", error);
         pageHtml.value = "<i>Page not found.</i>";
-        categoryId.value = null;
       } finally {
         isLoading.value = false;
       }
@@ -69,9 +75,8 @@ export default defineComponent({
       await loadExistingFiles();
     };
 
-    // Проверка прав на редактирование
     const checkEditPermission = async (): Promise<boolean> => {
-      if (!authStore.user || !pageId.value || !categoryId.value) {
+      if (!authStore.user || !pageId.value || !fetchedCategoryId.value) {
         return false;
       }
 
@@ -93,7 +98,7 @@ export default defineComponent({
         }
 
         const categoryResponse = await api.get(
-          `/permissions/${authStore.user.id}/categories/${categoryId.value}`
+          `/permissions/${authStore.user.id}/categories/${fetchedCategoryId.value}`
         );
         // @ts-ignore
         return categoryResponse.data.has_permission;
@@ -103,7 +108,6 @@ export default defineComponent({
       }
     };
 
-    // Загрузка существующих файлов
     const loadExistingFiles = async () => {
       if (!pageId.value) return;
 
@@ -118,33 +122,50 @@ export default defineComponent({
     };
 
     function getFileTypeInfo(file: any) {
-      const name = file.name || '';
-      const ext = name.split('.').pop()?.toLowerCase() || '';
-      const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
+      const name = file.name || "";
+      const ext = name.split(".").pop()?.toLowerCase() || "";
+      const imageExts = ["jpg", "jpeg", "png", "gif", "webp", "svg"];
       if (imageExts.includes(ext)) {
-        return { type: 'image' };
+        return { type: "image" };
       }
-      if (["pdf"].includes(ext)) return { type: 'emoji', emoji: '📄' };
-      if (["doc", "docx", "odt", "rtf", "txt"].includes(ext)) return { type: 'emoji', emoji: '📝' };
-      if (["zip", "rar", "7z", "tar", "gz"].includes(ext)) return { type: 'emoji', emoji: '📦' };
-      if (["xls", "xlsx", "ods", "csv"].includes(ext)) return { type: 'emoji', emoji: '📊' };
-      if (["ppt", "pptx", "odp"].includes(ext)) return { type: 'emoji', emoji: '📈' };
-      return { type: 'emoji', emoji: '📁' };
+      if (["pdf"].includes(ext)) return { type: "emoji", emoji: "📄" };
+      if (["doc", "docx", "odt", "rtf", "txt"].includes(ext))
+        return { type: "emoji", emoji: "📝" };
+      if (["zip", "rar", "7z", "tar", "gz"].includes(ext))
+        return { type: "emoji", emoji: "📦" };
+      if (["xls", "xlsx", "ods", "csv"].includes(ext))
+        return { type: "emoji", emoji: "📊" };
+      if (["ppt", "pptx", "odp"].includes(ext))
+        return { type: "emoji", emoji: "📈" };
+      return { type: "emoji", emoji: "📁" };
     }
 
-    // Инициализация компонента при первом рендере
     loadPage(props.idSlug);
 
     watch(
       () => props.idSlug,
-      (newIdSlug) => {
-        loadPage(newIdSlug);
+      (newIdSlug, oldIdSlug) => {
+        if (newIdSlug !== oldIdSlug) {
+          loadPage(newIdSlug);
+        }
       }
     );
 
+    watch(route, (to, from) => {
+      if (from.name === "page" && to.name !== "page") {
+        pagesStore.setActivePageCategoryId(null);
+      }
+    });
+
+    onUnmounted(() => {
+      if (route.name !== "page") {
+        pagesStore.setActivePageCategoryId(null);
+      }
+    });
+
     return {
       slug,
-      categoryId,
+      fetchedCategoryId,
       pageHtml,
       files,
       title,
@@ -155,6 +176,7 @@ export default defineComponent({
       isLoading,
       authStore,
       getFileTypeInfo,
+      showSidebar,
     };
   },
 });
@@ -162,9 +184,15 @@ export default defineComponent({
 
 <template>
   <div class="page-read-view">
-    <PageSidebarComponent :activeCategoryId="categoryId" />
+    <PageSidebarComponent
+      v-if="showSidebar"
+      :activeCategoryId="fetchedCategoryId"
+    />
 
-    <div class="page-content">
+    <div
+      class="page-content"
+      :class="{ 'page-content-full-width': !showSidebar }"
+    >
       <div v-if="isLoading" class="loading-indicator">Loading...</div>
 
       <template v-else>
@@ -177,18 +205,31 @@ export default defineComponent({
               <hr />
             </header>
 
-            <div class="page-html-content" v-html="pageHtml"></div>
+            <div class="ck-content page-html-content" v-html="pageHtml"></div>
 
             <footer class="page-footer">
               <div v-if="files.length > 0" class="files-container">
                 <h2 class="big mb-2">Attached Files</h2>
                 <div class="files-list">
                   <div class="file-item" v-for="file in files" :key="file.name">
-                    <span v-if="getFileTypeInfo(file).type === 'image'" class="file-thumb">
-                      <img :src="`${apiUrl}/page/${pageId}/upload/${file.name}`" alt="thumb" class="thumb-img" />
+                    <span
+                      v-if="getFileTypeInfo(file).type === 'image'"
+                      class="file-thumb"
+                    >
+                      <img
+                        :src="`${apiUrl}/page/${pageId}/upload/${file.name}`"
+                        alt="thumb"
+                        class="thumb-img"
+                      />
                     </span>
-                    <span v-else class="file-emoji">{{ getFileTypeInfo(file).emoji }}</span>
-                    <a :href="`${apiUrl}/page/${pageId}/upload/${file.name}`" target="_blank" class="file-link">
+                    <span v-else class="file-emoji">{{
+                      getFileTypeInfo(file).emoji
+                    }}</span>
+                    <a
+                      :href="`${apiUrl}/page/${pageId}/upload/${file.name}`"
+                      target="_blank"
+                      class="file-link"
+                    >
                       {{ file.name }}
                     </a>
                     <span class="text-sm text-gray-500">{{ file.size }} B</span>
@@ -196,15 +237,22 @@ export default defineComponent({
                 </div>
               </div>
 
-              <div v-if="authStore.isAuthenticated && !canEdit" class="read-only-notice">
+              <div
+                v-if="authStore.isAuthenticated && !canEdit"
+                class="read-only-notice"
+              >
                 You have read-only access to this page
               </div>
 
               <nav>
-                <RouterLink class="button button-green" :to="{
-                  name: 'page-edit',
-                  params: { idSlug: `${pageId}-${slug}` },
-                }" v-if="pageFound && canEdit">
+                <RouterLink
+                  class="button button-green"
+                  :to="{
+                    name: 'page-edit',
+                    params: { idSlug: `${pageId}-${slug}` },
+                  }"
+                  v-if="pageFound && canEdit"
+                >
                   Edit Page
                 </RouterLink>
               </nav>
@@ -224,7 +272,11 @@ export default defineComponent({
 }
 
 .page-content {
-  @apply flex-1 p-6;
+  @apply flex-1 p-4 sm:p-6 overflow-y-auto;
+}
+
+.page-content-full-width {
+  @apply ml-0;
 }
 
 .loading-indicator {

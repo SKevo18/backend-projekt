@@ -19,13 +19,12 @@ const router = createRouter({
         }
 
         if (pagesStore.categories.length > 0) {
-          // redirect to first category
           next({
             name: "category",
             params: { category: pagesStore.categories[0].id },
           });
         } else {
-          next(); // show page with empty sidebar
+          next();
         }
       },
     },
@@ -46,7 +45,7 @@ const router = createRouter({
       name: "page-edit",
       component: () => import("@/views/page/PageEditView.vue"),
       props: true,
-      meta: { requiresEditorOrAdmin: true},
+      meta: { requiresEditorOrAdmin: true },
     },
     {
       path: "/login",
@@ -104,7 +103,6 @@ const router = createRouter({
   ],
 });
 
-
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore();
 
@@ -113,13 +111,15 @@ router.beforeEach(async (to, from, next) => {
       await authStore.fetchUserData();
     }
 
-    if (!authStore.user || !(authStore.user.role === 1 || authStore.user.role === 2)) {
+    if (
+      !authStore.user ||
+      !(authStore.user.role === 1 || authStore.user.role === 2)
+    ) {
       return next({ name: "login" });
     }
   }
 
   next();
 });
-
 
 export default router;

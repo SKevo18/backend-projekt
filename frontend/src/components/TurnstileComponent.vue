@@ -67,7 +67,9 @@ const cleanupTurnstile = () => {
 onMounted(async () => {
   try {
     const response = await api.get("/settings/turnstile-key");
-    siteKey.value = (response.data as { turnstile_site_key: string }).turnstile_site_key;
+    siteKey.value = (
+      response.data as { turnstile_site_key: string }
+    ).turnstile_site_key;
     if (siteKey.value) {
       loadTurnstile();
     }

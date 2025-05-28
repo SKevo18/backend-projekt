@@ -1,8 +1,6 @@
-from typing import Optional
-
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from slugify import slugify
 from sqlalchemy.orm import Session
 
@@ -17,19 +15,19 @@ MAX_PER_PAGE = 100
 
 class PageBase(BaseModel):
     category_id: int
-    title: str
-    html_content: str
+    title: str = Field(max_length=100)
+    html_content: str = Field(max_length=4294967295)
 
 
 class PageCreate(PageBase):
-    slug: Optional[str] = None
+    slug: str | None = Field(max_length=100, default=None)
 
 
 class PageUpdate(BaseModel):
-    category_id: Optional[int] = None
-    title: Optional[str] = None
-    html_content: Optional[str] = None
-    slug: Optional[str] = None
+    category_id: int | None = None
+    title: str | None = Field(max_length=100, default=None)
+    html_content: str | None = Field(max_length=4294967295, default=None)
+    slug: str | None = Field(max_length=100, default=None)
 
 
 class PageOut(PageBase):
@@ -121,9 +119,7 @@ def create_page(
 
 @PAGE_CONTROLLER.get("/", response_model=list[PageOut])
 def read_pages(
-    category_id: Optional[int] = Query(
-        None, description="Filter results by category ID"
-    ),
+    category_id: int | None = Query(None, description="Filter results by category ID"),
     page: int = Query(1, ge=1, description="Page number (must be ≥ 1)"),
     per_page: int = Query(
         10,
