@@ -2,6 +2,12 @@
 import { useAuthStore } from "@/store/authStore";
 import api from "@/services/api";
 
+interface Page {
+  id: number;
+  title: string;
+  category_id: number;
+}
+
 export default {
   name: "AdminUsersView",
   data() {
@@ -16,12 +22,24 @@ export default {
         edited_at: string | null;
       }[],
       editedRoles: {} as Record<number, string>,
-      allPages: [] as { id: number; title: string; category_id: number }[],
+      allPages: {} as Record<
+        number,
+        {
+          pages: Page[];
+          currentPage: number;
+          hasMore: boolean;
+          isLoading: boolean;
+        }
+      >,
       userPermissions: {
         pages: {} as Record<number, number[]>,
         categories: {} as Record<number, number[]>,
       },
-      selectedUser: null as { id: number | null; first_name: string; last_name: string } | null,
+      selectedUser: null as {
+        id: number | null;
+        first_name: string;
+        last_name: string;
+      } | null,
       showPermissionsModal: false,
       categories: [] as { id: number; title: string }[],
       activeTab: "pages" as "pages" | "categories",
@@ -126,9 +144,69 @@ export default {
       }
     },
 
+    async fetchPagesForCategory(
+      categoryId: number,
+      page: number = 1,
+      limit: number = 10
+    ) {
+      const authStore = useAuthStore();
+      if (!this.allPages[categoryId]) {
+        this.allPages[categoryId] = {
+          pages: [],
+          currentPage: 0,
+          hasMore: true,
+          isLoading: false,
+        };
+      }
+
+      if (this.allPages[categoryId].isLoading) return;
+
+      this.allPages[categoryId].isLoading = true;
+
+      try {
+        const response = await api.get(`/page/`, {
+          params: { category_id: categoryId, page: page, limit: limit },
+          headers: { Authorization: `Bearer ${authStore.token}` },
+        });
+
+        const fetchedPages = response.data as Page[];
+
+        if (page === 1) {
+          this.allPages[categoryId].pages = fetchedPages;
+        } else {
+          this.allPages[categoryId].pages.push(...fetchedPages);
+        }
+        this.allPages[categoryId].currentPage = page;
+        this.allPages[categoryId].hasMore = fetchedPages.length === limit;
+      } catch (error) {
+        console.error(
+          `Error fetching pages for category ${categoryId}:`,
+          error
+        );
+        this.allPages[categoryId].hasMore = false;
+      } finally {
+        this.allPages[categoryId].isLoading = false;
+      }
+    },
+
+    async loadInitialPagesForCategories() {
+      if (this.activeTab === "pages") {
+        for (const category of this.categories) {
+          const categoryData = this.allPages[category.id];
+          if (
+            !categoryData ||
+            (categoryData.pages.length === 0 && !categoryData.isLoading)
+          ) {
+            await this.fetchPagesForCategory(category.id, 1);
+          }
+        }
+      }
+    },
+
     async togglePermission(userId: number, pageId: number) {
       const authStore = useAuthStore();
-      const hasPermission = this.userPermissions.pages[userId]?.includes(pageId);
+      const hasPermission =
+        this.userPermissions.pages[userId]?.includes(pageId);
 
       try {
         if (hasPermission) {
@@ -151,7 +229,8 @@ export default {
 
     async toggleCategoryPermission(userId: number, categoryId: number) {
       const authStore = useAuthStore();
-      const hasPermission = this.userPermissions.categories[userId]?.includes(categoryId);
+      const hasPermission =
+        this.userPermissions.categories[userId]?.includes(categoryId);
 
       try {
         if (hasPermission) {
@@ -182,6 +261,8 @@ export default {
         };
         this.showPermissionsModal = true;
         this.getUserPermissions(userId);
+        this.activeTab = "pages";
+        this.loadInitialPagesForCategories();
       }
     },
 
@@ -191,11 +272,14 @@ export default {
     },
 
     getPagesByCategory(categoryId: number) {
-      return this.allPages.filter((page) => page.category_id === categoryId);
+      return this.allPages[categoryId]?.pages || [];
     },
 
     switchTab(tab: "pages" | "categories") {
       this.activeTab = tab;
+      if (tab === "pages") {
+        this.loadInitialPagesForCategories();
+      }
     },
   },
 
@@ -208,7 +292,7 @@ export default {
     }
     this.isLoading = true;
     try {
-      await Promise.all([this.getUsers(), this.getAllPages(), this.getCategories()]);
+      await Promise.all([this.getUsers(), this.getCategories()]);
     } finally {
       this.isLoading = false;
     }
@@ -241,20 +325,34 @@ export default {
             <td>{{ user.last_name }}</td>
             <td class="break-words">{{ user.user_email }}</td>
             <td>
-              <select class="role-select" @change="changeUserRole(user.id, $event)" :value="user.role">
+              <select
+                class="role-select"
+                @change="changeUserRole(user.id, $event)"
+                :value="user.role"
+              >
                 <option :value="2">Admin</option>
                 <option :value="1">Editor</option>
                 <option :value="0">User</option>
               </select>
             </td>
             <td>{{ user.registered_at }}</td>
-            <td>{{ user.edited_at ? user.edited_at : 'Not Edited' }}</td>
+            <td>{{ user.edited_at ? user.edited_at : "Not Edited" }}</td>
             <td>
-              <button class="delete-btn" @click="deleteUser(user.id)">Delete</button>
-              <button v-if="editedRoles[user.id]" class="confirm-btn" @click="confirmRoleChange(user.id)">
+              <button class="delete-btn" @click="deleteUser(user.id)">
+                Delete
+              </button>
+              <button
+                v-if="editedRoles[user.id]"
+                class="confirm-btn"
+                @click="confirmRoleChange(user.id)"
+              >
                 Confirm
               </button>
-              <button v-if="user.role === 1" class="permissions-btn" @click="openPermissionsModal(user.id)">
+              <button
+                v-if="user.role === 1"
+                class="permissions-btn"
+                @click="openPermissionsModal(user.id)"
+              >
                 Manage Permissions
               </button>
             </td>
@@ -279,7 +377,11 @@ export default {
         </div>
         <div class="user-field">
           <span class="field-label">Role:</span>
-          <select class="role-select" @change="changeUserRole(user.id, $event)" :value="user.role">
+          <select
+            class="role-select"
+            @change="changeUserRole(user.id, $event)"
+            :value="user.role"
+          >
             <option :value="2">Admin</option>
             <option :value="1">Editor</option>
             <option :value="0">User</option>
@@ -291,60 +393,166 @@ export default {
         </div>
         <div class="user-field">
           <span class="field-label">Edited:</span>
-          <span>{{ user.edited_at ? user.edited_at : 'Not Edited' }}</span>
+          <span>{{ user.edited_at ? user.edited_at : "Not Edited" }}</span>
         </div>
         <div class="user-field">
           <span class="field-label">Actions:</span>
-          <button class="delete-btn" @click="deleteUser(user.id)">Delete</button>
-          <button v-if="editedRoles[user.id]" class="confirm-btn" @click="confirmRoleChange(user.id)">
+          <button class="delete-btn" @click="deleteUser(user.id)">
+            Delete
+          </button>
+          <button
+            v-if="editedRoles[user.id]"
+            class="confirm-btn"
+            @click="confirmRoleChange(user.id)"
+          >
             Confirm
           </button>
-          <button v-if="user.role === 1" class="permissions-btn" @click="openPermissionsModal(user.id)">
+          <button
+            v-if="user.role === 1"
+            class="permissions-btn"
+            @click="openPermissionsModal(user.id)"
+          >
             Permissions
           </button>
         </div>
       </div>
     </div>
 
-    <div v-if="showPermissionsModal" class="permissions-modal-overlay" @click.self="closePermissionsModal">
+    <div
+      v-if="showPermissionsModal"
+      class="permissions-modal-overlay"
+      @click.self="closePermissionsModal"
+    >
       <div class="permissions-modal">
         <h3 class="modal-title">
-          Manage Permissions for: {{ selectedUser?.first_name }} {{ selectedUser?.last_name }}
+          Manage Permissions for: {{ selectedUser?.first_name }}
+          {{ selectedUser?.last_name }}
         </h3>
 
         <div class="tabs">
-          <button class="tab-btn" :class="{ 'active-tab': activeTab === 'pages' }" @click="switchTab('pages')">
+          <button
+            class="tab-btn"
+            :class="{ 'active-tab': activeTab === 'pages' }"
+            @click="switchTab('pages')"
+          >
             Page Permissions
           </button>
-          <button class="tab-btn" :class="{ 'active-tab': activeTab === 'categories' }"
-            @click="switchTab('categories')">
+          <button
+            class="tab-btn"
+            :class="{ 'active-tab': activeTab === 'categories' }"
+            @click="switchTab('categories')"
+          >
             Category Permissions
           </button>
         </div>
 
         <div class="permissions-content">
           <div v-if="activeTab === 'pages'" class="page-permissions">
-            <div v-for="category in categories" :key="category.id" class="category-section">
+            <div
+              v-if="categories.length === 0 && !isLoading"
+              class="text-center py-4 text-gray-500"
+            >
+              No categories found. Page permissions cannot be set.
+            </div>
+            <div
+              v-for="category in categories"
+              :key="category.id"
+              class="category-section"
+            >
               <h4 class="category-title">{{ category.title }}</h4>
+              <div
+                v-if="
+                  getPagesByCategory(category.id).length === 0 &&
+                  !allPages[category.id]?.isLoading
+                "
+                class="text-sm text-gray-500 py-2 text-center"
+              >
+                No pages in this category.
+              </div>
               <div class="pages-grid">
-                <div v-for="page in getPagesByCategory(category.id)" :key="page.id" class="page-item">
-                  <input type="checkbox" :id="`page-${page.id}`"
-                    :checked="selectedUser && userPermissions.pages[selectedUser.id]?.includes(page.id)"
-                    @change="togglePermission(selectedUser?.id || 0, page.id)" />
+                <div
+                  v-for="page in getPagesByCategory(category.id)"
+                  :key="page.id"
+                  class="page-item"
+                >
+                  <input
+                    type="checkbox"
+                    :id="`page-${page.id}`"
+                    :checked="
+                      selectedUser &&
+                      userPermissions.pages[selectedUser.id]?.includes(page.id)
+                    "
+                    @change="togglePermission(selectedUser?.id || 0, page.id)"
+                  />
                   <label :for="`page-${page.id}`">
                     {{ page.title }}
                   </label>
                 </div>
               </div>
+              <div
+                v-if="
+                  allPages[category.id]?.isLoading &&
+                  (!allPages[category.id]?.pages ||
+                    allPages[category.id]?.pages.length === 0)
+                "
+                class="text-sm text-gray-500 py-2 text-center"
+              >
+                Loading pages...
+              </div>
+              <div
+                v-if="
+                  allPages[category.id]?.isLoading &&
+                  allPages[category.id]?.pages &&
+                  allPages[category.id]?.pages.length > 0
+                "
+                class="text-sm text-gray-500 py-2 text-center"
+              >
+                Loading more pages...
+              </div>
+              <button
+                v-if="
+                  allPages[category.id]?.hasMore &&
+                  !allPages[category.id]?.isLoading
+                "
+                @click="
+                  fetchPagesForCategory(
+                    category.id,
+                    (allPages[category.id]?.currentPage || 0) + 1
+                  )
+                "
+                class="mt-2 px-3 py-1 text-sm text-white bg-blue-500 hover:bg-blue-600 rounded"
+              >
+                Load more...
+              </button>
             </div>
           </div>
 
           <div v-if="activeTab === 'categories'" class="category-permissions">
+            <div
+              v-if="categories.length === 0 && !isLoading"
+              class="text-center py-4 text-gray-500"
+            >
+              No categories available to set permissions for.
+            </div>
             <div class="categories-grid">
-              <div v-for="category in categories" :key="category.id" class="category-item">
-                <input type="checkbox" :id="`category-${category.id}`"
-                  :checked="selectedUser && userPermissions.categories[selectedUser.id]?.includes(category.id)"
-                  @change="toggleCategoryPermission(selectedUser?.id || 0, category.id)" />
+              <div
+                v-for="category in categories"
+                :key="category.id"
+                class="category-item"
+              >
+                <input
+                  type="checkbox"
+                  :id="`category-${category.id}`"
+                  :checked="
+                    selectedUser &&
+                    userPermissions.categories[selectedUser.id]?.includes(
+                      category.id
+                    )
+                  "
+                  @change="
+                    toggleCategoryPermission(selectedUser?.id || 0, category.id)
+                  "
+                />
                 <label :for="`category-${category.id}`">
                   {{ category.title }}
                 </label>
@@ -354,7 +562,9 @@ export default {
         </div>
 
         <div class="modal-actions">
-          <button @click="closePermissionsModal" class="close-btn">Close</button>
+          <button @click="closePermissionsModal" class="close-btn">
+            Save & Close
+          </button>
         </div>
       </div>
     </div>
@@ -369,7 +579,7 @@ export default {
 }
 
 .loading-overlay {
-  @apply fixed inset-0 bg-black flex items-center justify-center z-50;
+  @apply fixed inset-0 bg-black/75 flex items-center justify-center z-50;
 }
 
 .loading-spinner {
@@ -430,11 +640,11 @@ export default {
 }
 
 .permissions-modal-overlay {
-  @apply fixed inset-0 bg-black flex items-center justify-center z-50;
+  @apply fixed inset-0 bg-black/75 flex items-center justify-center z-50;
 }
 
 .permissions-modal {
-  @apply bg-white rounded-lg p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto;
+  @apply bg-white rounded-lg px-6 py-3 max-w-4xl w-full max-h-[95vh] overflow-y-auto;
 }
 
 .modal-title {
@@ -493,6 +703,6 @@ export default {
 }
 
 .close-btn {
-  @apply px-4 py-2 bg-gray-300 rounded hover:bg-gray-400;
+  @apply cursor-pointer rounded-lg text-sm text-white bg-blue-600 hover:bg-blue-700 p-2 ml-2;
 }
 </style>

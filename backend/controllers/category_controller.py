@@ -4,7 +4,7 @@ from typing import List
 from db import get_db
 from db.orm import Category
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from controllers.dependencies import get_admin_user
@@ -13,7 +13,7 @@ CATEGORY_CONTROLLER = APIRouter(prefix="/category")
 
 
 class CategoryCreate(BaseModel):
-    title: str
+    title: str = Field(max_length=45)
 
 
 class CategoryOut(CategoryCreate):

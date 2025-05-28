@@ -14,13 +14,17 @@ export default {
 </script>
 
 <template>
-  <div class="flex flex-col min-h-screen">
+  <div class="app-container">
     <HeaderComponent />
-
-    <main class="flex-1">
+    <main class="main-content">
       <RouterView />
     </main>
-
     <FooterComponent />
   </div>
 </template>
+
+<style scoped>
+.app-container {
+  @apply flex flex-col min-h-screen;
+}
+</style>

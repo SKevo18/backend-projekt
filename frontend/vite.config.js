@@ -11,11 +11,11 @@ export default defineConfig({
     viteStaticCopy({
       targets: [
         {
-          src: '.htaccess',
-          dest: ''
-        }
-      ]
-    })
+          src: ".htaccess",
+          dest: "",
+        },
+      ],
+    }),
   ],
   resolve: {
     alias: {

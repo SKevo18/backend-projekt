@@ -98,8 +98,8 @@ class UserPagePermission(Base):
     __tablename__ = "user_page_permissions"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
-    page_id: Mapped[int] = mapped_column(ForeignKey("pages.id"))
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    page_id: Mapped[int] = mapped_column(ForeignKey("pages.id", ondelete="CASCADE"))
     created_at: Mapped[datetime] = mapped_column(default=datetime.now)
 
     user: Mapped["User"] = relationship(back_populates="page_permissions")
@@ -109,8 +109,10 @@ class UserCategoryPermission(Base):
     __tablename__ = "user_category_permissions"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
-    category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"))
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    category_id: Mapped[int] = mapped_column(
+        ForeignKey("categories.id", ondelete="CASCADE")
+    )
     created_at: Mapped[datetime] = mapped_column(default=datetime.now)
 
     user: Mapped["User"] = relationship(back_populates="category_permissions")

@@ -11,7 +11,7 @@ export default defineComponent({
   },
   props: {
     activeCategoryId: {
-      type: Number,
+      type: Number as () => number | null,
       required: false,
       default: null,
     },
@@ -20,43 +20,51 @@ export default defineComponent({
     return {
       authStore: useAuthStore(),
       pagesStore: usePagesStore(),
-      categoryPagesMap: {} as Record<number, any[]>,
-      isLoading: true,
     };
   },
   computed: {
-    categories() {
-      return this.pagesStore.categories;
+    activeCategoryData() {
+      if (this.activeCategoryId === null) return null;
+      return this.pagesStore.pagesByCategory[this.activeCategoryId];
+    },
+    activeCategoryPages() {
+      return this.activeCategoryData?.pages || [];
+    },
+    canLoadMore() {
+      return (
+        this.activeCategoryData?.hasMore && !this.activeCategoryData?.isLoading
+      );
+    },
+    isLoadingPages() {
+      return this.activeCategoryData?.isLoading;
     },
   },
   methods: {
-    async fetchAllCategoryPages() {
-      this.isLoading = true;
-      for (const category of this.categories) {
-        this.categoryPagesMap[category.id] = await this.pagesStore.fetchPages(
-          category.id
-        );
-      }
-      this.isLoading = false;
-    },
-  },
-  async mounted() {
-    if (this.pagesStore.categories.length === 0) {
-      await this.pagesStore.fetchCategories();
-    }
+    async loadPagesForActiveCategory(isLoadMore = false) {
+      if (this.activeCategoryId === null) return;
 
-    await this.fetchAllCategoryPages();
+      const currentPage = this.activeCategoryData?.currentPage || 0;
+      const nextPage = isLoadMore ? currentPage + 1 : 1;
+
+      await this.pagesStore.fetchPages(this.activeCategoryId, nextPage);
+    },
+    async ensureActiveCategoryPagesExist() {
+      if (
+        this.activeCategoryId !== null &&
+        (!this.activeCategoryData ||
+          this.activeCategoryData.pages.length === 0) &&
+        !this.activeCategoryData?.isLoading
+      ) {
+        await this.loadPagesForActiveCategory();
+      }
+    },
   },
   watch: {
     activeCategoryId: {
       immediate: true,
-      handler(newId) {
-        if (this.categories.length > 0) {
-          if (newId && !this.categoryPagesMap[newId]) {
-            this.pagesStore.fetchPages(newId).then((pages) => {
-              this.categoryPagesMap[newId] = pages;
-            });
-          }
+      async handler(newId) {
+        if (newId !== null) {
+          await this.ensureActiveCategoryPagesExist();
         }
       },
     },
@@ -66,51 +74,53 @@ export default defineComponent({
 
 <template>
   <aside class="sidebar">
-    <div class="categories-list">
-      <div
-        v-for="category in categories"
-        :key="category.id"
-        class="category-item"
+    <div v-if="activeCategoryId !== null">
+      <ul
+        v-if="activeCategoryPages.length > 0"
+        class="pages-list active-category"
       >
-        <RouterLink
-          :to="{ name: 'category', params: { category: category.id } }"
-          class="category-link"
-          :class="{ 'category-link-active': category.id === activeCategoryId }"
-        >
-          {{ category.title }}
-        </RouterLink>
-
-        <ul
-          v-if="categoryPagesMap[category.id]?.length > 0"
-          class="pages-list"
-          :class="{ 'active-category': category.id === activeCategoryId }"
-        >
-          <li v-for="page in categoryPagesMap[category.id]" :key="page.id">
-            <RouterLink
-              :to="{
-                name: 'page',
-                params: { idSlug: page.id + '-' + page.slug },
-              }"
-              class="sidebar-link"
-              active-class="sidebar-link-active"
-            >
-              {{ page.title }}
-            </RouterLink>
-          </li>
-        </ul>
-        <div
-          v-else-if="isLoading && category.id === activeCategoryId"
-          class="p-2 text-center text-xs text-gray-400"
-        >
-          Loading...
-        </div>
-        <div
-          v-else-if="category.id === activeCategoryId"
-          class="p-2 text-center text-xs text-gray-400"
-        >
-          No pages
-        </div>
+        <li v-for="page in activeCategoryPages" :key="page.id">
+          <RouterLink
+            :to="{
+              name: 'page',
+              params: { idSlug: page.id + '-' + page.slug },
+            }"
+            class="sidebar-link"
+            active-class="sidebar-link-active"
+          >
+            {{ page.title }}
+          </RouterLink>
+        </li>
+      </ul>
+      <div
+        v-if="isLoadingPages && activeCategoryPages.length === 0"
+        class="p-2 text-center text-xs text-gray-400"
+      >
+        Loading pages...
       </div>
+      <div
+        v-else-if="!isLoadingPages && activeCategoryPages.length === 0"
+        class="p-2 text-center text-xs text-gray-400"
+      >
+        No pages in this category.
+      </div>
+
+      <button
+        v-if="canLoadMore"
+        @click="loadPagesForActiveCategory(true)"
+        class="w-full mt-2 px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white focus:outline-none"
+      >
+        Load more...
+      </button>
+      <div
+        v-if="isLoadingPages && activeCategoryPages.length > 0"
+        class="p-2 text-center text-xs text-gray-400"
+      >
+        Loading more pages...
+      </div>
+    </div>
+    <div v-else class="p-4 text-center text-gray-400">
+      Select a category to see its pages.
     </div>
 
     <RouterLink
@@ -118,7 +128,7 @@ export default defineComponent({
       class="text-center my-4 block px-4 py-2 text-sm text-gray-400 hover:text-white"
       :to="{ name: 'admin-pages' }"
     >
-      Edit
+      Edit Pages
     </RouterLink>
   </aside>
 </template>
@@ -127,15 +137,7 @@ export default defineComponent({
 @import "tailwindcss";
 
 .sidebar {
-  @apply bg-gray-800 text-white sm:w-[240px] text-center sm:text-left sm:min-h-[80vh] flex flex-col justify-between overflow-y-auto;
-}
-
-.categories-list {
-  @apply flex flex-col;
-}
-
-.category-item {
-  @apply border-b border-gray-700;
+  @apply bg-gray-800 text-white sm:w-[240px] text-center sm:text-left sm:min-h-[calc(100vh-var(--header-height,64px))] flex flex-col justify-between overflow-y-auto;
 }
 
 .category-link {
