@@ -18,19 +18,185 @@ Zdrojový kód pre FastAPI aplikáciu.
     - `env.py` - súbor s konfiguráciou pre Alembic
     - `versions/` - priečinok s vygenerovanými migráciami
 
-## Development inštrukcie
+---
 
-1. `cd backend`
-2. `python -m venv .venv`
-3. Aktivovať virtual environment:
-    - Mac/Linux: `source .venv/bin/activate`
-    - Windows: `.\.venv\Scripts\activate.ps1`
-4. Inštalovať potrebné Python moduly cez PyPI: `pip install -r requirements.txt`
-5. Pridať `DATABASE_URL` do env premenných (v súbore `.env`).
-6. Spustiť uvicorn server: `uvicorn main:API --reload --env-file .env`
-7. Nezabudajte na XAMPP
-8. Neviem ci je to tak iba u mna ale ak sa nedari zapnut SQL v XAMPP tak treba otvorit "Task manager" -> mysql -> end task -> spustit XAMPP
-9. tak isto moze sa vam stat z uvicorn preto cez "task manager" -> python -> end task -> sputit zas
+## Docker (Odporúčané)
+
+Najjednoduchší spôsob ako spustiť celú aplikáciu (backend + frontend + databáza).
+
+### Požiadavky
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows/Mac) alebo Docker Engine (Linux)
+
+### Rýchly štart
+
+1. **Spustite Docker Desktop** (musí bežať pred spustením príkazov)
+
+2. **Prejdite do docker priečinka:**
+   ```bash
+   cd docker
+   ```
+
+3. **Vytvorte `.env` súbor** (skopírujte šablónu):
+   ```bash
+   # Linux/Mac:
+   cp .env.example .env
+
+   # Windows (PowerShell):
+   Copy-Item .env.example .env
+   ```
+
+4. **Upravte `.env` súbor** - nastavte heslá:
+   ```env
+   DB_ROOT_PASSWORD=moje_root_heslo
+   DB_PASSWORD=moje_app_heslo
+   SECRET_KEY=nahodny_tajny_kluc
+   ```
+
+5. **Spustite aplikáciu:**
+   ```bash
+   # Linux/Mac:
+   ./dev.sh
+
+   # Windows (PowerShell):
+   .\dev.ps1
+   ```
+
+   Alebo manuálne:
+   ```bash
+   docker compose --profile default up --build -d
+   ```
+
+6. **Aplikácia beží na:**
+   - Frontend: http://localhost
+   - API dokumentácia: http://localhost/api/docs
+   - Databáza: localhost:3306
+
+### Užitočné príkazy
+
+```bash
+# Zobraziť logy
+docker compose logs -f
+
+# Zobraziť logy konkrétnej služby
+docker compose logs -f backend
+
+# Zastaviť aplikáciu
+docker compose down
+
+# Zastaviť a vymazať dáta (databáza)
+docker compose down -v
+
+# Reštartovať službu
+docker compose restart backend
+
+# Vstúpiť do kontajnera
+docker compose exec backend bash
+docker compose exec db mysql -u app -p app
+```
+
+### Štruktúra služieb
+
+| Služba | Port | Popis |
+|--------|------|-------|
+| `frontend` | 80 | Vue.js + Nginx |
+| `backend` | 8000 (interný) | FastAPI + Uvicorn |
+| `db` | 3306 | MariaDB 11 |
+
+### Riešenie problémov
+
+**Port 80 je obsadený:**
+```bash
+# Windows - nájsť proces:
+netstat -ano | findstr :80
+
+# Zastaviť IIS ak beží:
+iisreset /stop
+```
+
+**Databáza sa nespustí:**
+```bash
+# Vymazať volumes a spustiť znova:
+docker compose down -v
+docker compose --profile default up --build -d
+```
+
+**Backend padá:**
+```bash
+# Skontrolovať logy:
+docker compose logs backend
+```
+
+---
+
+## Development inštrukcie (bez Dockera)
+
+Ak nechcete používať Docker, môžete spustiť backend manuálne s XAMPP.
+
+### Požiadavky
+
+- Python 3.13+
+- XAMPP (alebo iný MySQL/MariaDB server)
+
+### Kroky
+
+1. **Prejdite do backend priečinka:**
+   ```bash
+   cd backend
+   ```
+
+2. **Vytvorte virtual environment:**
+   ```bash
+   python -m venv .venv
+   ```
+
+3. **Aktivujte virtual environment:**
+   ```bash
+   # Mac/Linux:
+   source .venv/bin/activate
+
+   # Windows (PowerShell):
+   .\.venv\Scripts\activate.ps1
+
+   # Windows (CMD):
+   .\.venv\Scripts\activate.bat
+   ```
+
+4. **Nainštalujte závislosti:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+5. **Vytvorte `.env` súbor** (skopírujte šablónu):
+   ```bash
+   cp .env.template .env
+   ```
+
+6. **Upravte `.env` súbor:**
+   ```env
+   DATABASE_URL=mysql+pymysql://root@localhost:3306/bp
+   SECRET_KEY=nahodny_tajny_kluc
+   FRONTEND_URL=http://localhost:5173
+   ```
+
+7. **Spustite XAMPP** a vytvorte databázu `bp` v phpMyAdmin
+
+8. **Spustite migrácie:**
+   ```bash
+   python migrate.py
+   ```
+
+9. **Spustite server:**
+   ```bash
+   uvicorn main:API --reload --env-file .env
+   ```
+
+10. **API beží na:** http://localhost:8000/docs
+
+### Časté problémy
+
+- **MySQL v XAMPP sa nespustí:** Otvorte Task Manager -> nájdite `mysql` -> End task -> spustite XAMPP znova
+- **Uvicorn nereaguje:** Task Manager -> nájdite `python` -> End task -> spustite znova
 
 ## Production (Namecheap shared hosting)
 

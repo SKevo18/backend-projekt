@@ -3,19 +3,22 @@ services:
     build: ../backend
     restart: unless-stopped
     environment:
-      - DB_HOST=db
-      - DB_PORT=3306
-      - DB_USER=app
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_NAME=app
+      - DATABASE_URL=mysql+pymysql://${DB_USER:-app}:${DB_PASSWORD}@db:3306/${DB_NAME:-app}
+      - SECRET_KEY=${SECRET_KEY:-change_me_in_production}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost}
     expose:
-      - "8000:8000"
+      - "8000"
     command: >
       /bin/sh -c "
-      sleep 2;
+      echo 'Waiting for database...';
+      sleep 5;
+      echo 'Running migrations...';
+      python migrate.py;
+      echo 'Starting server...';
       uvicorn main:API --host 0.0.0.0 --port 8000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     profiles: ["default", "https"]
 
   frontend:
@@ -24,7 +27,9 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     ports:
       - "80:80"
-    profiles: ["default", "https"]
+    depends_on:
+      - backend
+    profiles: ["default"]
 
   frontend-https:
     build: ../frontend
@@ -35,6 +40,8 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    depends_on:
+      - backend
     profiles: ["https"]
 
   certbot:
@@ -55,13 +62,19 @@ services:
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
-      MYSQL_DATABASE: app
-      MYSQL_USER: app
+      MYSQL_DATABASE: ${DB_NAME:-app}
+      MYSQL_USER: ${DB_USER:-app}
       MYSQL_PASSWORD: ${DB_PASSWORD}
     ports:
       - "3306:3306"
     volumes:
       - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     profiles: ["default", "https"]
 
 volumes:
